@@ -1,70 +1,26 @@
-# Getting Started with Create React App
+# Welcome
+Repo for frontend at https://app.holonym.id (formerly https://whoisthis.wtf)
+# ⚠️ Please do this before contributing
+If you have priviliges to commit to master, please add this to .git/hooks/pre-commit to prompt. Doing so will make it difficult to accidentally commit without completing a checklist. It is important not to commit to the main branch until you have done these manual tests in the checklist, which cannot be easily automated. This will give you the checklist and make sure you've confirmed succesful completion of this checklist before allowing you to commit :)
+```
+#!/bin/sh
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+branch="$(git rev-parse --abbrev-ref HEAD)"
 
-## Available Scripts
+if [ "$branch" = "main" ]; then
+  echo "\x1B[1;31mWARNING: YOU'RE ATTEMPTING TO COMMIT TO THE MASTER\033[0m Are you sure you want to do this? Have you done the following four items:
+	  * Gone through every page you changed at tested that it looks good on all browser sizes, multiple browsers, and mobile?
+	  * Manually tested wallet UX flows on a browser with a connected wallet, disconnect wallet, incognito and mobile?
+	  * Checked that payments are not broken? (unlikely to break but important to not break)
+	if you are sure about commiting these changes to master, type \033[;33m global thermonuclear war commit\033[0m"
 
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+	exec < /dev/tty
+	read response
+	if [ "$response" = "global thermonuclear war commit" ];
+	then
+		echo OK
+	else 
+		exit 1
+	fi
+fi
+```

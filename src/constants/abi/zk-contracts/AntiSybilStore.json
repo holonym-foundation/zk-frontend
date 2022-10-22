@@ -1,0 +1,8 @@
+[
+  "constructor(address,address)",
+  "event Uniqueness(address,uint256)",
+  "function footprints(uint256) view returns (bool)",
+  "function isUniqueForAction(address,uint256) view returns (bool)",
+  "function proofIsValid(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[]) view returns (bool)",
+  "function prove(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[])"
+]
