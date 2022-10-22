@@ -4,6 +4,6 @@ const Mint = () => {
     useEffect(() => {
         setTimeout(loadVouched,3000);
       }, []);
-    return <div id="vouche-element" style={{ height: "100%" }}></div>
+    return <div id="vouched-element" style={{ height: "100%" }}></div>
 }
 export default Mint;
