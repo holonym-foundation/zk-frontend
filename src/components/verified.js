@@ -26,8 +26,9 @@ const dummyUserCreds = {
 };
 
 // Display success message, and retrieve user credentials to store in browser
-const Verified = () => {
-  const { jobID } = useParams();
+const Verified = (props) => {
+  const p = useParams();
+  const jobID = p.jobID || props.jobID;
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [storageSuccess, setStorageSuccess] = useState(false);

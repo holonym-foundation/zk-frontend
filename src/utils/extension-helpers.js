@@ -64,7 +64,6 @@ function getIsRegistered() {
     let isInstalled; let isRegistered;
     try {
       isInstalled = await getExtensionIsInstalled()
-      console.log(isInstalled)
     } catch(e) {}
     
     try {

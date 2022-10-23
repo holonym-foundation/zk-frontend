@@ -1,30 +1,26 @@
 import { useState, useEffect } from "react";
 import loadVouched from "./load-vouched";
 import { getExtensionState } from "./utils/extension-helpers";
-
-  // console.log(isInstalled, isRegistered)
-  // if (!isInstalled) {
-  //   document.getElementById("no-extension").style.display="block";
-  // } else if (isInstalled && !isRegistered) {
-  //   document.getElementById("not-registered").style.display="block";
-  // } else if (isInstalled && isRegistered) {
-  //   setupVouched()
-  // } else {
-  //   // TODO: Set error. If this happens, there's probably a bug in the extension
-  // }
-
-
-// Vouched element will not mount unless user 
-    // (a) has extension and 
-    // (b) has set their extension password
-    // waitForInstalled().then(setupVouched)
+import { useParams } from "react-router-dom";
+import Verified from "./components/verified";
     
-
 const Mint = () => {
-    getExtensionState().then(x=>console.log(x))
+  const { jobID } = useParams();
+    const [userJourney, setUserJourney] = useState({isInstalled : false, isRegistered : false});
     useEffect(() => {
-        loadVouched();
+      async function setup() {
+        const s = await getExtensionState();
+        setUserJourney(s);
+        if(s.isInstalled && !s.isRegistered) loadVouched();
+      }
+      setup(); 
       }, []);
-    return <div id="vouched-element" style={{ height: "100%" }}></div>
+      
+    return <>
+      <div id="vouched-element" style={{ height: "100%" }}></div>
+      {(jobID && userJourney.isInstalled) ? <Verified jobID={jobID} /> : null}
+      {/* Allow user to also see screen */}
+      {(!jobID && userJourney.isInstalled && userJourney.isRegistered) ? <Verified jobID="tryAddLeafAgain" /> : null}
+    </>
 }
 export default Mint;
