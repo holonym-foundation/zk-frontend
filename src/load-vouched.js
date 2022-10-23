@@ -41,7 +41,7 @@ const config = {
         // Redirect to the next page based on the job success
         if( job.result.success){
           console.log('jobID is', job.id)
-          window.location.href=(`https://holonym.io/verified/${job.id}`);
+          window.location.href=(`/mint/${job.id}`);
       } else{
           alert('Verification failed')
       //   window.location.href=("");

@@ -4,6 +4,7 @@ import { getExtensionState } from "./utils/extension-helpers";
 import { useParams } from "react-router-dom";
 import StoreCredentials from "./components/store-credentials";
 import { Step } from "./components/atoms/Step";
+import MintButton from "./components/atoms/mint-button";
     
 const Mint = () => {
   const { jobID } = useParams();
@@ -13,11 +14,9 @@ const Mint = () => {
       async function setup() {
         const s = await getExtensionState();
         setUserJourney(s);
-        if(s.isInstalled && !s.hasCredentials &&!jobID){ // TODO: this should not be isRegistered but rather hasCredentials!!!
-          setCurrent("verify"); loadVouched();
-        }
-        if(jobID && userJourney.isInstalled){ // TODO: this should not be isRegistered but rather hasCredentials!!!
-          setCurrent("mint"); 
+        if(s.isInstalled && !s.hasCredentials){ // TODO: this should not be isRegistered but rather hasCredentials!!!
+          setCurrent("verify"); 
+          if(!jobID)loadVouched();
         }
       }
       setup(); 
@@ -25,17 +24,16 @@ const Mint = () => {
 
     return <>
       {/* Let user try again in case of error */}
-      {(!jobID && userJourney.isInstalled && userJourney.isRegistered) ? <StoreCredentials jobID="tryMintingAgain" /> : 
+      {(!jobID && userJourney.isInstalled && userJourney.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : 
       /* Otherwise, show the typical page*/
       <>
-        <Step title="Step 1: Download the Holonym Extension" complete={window.holonym} current={current == "download"}>
+        <Step title="Step 1: Download the Holonym Extension" complete={Boolean(window.holonym)} current={current === "download"}>
           <a target="_blank" className="x-button secondary" href="https://chrome.google.com/webstore/detail/holonym/obhgknpelgngeabaclepndihajndjjnb">Download</a>
         </Step>
 
-        <Step title="Step 2: Verify your ID" complete={window.holonym?.hasCredentials/*()*/} current={current == "verify"}>
+        <Step title="Step 2: Verify your ID" complete={window.holonym?.hasCredentials/*()*/} current={current === "verify"}>
           {jobID ? <StoreCredentials jobID={jobID} /> : <div id="vouched-element" style={{ height: "100%" }}></div>}
         </Step>
-
       </>
       }
      

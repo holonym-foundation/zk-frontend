@@ -22,7 +22,7 @@ async function getCredsFromExtension() {
   }
 
 const RetryMinting = (props) => {
-    const [creds, setCreds] = useState({});
+    const [creds, setCreds] = useState();
     useEffect(()=>{
         async function f(){
             setCreds(await getCredsFromExtension());

@@ -54,7 +54,7 @@ const MintButton = (props) => {
         console.log(res);
       }
 
-    <div style={{ textAlign: "center" }}>
+    return <div style={{ textAlign: "center" }}>
       <button className="x-button-blue" onClick={addLeaf}>
         <div style={{ 
           display: "flex",
@@ -74,6 +74,8 @@ const MintButton = (props) => {
           />}
           </div>
       </button>
+
+      
       <p style={{color:"red"}}>{error}</p>
     </div>
 }
