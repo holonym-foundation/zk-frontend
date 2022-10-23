@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import axios from "axios";
 import { useParams } from "react-router-dom";
 
 import {
@@ -8,27 +6,32 @@ import {
   getIsHoloRegistered,
   requestCredentials,
 } from "../utils/secrets";
-import { zkIdVerifyEndpoint, serverAddress } from "../constants/misc";
+import { zkIdVerifyEndpoint } from "../constants/misc";
 import {
   getStateAsHexString,
   getDateAsHexString,
-  onAddLeafProof,
 } from "../utils/proofs";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
+import MintButton from "./atoms/mint-button";
 
 // For test credentials, see id-server/src/main/utils/constants.js
-const dummyUserCreds = {
-  countryCode: 2,
-  subdivision: "New York",
-  completedAt: "2022-09-16", // "2022-09-16T02:21:59.510Z",
-  birthdate: "1950-01-01",
-};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function waitForUserRegister() {
+  let isRegistered = await getIsHoloRegistered();
+  while (!isRegistered) {
+    await sleep(100);
+    isRegistered = await getIsHoloRegistered();
+  }
+}
 
 // Display success message, and retrieve user credentials to store in browser
 const Verified = (props) => {
-  const p = useParams();
-  const jobID = p.jobID || props.jobID;
+  // const p = useParams();
+  // const jobID = p.jobID || props.jobID;
+  const { jobID } = useParams();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [credsAreStored, setCredsAreStored] = useState(false);
@@ -38,7 +41,7 @@ const Verified = (props) => {
   // TODO: Check whether user is logged in too
   const [creds, setCreds] = useState();
 
-  async function getCredentials() {
+  async function loadCredentials() {
     setError(undefined);
     setLoading(true);
     try {
@@ -58,16 +61,6 @@ const Verified = (props) => {
       }
     } catch (err) {
       console.error(`Could not retrieve credentials. Details: ${err}`);
-    }
-  }
-
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-  async function waitForUserRegister() {
-    let isRegistered = await getIsHoloRegistered();
-    while (!isRegistered) {
-      await sleep(100);
-      isRegistered = await getIsHoloRegistered();
     }
   }
 
@@ -100,7 +93,7 @@ const Verified = (props) => {
         await waitForUserRegister();
         setError(undefined);
       }
-      const credsTemp = await getCredentials();
+      const credsTemp = await loadCredentials();
       if (!credsTemp) {
         setError(`Error: Could not retrieve credentials.`);
         return;
@@ -151,46 +144,7 @@ const Verified = (props) => {
     // });
   }, []);
 
-  async function addLeaf() {
-    setMinting(true);
-    const oldSecret = creds.secret;
-    const newSecret = creds.newSecret;
-    const oalProof = await onAddLeafProof(
-      serverAddress,
-      creds.countryCode,
-      creds.subdivisionHex,
-      creds.completedAtHex,
-      creds.birthdateHex,
-      oldSecret,
-      newSecret
-    );
-    console.log("oalProof", oalProof);
-    const { v, r, s } = ethers.utils.splitSignature(creds.signature);
-    const RELAYER_URL = "https://relayer.holonym.id";
-    let res;
-    try {
-      res = await axios.post(`${RELAYER_URL}/addLeaf`, {
-        addLeafArgs: {
-          issuer: serverAddress,
-          v: v,
-          r: r,
-          s: s,
-          zkp: oalProof.proof,
-          zkpInputs: oalProof.inputs,
-        },
-      });
-      if (res.status == 200) {
-        setSuccessScreen(true);
-      }
-    } catch (e) {
-      console.log("There was an error:", e);
-      setError(
-        "There was an error in submitting your transaction...perhaps you have already minted a Holo?"
-      );
-    }
-    console.log("result");
-    console.log(res);
-  }
+  
 
   if (successScreen) {
     return <Success />;
@@ -219,8 +173,6 @@ const Verified = (props) => {
         
       ) : (
         <div>
-          <h3 style={{ textAlign: "center" }}>Almost finished!</h3>
-          <br />
           <div style={{ maxWidth: "600px", fontSize: "16px" }}>
             <i>
               <ol>
@@ -238,44 +190,15 @@ const Verified = (props) => {
                     {!registered && "(after creating an account)"}
                   </p>
                 </li>
-                <p>
-                  <li>Confirm your credentials</li>
-                </p>
-                {/* <li>
-                  <p>Share your credentials</p>
-                  <p style={{ fontSize: ".8em" }}>
-                    (The extension generates a new secret for you and requires your
-                    consent to share it)
-                  </p>
-                </li> */}
+                <li>
+                  <p>Confirm your credentials</p>
+                </li>
                 <li>
                   <p>Mint your Holo:</p>
                 </li>
               </ol>
             </i>
-            {creds && credsAreStored && (
-              <div style={{ textAlign: "center" }}>
-                <button className="x-button-blue" onClick={addLeaf}>
-                  <div style={{ 
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center"
-                  }}>
-                  Mint Your Holo
-                  {minting && <ThreeDots 
-                    height="20" 
-                    width="20" 
-                    radius="2"
-                    color="#0F0F0F" 
-                    ariaLabel="three-dots-loading"
-                    wrapperStyle={{marginLeft:"20px"}}
-                    wrapperClassName=""
-                    visible={true}
-                    />}
-                    </div>
-                </button>
-              </div>
-            )}
+            {creds && credsAreStored && <MintButton creds={creds} successCallback={()=>setSuccessScreen(true)} />}
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@
   "dependencies": {
     "@babel/preset-typescript": "^7.16.7",
     "@craco/craco": "^6.4.5",
+    "@holonym-foundation/utils": "^1.0.0",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^14.1.1",

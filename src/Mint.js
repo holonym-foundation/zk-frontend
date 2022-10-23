@@ -2,25 +2,46 @@ import { useState, useEffect } from "react";
 import loadVouched from "./load-vouched";
 import { getExtensionState } from "./utils/extension-helpers";
 import { useParams } from "react-router-dom";
-import Verified from "./components/verified";
+import StoreCredentials from "./components/store-credentials";
+import { Step } from "./components/atoms/Step";
     
 const Mint = () => {
   const { jobID } = useParams();
-    const [userJourney, setUserJourney] = useState({isInstalled : false, isRegistered : false});
+    const [userJourney, setUserJourney] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
+    const [current, setCurrent] = useState("download"); // Controls which current step of instructions is displayed
     useEffect(() => {
       async function setup() {
         const s = await getExtensionState();
         setUserJourney(s);
-        if(s.isInstalled && !s.isRegistered) loadVouched();
+        if(s.isInstalled && !s.hasCredentials &&!jobID){ // TODO: this should not be isRegistered but rather hasCredentials!!!
+          setCurrent("verify"); loadVouched();
+        }
+        if(jobID && userJourney.isInstalled){ // TODO: this should not be isRegistered but rather hasCredentials!!!
+          setCurrent("mint"); 
+        }
       }
       setup(); 
       }, []);
-      
+
     return <>
-      <div id="vouched-element" style={{ height: "100%" }}></div>
-      {(jobID && userJourney.isInstalled) ? <Verified jobID={jobID} /> : null}
-      {/* Allow user to also see screen */}
-      {(!jobID && userJourney.isInstalled && userJourney.isRegistered) ? <Verified jobID="tryAddLeafAgain" /> : null}
+      {/* Let user try again in case of error */}
+      {(!jobID && userJourney.isInstalled && userJourney.isRegistered) ? <StoreCredentials jobID="tryMintingAgain" /> : 
+      /* Otherwise, show the typical page*/
+      <>
+        <Step title="Step 1: Download the Holonym Extension" complete={window.holonym} current={current == "download"}>
+          <a target="_blank" className="x-button secondary" href="https://chrome.google.com/webstore/detail/holonym/obhgknpelgngeabaclepndihajndjjnb">Download</a>
+        </Step>
+
+        <Step title="Step 2: Verify your ID" complete={window.holonym?.hasCredentials/*()*/} current={current == "verify"}>
+          {jobID ? <StoreCredentials jobID={jobID} /> : <div id="vouched-element" style={{ height: "100%" }}></div>}
+        </Step>
+
+      </>
+      }
+     
+      
+      
+      
     </>
 }
 export default Mint;

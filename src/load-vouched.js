@@ -54,7 +54,7 @@ const config = {
         qrDesktopLink : 'verify on desktop',
         qrDesktopInstructions : ' ',//'Or if your webcam is good, you can {qrDesktopLink}.',
         // qrHandoffInstructions : 'Scan that fucker'
-        crossDeviceTitle : 'Join the Privacy Pool'
+        // crossDeviceTitle : ''// 'Join the Privacy Pool'
       },
       
       // theme
@@ -62,7 +62,7 @@ const config = {
         name: 'avant',
         // iconLabelColor : '#89b3e5',
         bgColor : '#02070c',
-        logo : { src: 'https://holonym.id/images/Holo-Logo.png', style: { 'max-width': 150, 'margin-bottom': 30 }},
+        // logo : { src: 'https://holonym.id/images/Holo-Logo.png', style: { 'max-width': 150, 'margin-bottom': 30 }},
         // navigationActiveText : '#89b3e5',
         // iconColor : '#ff9190',
         // iconBackground : '#0e2433',
