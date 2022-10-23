@@ -23,7 +23,7 @@ import { getExtensionState } from "./utils/extension-helpers";
 const Mint = () => {
     getExtensionState().then(x=>console.log(x))
     useEffect(() => {
-        setTimeout(loadVouched,3000);
+        loadVouched();
       }, []);
     return <div id="vouched-element" style={{ height: "100%" }}></div>
 }
