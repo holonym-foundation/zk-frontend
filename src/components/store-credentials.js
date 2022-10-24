@@ -67,17 +67,20 @@ const Verified = (props) => {
   async function setCredsFromExtension() {
     try {
       // Request credentials. Need to request because extension generates new secret
-      const newCreds = await requestCredentials();
-      setCreds({
-        ...newCreds,
+      const creds_ = await requestCredentials();
+      const formattedCreds = {
+        ...creds_,
         subdivisionHex: getStateAsHexString(
-          newCreds.subdivision,
-          newCreds.countryCode
+          creds_.subdivision,
+          creds_.countryCode
         ),
-        completedAtHex: getDateAsHexString(newCreds.completedAt),
-        birthdateHex: getDateAsHexString(newCreds.birthdate),
-      });
+        completedAtHex: getDateAsHexString(creds_.completedAt),
+        birthdateHex: getDateAsHexString(creds_.birthdate),
+      }
+      setCreds(formattedCreds);
+      props.onSetCredsFromExtension && props.onSetCredsFromExtension(formattedCreds);
     } catch (e) {
+      console.error(e);
       setError("There was a problem in storing your credentials");
     }
   }
