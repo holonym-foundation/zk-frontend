@@ -19,7 +19,7 @@ const Step1 = () => (
 const Step2 = () => {
   useEffect(loadVouched, []);
   return <>
-    <h1>Verify your ID</h1>
+    <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
     <div id="vouched-element" style={{ height: "10vh"}}></div>
   </>
 }
