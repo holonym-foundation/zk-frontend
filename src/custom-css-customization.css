@@ -1,0 +1,9 @@
+.vouched .handoff-title {
+    display: none;
+}
+.vouched-description {
+    display: none;
+}
+.vouched .flex-center {
+    justify-content: start !important;
+}
