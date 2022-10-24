@@ -125,6 +125,7 @@ function App() {
           <Route exact path={"/"} element={<Welcome />} />
           <Route exact path={"/verified/:jobID"} element={<Mint />} />
           <Route exact path={"/mint/:jobID"} element={<Mint />} />
+          <Route exact path={"/verified"} element={<Mint />} />
           <Route exact path={"/mint"} element={<Mint />} />
           {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}
           <Route exact path={"/prove"} element={<ProofMenu />} />
