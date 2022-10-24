@@ -55,7 +55,7 @@ const MintButton = (props) => {
       }
 
     return <div style={{ textAlign: "center" }}>
-      <button className="x-button-blue" onClick={addLeaf}>
+      <button className="mint-button" onClick={addLeaf}>
         <div style={{ 
           display: "flex",
           justifyContent: "center",
