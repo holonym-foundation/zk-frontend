@@ -42,7 +42,11 @@ const MintButton = (props) => {
             },
           });
           if (res.status == 200) {
+
+            // These are the same; latter is a better name but keeping former for backwards compatibility:
             props.successCallback && props.successCallback();
+            props.onSuccess && props.onSuccess();
+            
           }
         } catch (e) {
           console.log("There was an error:", e);

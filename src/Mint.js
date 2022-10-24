@@ -3,10 +3,12 @@ import loadVouched from "./load-vouched";
 import { getExtensionState } from "./utils/extension-helpers";
 import { useParams } from "react-router-dom";
 import StoreCredentials from "./components/store-credentials";
-import { Step } from "./components/atoms/Step";
 import MintButton from "./components/atoms/mint-button";
 import Progress from "./components/atoms/progress-bar";
-  
+import { WithCheckMark } from "./components/atoms/checkmark";
+import "./vouched-css-customization.css"
+// import { Success } from "./components/success";
+
 const Step1 = () => (
   <>
     <h1>Download the Holonym Extension</h1>
@@ -18,7 +20,7 @@ const Step2 = () => {
   useEffect(loadVouched, []);
   return <>
     <h1>Verify your ID</h1>
-    <div id="vouched-element" style={{ height: "100%" }}></div>
+    <div id="vouched-element" style={{ height: "10vh"}}></div>
   </>
 }
 
@@ -29,11 +31,22 @@ const Step3 = (props) => {
   </>
 }
 
-const Step4 = ({creds}) => <MintButton creds={creds} />
+const Step4 = (props) => <MintButton {...props} />
 
+const Success = () => <>
+  <WithCheckMark size={3}><h1>Success</h1></WithCheckMark>
+    <h4>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h4>
+    <p>! Make sure you remember the browser extension password !</p>
+    <br />
+    <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn the underlying tech</a></p>
+    <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("hey this is a test")}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>bring more privacy to web3: tweet your privacy pool contribution!</a></p>
+    {/* <button className="x-button outline">Learn More</button> */}
+    {/* <p>Or <a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn more</a></p> */}
+</>
 const Mint = () => {
   const { jobID } = useParams();
   const [es, setES] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
+  const [success, setSuccess] = useState();
   const [creds, setCreds] = useState();
   useEffect(() => {
     async function setup() {
@@ -46,10 +59,10 @@ const Mint = () => {
   if(es.isInstalled && !es.hasCredentials) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
   if(es.isInstalled && jobID) current = 3;
   if(es.isInstalled && creds) current = 4;
-
+  if(success) current = null;
   return <>
     {/* Let user try again in case of error */}
-    {(!jobID && es.isInstalled && es.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : 
+    {(!jobID && es.isInstalled && es.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : //NOTE : this component may or may not work as planned -- it hasn't been tested and isn't currently used
     /* Otherwise, show the typical page*/
     <div style={{display: "flex", alignItems:"center", justifyContent: "center", flexDirection: "column"}}>
     <div style={{paddingLeft: "5vw", paddingRight: "5vw", width:"70vw", height:"70vh", borderRadius: "100px", border: "1px solid white", display: "flex", justifyContent: "flex-start", flexDirection: "column"}}>
@@ -60,7 +73,8 @@ const Mint = () => {
         {(current === 1) && <Step1 />}
         {(current === 2) && <Step2 />}
         {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} />}
-        {(current === 4) && <Step4 creds={creds} />}
+        {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}
+        {success && <Success />}
       {/* <Step title="Step 2: Verify your ID" complete={window.holonym?.hasCredentials() current={current === "verify"}>*/}
       {/* <Step2 /> */}
       </div>

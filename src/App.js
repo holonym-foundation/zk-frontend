@@ -17,7 +17,7 @@ import Welcome from "./components/welcome.js";
 // import Address from "./components/atoms/Address.js";
 // import WalletModal from "./components/atoms/WalletModal";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Mint from "./Mint";
+import Mint from "./mint";
 // import { useConnect, useAccount, useNetwork } from "wagmi";
 // import { desiredChain } from "./constants/desiredChain";
 // import {
