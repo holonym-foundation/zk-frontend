@@ -78,6 +78,7 @@ const Verified = (props) => {
         birthdateHex: getDateAsHexString(creds_.birthdate),
       }
       setCreds(formattedCreds);
+      console.log(formattedCreds, props.onSetCredsFromExtension);
       props.onSetCredsFromExtension && props.onSetCredsFromExtension(formattedCreds);
     } catch (e) {
       console.error(e);
@@ -177,7 +178,6 @@ const Verified = (props) => {
       ) : (
         <div>
           <div style={{ maxWidth: "600px", fontSize: "16px" }}>
-            <i>
               <ol>
                 {!registered && (
                   <li>
@@ -196,12 +196,11 @@ const Verified = (props) => {
                 <li>
                   <p>Confirm your credentials</p>
                 </li>
-                <li>
+                {/* <li>
                   <p>Mint your Holo:</p>
-                </li>
+                </li> */}
               </ol>
-            </i>
-            {creds && credsAreStored && <MintButton creds={creds} successCallback={()=>setSuccessScreen(true)} />}
+            {/* {creds && credsAreStored && <MintButton creds={creds} successCallback={()=>setSuccessScreen(true)} />} */}
           </div>
         </div>
       )}

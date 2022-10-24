@@ -17,14 +17,14 @@ const Step1 = () => (
 const Step2 = () => {
   useEffect(loadVouched, []);
   return <>
-    <h1>Step 2: Verify your ID</h1>
+    <h1>Verify your ID</h1>
     <div id="vouched-element" style={{ height: "100%" }}></div>
   </>
 }
 
 const Step3 = (props) => {
   return <>
-    <h1>Step 2: Verify your ID</h1>
+    <h1>Store Credentials</h1>
     {<StoreCredentials {...props} />}
   </>
 }
@@ -33,24 +33,23 @@ const Step4 = ({creds}) => <MintButton creds={creds} />
 
 const Mint = () => {
   const { jobID } = useParams();
-  const [userJourney, setUserJourney] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
-  const [current, setCurrent] = useState(1); // Controls which current step of instructions is displayed
+  const [es, setES] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
   const [creds, setCreds] = useState();
   useEffect(() => {
     async function setup() {
-      const s = await getExtensionState();
-      setUserJourney(s);
-      if(s.isInstalled && !s.hasCredentials){ // TODO: this should not be isRegistered but rather hasCredentials!!!
-        // setCurrent("verify"); 
-        // if(!jobID)loadVouched();
-      }
+      setES(await getExtensionState());
     }
     setup(); 
     }, []);
 
+  let current = 1;
+  if(es.isInstalled && !es.hasCredentials) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
+  if(es.isInstalled && jobID) current = 3;
+  if(es.isInstalled && creds) current = 4;
+
   return <>
     {/* Let user try again in case of error */}
-    {(!jobID && userJourney.isInstalled && userJourney.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : 
+    {(!jobID && es.isInstalled && es.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : 
     /* Otherwise, show the typical page*/
     <div style={{display: "flex", alignItems:"center", justifyContent: "center", flexDirection: "column"}}>
     <div style={{paddingLeft: "5vw", paddingRight: "5vw", width:"70vw", height:"70vh", borderRadius: "100px", border: "1px solid white", display: "flex", justifyContent: "flex-start", flexDirection: "column"}}>
