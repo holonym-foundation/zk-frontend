@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import StoreCredentials from "./components/store-credentials";
 import { Step } from "./components/atoms/Step";
 import MintButton from "./components/atoms/mint-button";
+import Progress from "./components/atoms/progress-bar";
     
 const Mint = () => {
   const { jobID } = useParams();
@@ -23,6 +24,7 @@ const Mint = () => {
       }, []);
 
     return <>
+      <Progress steps={["a", "b", "c", "d"] } currentIdx={2} />
       {/* Let user try again in case of error */}
       {(!jobID && userJourney.isInstalled && userJourney.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : 
       /* Otherwise, show the typical page*/
