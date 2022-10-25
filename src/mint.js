@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import loadVouched from "./load-vouched";
-import { getExtensionState } from "./utils/extension-helpers";
 import { useParams } from "react-router-dom";
 import StoreCredentials from "./components/store-credentials";
 import MintButton from "./components/atoms/mint-button";
@@ -45,25 +44,27 @@ const Success = () => <>
 </>
 const Mint = () => {
   const { jobID } = useParams();
-  const [es, setES] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
+  // const [es, setES] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
   const [success, setSuccess] = useState();
   const [creds, setCreds] = useState();
+  const isInstalled = Boolean(window.holonym);
+
   useEffect(() => {
     async function setup() {
-      setES(await getExtensionState());
+      // setES(await getExtensionState());
     }
     setup(); 
     }, []);
 
   let current = 1;
-  if(es.isInstalled /*&& !es.hasCredentials*/) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
-  if(es.isInstalled && jobID) current = 3;
-  if(es.isInstalled && creds) current = 4;
+  if(isInstalled /*&& !es.hasCredentials*/) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
+  if(isInstalled && jobID) current = 3;
+  if(isInstalled && creds) current = 4;
   if(success) current = null;
   return <>
     {/* Let user try again in case of error */}
-    {(!jobID && es.isInstalled && es.hasCredentials) ? <StoreCredentials jobID="tryMintingAgain" /> : //NOTE : this component may or may not work as planned -- it hasn't been tested and isn't currently used
-    /* Otherwise, show the typical page*/
+    {/* {(!jobID && es.isInstalled /*&& es.hasCredentials* /) ? <StoreCredentials jobID="tryMintingAgain" /> : //NOTE : this component may or may not work as planned -- it hasn't been tested and isn't currently used */}
+    {/* Otherwise, show the typical page*/}
     <div style={{display: "flex", alignItems:"center", justifyContent: "center", flexDirection: "column"}}>
     <div style={{paddingLeft: "5vw", paddingRight: "5vw", width:"70vw", height:"70vh", borderRadius: "100px", border: "1px solid white", display: "flex", justifyContent: "flex-start", flexDirection: "column"}}>
       <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint it!</h2></div>
@@ -82,7 +83,7 @@ const Mint = () => {
       
     </div>
     </div>
-    }
+    {/* } */}
   </>
 }
 export default Mint;
