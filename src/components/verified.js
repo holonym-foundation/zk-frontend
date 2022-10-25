@@ -74,7 +74,8 @@ const Verified = (props) => {
   async function setCredsFromExtension() {
     try {
       // Request credentials. Need to request because extension generates new secret
-      const newCreds = await requestCredentials();
+      const sortedCreds = await requestCredentials();
+      const newCreds = sortedCreds[serverAddress];
       setCreds({
         ...newCreds,
         subdivisionHex: getStateAsHexString(
@@ -140,7 +141,8 @@ const Verified = (props) => {
     // For tests
     // setLoading(false);
     // storeCredentials(dummyUserCreds).then(async (success) => {
-    //   const newCreds = await requestCredentials();
+    //   const sortedCreds = await requestCredentials();
+    //   const newCreds = sortedCreds[serverAddress];
     //   setCreds({
     //     ...newCreds,
     //     subdivisionHex: getStateAsHexString(newCreds.subdivision),

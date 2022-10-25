@@ -6,7 +6,7 @@ import {
   getIsHoloRegistered,
   requestCredentials,
 } from "../utils/secrets";
-import { zkIdVerifyEndpoint } from "../constants/misc";
+import { zkIdVerifyEndpoint, serverAddress } from "../constants/misc";
 import {
   getStateAsHexString,
   getDateAsHexString,
@@ -67,7 +67,8 @@ const Verified = (props) => {
   async function setCredsFromExtension() {
     try {
       // Request credentials. Need to request because extension generates new secret
-      const creds_ = await requestCredentials();
+      const sortedCreds = await requestCredentials();
+      const creds_ = sortedCreds[serverAddress];
       const formattedCreds = {
         ...creds_,
         subdivisionHex: getStateAsHexString(
