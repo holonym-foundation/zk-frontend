@@ -73,7 +73,7 @@ function getIsRegistered() {
     return {
       isInstalled : isInstalled,
       hasPassword : isRegistered,
-      hasCredentials : false, // TODO: change this when extension changes
+      // hasCredentials : false, // TODO: change this when extension changes
 
     }
 }

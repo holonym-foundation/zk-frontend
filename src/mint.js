@@ -56,7 +56,7 @@ const Mint = () => {
     }, []);
 
   let current = 1;
-  if(es.isInstalled && !es.hasCredentials) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
+  if(es.isInstalled /*&& !es.hasCredentials*/) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
   if(es.isInstalled && jobID) current = 3;
   if(es.isInstalled && creds) current = 4;
   if(success) current = null;
