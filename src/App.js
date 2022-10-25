@@ -129,6 +129,7 @@ function App() {
           <Route exact path={"/mint"} element={<Mint />} />
           <Route exact path={"/verified/:jobID"} element={<Mint />} />
           <Route exact path={"/verified"} element={<Mint />} />
+          <Route exact path={"/retry"} element={<Mint retry={true} />} />
           {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}
           <Route exact path={"/prove"} element={<ProofMenu />} />
           {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}

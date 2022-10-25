@@ -42,7 +42,7 @@ const Success = () => <>
     {/* <button className="x-button outline">Learn More</button> */}
     {/* <p>Or <a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn more</a></p> */}
 </>
-const Mint = () => {
+const Mint = (props) => {
   const { jobID } = useParams();
   // const [es, setES] = useState({isInstalled : false, isRegistered : false}); // TODO: this should not be isRegistered but rather hasCredentials!!!
   const [success, setSuccess] = useState();
@@ -60,21 +60,22 @@ const Mint = () => {
   if(isInstalled /*&& !es.hasCredentials*/) current = 2; // TODO: this should not be isRegistered but rather hasCredentials!!!
   if(isInstalled && jobID) current = 3;
   if(isInstalled && creds) current = 4;
+  if(isInstalled && props.retry) current = -1; // If there was an issue and the user wants to retry minting using credentials from extension
+  console.log("Current", current)
   if(success) current = null;
   return <>
-    {/* Let user try again in case of error */}
-    {/* {(!jobID && es.isInstalled /*&& es.hasCredentials* /) ? <StoreCredentials jobID="tryMintingAgain" /> : //NOTE : this component may or may not work as planned -- it hasn't been tested and isn't currently used */}
-    {/* Otherwise, show the typical page*/}
     <div style={{display: "flex", alignItems:"center", justifyContent: "center", flexDirection: "column"}}>
     <div style={{paddingLeft: "5vw", paddingRight: "5vw", width:"70vw", height:"70vh", borderRadius: "100px", border: "1px solid white", display: "flex", justifyContent: "flex-start", flexDirection: "column"}}>
-      <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint it!</h2></div>
-      <Progress steps={["Download", "Verify", "Store Credentials", "Mint ur Holo"] } currentIdx={current-1} />
+      {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
+      <div className="spacer-medium" />
+      <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
       <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
       {/* <Step title="Step 1: Download the Holonym Extension" complete={Boolean(window.holonym)} current={current === "download"}> */}
         {(current === 1) && <Step1 />}
         {(current === 2) && <Step2 />}
         {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} />}
         {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}
+        {(current === -1) && <Step3 onSetCredsFromExtension={setCreds} jobID="loadFromExtension" />}
         {success && <Success />}
       {/* <Step title="Step 2: Verify your ID" complete={window.holonym?.hasCredentials() current={current === "verify"}>*/}
       {/* <Step2 /> */}

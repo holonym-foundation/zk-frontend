@@ -97,6 +97,13 @@ const Verified = (props) => {
         await waitForUserRegister();
         setError(undefined);
       }
+      console.log("props", props)
+      // If user has already stored credentials (e.g., they weren't able to successfully mint and are trying again, this will let them get credentials from extension withotu redoing verification, which they would be banned from)
+      if(props.jobID === "loadFromExtension"){
+        console.log("loading from extenssion", props)
+        setCredsFromExtension();
+        return;
+      }
       const credsTemp = await loadCredentials();
       if (!credsTemp) {
         setError(`Error: Could not retrieve credentials.`);

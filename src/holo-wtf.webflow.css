@@ -705,6 +705,16 @@ p {
   display: none;
 } */
 
+.progress-bar-item {
+  height: 48px;
+  width: 48px;
+  background-color: black;
+  border: 1px solid white;
+  border-radius: 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .navbar {
   background-color: transparent;
@@ -1896,6 +1906,11 @@ p {
     width: 100%;
   }
 
+  .progress-bar-item {
+    height: 32px;
+    width: 32px;
+    
+  }
   .social-wrapper {
     width: 100%;
     margin-top: 30px;
