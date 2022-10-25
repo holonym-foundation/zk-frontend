@@ -229,7 +229,7 @@ const Proofs = () => {
           </div>
   }
   return (
-    // <Suspense fallback={<LoadingElement />}>
+    <Suspense fallback={<LoadingElement />}>
     <div className="x-container w-container">
       <div className="x-wrapper small-center" style={{ width: "100vw" }}>
         {!account?.address ? (
@@ -277,7 +277,7 @@ const Proofs = () => {
         )}
       </div>
     </div>
-    // </Suspense>
+    </Suspense>
   );
 };
 

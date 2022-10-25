@@ -8,11 +8,11 @@ import "./webflow.css";
 // import { Lookup } from "./components/lookup.js";
 // import Verify from "./components/verify";
 // import Verified from "./components/verified";
-import Proofs from "./components/proofs"
+// import Proofs from "./components/proofs"
 import ProofMenu from "./components/proof-menu";
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
 import WebFont from "webfontloader";
-import Welcome from "./components/welcome.js";
+// import Welcome from "./components/welcome.js";
 
 // import Address from "./components/atoms/Address.js";
 // import WalletModal from "./components/atoms/WalletModal";
@@ -27,7 +27,7 @@ import Mint from "./mint.js";
 // } from "./components/chain-switcher";
 // import Error from "./components/errors.js";
 
-// const Proofs = React.lazy(() => import("./components/proofs"));
+const Proofs = React.lazy(() => import("./components/proofs"));
 
 function App() {
   // const { desiredChain, setDesiredChain } = useDesiredChain();
