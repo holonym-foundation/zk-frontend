@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { getDateAsHexString, getStateAsHexString } from "../utils/proofs";
 import { requestCredentials } from "../utils/secrets";
+import { serverAddress } from "../constants/misc";
 import MintButton from "./atoms/mint-button";
 
 async function getCredsFromExtension() {
     try {
       // Request credentials. Need to request because extension generates new secret
-      const c = await requestCredentials();
+      const sortedCreds = await requestCredentials();
+      const c = sortedCreds[serverAddress];
       return {
         ...c,
         subdivisionHex: getStateAsHexString(

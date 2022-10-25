@@ -138,9 +138,9 @@ const Proofs = () => {
   useEffect(() => {
     if (!readyToLoadCreds) return;
     async function getCreds() {
-      const c = await requestCredentials();
-      console.log("creds", JSON.stringify(c));
-      if (c) {
+      const sortedCreds = await requestCredentials();
+      if (sortedCreds) {
+        const c = sortedCreds[serverAddress];
         setCreds({
           ...c,
           subdivisionHex: getStateAsHexString(c.subdivision, c.countryCode),
