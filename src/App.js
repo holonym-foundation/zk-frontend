@@ -122,11 +122,13 @@ function App() {
           {/* <Route path={"/"} element={myHoloPage} /> */}
           {/* <Route path={"/myholo"} element={myHoloPage} /> */}
           {/* <Route path={"/zk-id/verify"} element={<Verify />} /> */}
-          <Route exact path={"/"} element={<Welcome />} />
-          <Route exact path={"/verified/:jobID"} element={<Mint />} />
+          {/* <Route exact path={"/"} element={<Welcome />} /> */}
+          <Route exact path={"/"} element={<Mint />} />
+          <Route exact path={"/:jobID"} element={<Mint />} />
           <Route exact path={"/mint/:jobID"} element={<Mint />} />
-          <Route exact path={"/verified"} element={<Mint />} />
           <Route exact path={"/mint"} element={<Mint />} />
+          <Route exact path={"/verified/:jobID"} element={<Mint />} />
+          <Route exact path={"/verified"} element={<Mint />} />
           {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}
           <Route exact path={"/prove"} element={<ProofMenu />} />
           {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
