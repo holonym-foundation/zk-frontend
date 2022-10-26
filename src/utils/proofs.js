@@ -278,10 +278,8 @@ export async function createLeaf(
   ];
   await loadArtifacts("createLeaf");
   await loadProvingKey("createLeaf");
-  await loadVerifyingKey("createLeaf");
 
   const { witness, output } = zokProvider.computeWitness(artifacts.createLeaf, args);
-
   return output.replaceAll('"', "");
 }
 
@@ -308,6 +306,16 @@ export async function onAddLeafProof(
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
   }
+
+  console.log(
+    "signed leaf creation parameters", 
+  serverAddress,
+  oldSecret,
+  countryCode,
+  subdivision,
+  completedAt,
+  birthdate
+  )
 
   const signedLeaf = await createLeaf(
     serverAddress,
