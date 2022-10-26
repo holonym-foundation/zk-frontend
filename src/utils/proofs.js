@@ -3,6 +3,7 @@ import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { preprocEndpoint, serverAddress, stateAbbreviations } from "../constants/misc";
 import zokABIs from "../constants/abi/ZokABIs.json";
+import assert from "assert";
 
 let zokProvider;
 let artifacts = {};
@@ -64,89 +65,14 @@ initialize().then(async (zokratesProvider) => {
 });
 
 /**
- * Convert state (e.g., "California") to a 2-byte representation of its abbreviation.
- * @returns {string}
- */
-export function getStateAsHexString(state, countryCode) {
-  if (!state || countryCode !== 2) return "0x";
-  state = state.length === 2 ? state : stateAbbreviations[state.toUpperCase()];
-  return "0x" + new TextEncoder("utf-8").encode(state).toString().replaceAll(",", "");
-}
-
-/**
- * Convert date string to 3-byte hex string with the following structure:
- * byte 1: number of years since 1900
- * bytes 2-3: number of days since beginning of the year
+ * Convert date string to unix timestamp
  * @param {string} date Must be of form yyyy-mm-dd
  */
-export function getDateAsHexString(date) {
+ export function getDateAsInt(date) {
+  // Format input
   const [year, month, day] = date.split("-");
-  const yearsSince1900 = parseInt(year) - 1900;
-  const daysSinceNewYear = getDaysSinceNewYear(parseInt(month), parseInt(day));
-
-  // Convert yearsSince1900 and daysSinceNewYear to hex string
-  const yearsStr = ethers.BigNumber.from([yearsSince1900])
-    .toHexString()
-    .replace("0x", "");
-  let daysStr;
-  if (daysSinceNewYear > 255) {
-    daysStr = ethers.BigNumber.from("0x01").toHexString().replace("0x", "");
-    daysStr += ethers.BigNumber.from(daysSinceNewYear - 256)
-      .toHexString()
-      .replace("0x", "");
-  } else {
-    daysStr = ethers.BigNumber.from(daysSinceNewYear).toHexString().replace("0x", "");
-    daysStr += "00";
-  }
-  return "0x" + yearsStr + daysStr;
-}
-
-function getDaysSinceNewYear(month, day) {
-  let daysSinceNewYear = day;
-  if (month == 1) {
-    return daysSinceNewYear;
-  }
-  if (month > 1) {
-    daysSinceNewYear += 31;
-  }
-  if (month > 2) {
-    if (isLeapYear(new Date().getYear())) {
-      daysSinceNewYear += 29;
-    } else {
-      daysSinceNewYear += 28;
-    }
-  }
-  if (month > 3) {
-    daysSinceNewYear += 31;
-  }
-  if (month > 4) {
-    daysSinceNewYear += 30;
-  }
-  if (month > 5) {
-    daysSinceNewYear += 31;
-  }
-  if (month > 6) {
-    daysSinceNewYear += 30;
-  }
-  if (month > 7) {
-    daysSinceNewYear += 31;
-  }
-  if (month > 8) {
-    daysSinceNewYear += 31;
-  }
-  if (month > 9) {
-    daysSinceNewYear += 30;
-  }
-  if (month > 10) {
-    daysSinceNewYear += 31;
-  }
-  if (month > 11) {
-    daysSinceNewYear += 30;
-  }
-  return daysSinceNewYear;
-}
-function isLeapYear(year) {
-  return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+  assert.ok((year > 1900) && (year < 2099)); // Make sure date is in a reasonable range, otherwise it's likely the input was malformatted and it's best to be safe by stopping -- we can always allow more edge cases if needed later 
+  return (new Date(date)).getTime() / 1000 + 2208988800 // 2208988800000 is 70 year offset; Unix timestamps below 1970 are negative and we want to allow from approximately 1900. 
 }
 
 /* Gets on-chain leaves and creates Merkle proof */

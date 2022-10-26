@@ -8,8 +8,7 @@ import {
 } from "../utils/secrets";
 import { zkIdVerifyEndpoint, serverAddress } from "../constants/misc";
 import {
-  getStateAsHexString,
-  getDateAsHexString,
+  getDateAsInt,
 } from "../utils/proofs";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
@@ -71,12 +70,9 @@ const Verified = (props) => {
       const creds_ = sortedCreds[serverAddress];
       const formattedCreds = {
         ...creds_,
-        subdivisionHex: getStateAsHexString(
-          creds_.subdivision,
-          creds_.countryCode
-        ),
-        completedAtHex: getDateAsHexString(creds_.completedAt),
-        birthdateHex: getDateAsHexString(creds_.birthdate),
+        subdivisionHex: "0x" + Buffer.from(creds_.subdivision).toString("hex"),
+        completedAtHex: getDateAsInt(creds_.completedAt),
+        birthdateHex: getDateAsInt(creds_.birthdate),
       }
       setCreds(formattedCreds);
       console.log(formattedCreds, props.onSetCredsFromExtension);
@@ -114,12 +110,9 @@ const Verified = (props) => {
       try {
         setCreds({
           ...credsTemp,
-          subdivisionHex: getStateAsHexString(
-            credsTemp.subdivision,
-            credsTemp.countryCode
-          ),
-          completedAtHex: getDateAsHexString(credsTemp.completedAt),
-          birthdateHex: getDateAsHexString(credsTemp.birthdate),
+          subdivisionHex: "0x" + Buffer.from(credsTemp.subdivision).toString("hex"),
+          completedAtHex: getDateAsInt(credsTemp.completedAt),
+          birthdateHex: getDateAsInt(credsTemp.birthdate),
         });
       } catch (e) {
         console.error(
@@ -149,8 +142,8 @@ const Verified = (props) => {
     //   setCreds({
     //     ...newCreds,
     //     subdivisionHex: getStateAsHexString(newCreds.subdivision),
-    //     completedAtHex: getDateAsHexString(newCreds.completedAt),
-    //     birthdateHex: getDateAsHexString(newCreds.birthdate),
+    //     completedAtHex: getDateAsInt(newCreds.completedAt),
+    //     birthdateHex: getDateAsInt(newCreds.birthdate),
     //   });
     //   setCredsAreStored(success);
     // });

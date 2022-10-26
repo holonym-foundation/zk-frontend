@@ -4,8 +4,7 @@ import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import { requestCredentials } from "../utils/secrets";
 import {
-  getStateAsHexString,
-  getDateAsHexString,
+  getDateAsInt,
   poseidonTwoInputs,
   proofOfResidency,
   antiSybil,
@@ -143,9 +142,9 @@ const Proofs = () => {
         const c = sortedCreds[serverAddress];
         setCreds({
           ...c,
-          subdivisionHex: getStateAsHexString(c.subdivision, c.countryCode),
-          completedAtHex: getDateAsHexString(c.completedAt),
-          birthdateHex: getDateAsHexString(c.birthdate),
+          subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
+          completedAtHex: getDateAsInt(c.completedAt),
+          birthdateHex: getDateAsInt(c.birthdate),
         });
       } else {
         setError(
