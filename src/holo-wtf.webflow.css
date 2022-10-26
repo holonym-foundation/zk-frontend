@@ -1775,9 +1775,6 @@ p {
     -ms-grid-rows: 1fr;
     grid-template-rows: auto;
   }
-  .x-section.bg-img {
-    height: 200vh;
-  }
 
   .x-wrapper.small-center {
     margin-top: 10vh;
@@ -2022,9 +2019,6 @@ p {
     grid-template-columns: 1fr;
     -ms-grid-rows: 1fr;
     grid-template-rows: auto;
-  }
-  .x-section.bg-img {
-    height: 200vh;
   }
 
   h3 {

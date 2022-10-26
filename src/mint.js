@@ -6,8 +6,11 @@ import MintButton from "./components/atoms/mint-button";
 import Progress from "./components/atoms/progress-bar";
 import { WithCheckMark } from "./components/atoms/checkmark";
 import "./vouched-css-customization.css";
+import { browserName, isMobile } from "react-device-detect";
+
 // import { Success } from "./components/success";
 
+const NotChromeDesktop = () => <><h1>Please make sure you're using Chrome on a desktop</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 const Step1 = () => (
   <>
     <h1>Download the Holonym Extension</h1>
@@ -63,6 +66,9 @@ const Mint = (props) => {
   if(isInstalled && props.retry) current = -1; // If there was an issue and the user wants to retry minting using credentials from extension
   console.log("Current", current)
   if(success) current = null;
+  
+  if((browserName !== "Chrome") || isMobile) return <NotChromeDesktop />
+  
   return <>
     <div style={{display: "flex", alignItems:"center", justifyContent: "center", flexDirection: "column"}}>
     <div style={{paddingLeft: "5vw", paddingRight: "5vw", width:"70vw", height:"70vh", borderRadius: "100px", border: "1px solid white", display: "flex", justifyContent: "flex-start", flexDirection: "column"}}>
