@@ -5,7 +5,7 @@ import StoreCredentials from "./components/store-credentials";
 import MintButton from "./components/atoms/mint-button";
 import Progress from "./components/atoms/progress-bar";
 import { WithCheckMark } from "./components/atoms/checkmark";
-import "./vouched-css-customization.css"
+import "./vouched-css-customization.css";
 // import { Success } from "./components/success";
 
 const Step1 = () => (
