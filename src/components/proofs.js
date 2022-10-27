@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
@@ -228,7 +228,7 @@ const Proofs = () => {
           </div>
   }
   return (
-    <Suspense fallback={<LoadingElement />}>
+    // <Suspense fallback={<LoadingElement />}>
     <div className="x-container w-container">
       <div className="x-wrapper small-center" style={{ width: "100vw" }}>
         {!account?.address ? (
@@ -276,7 +276,7 @@ const Proofs = () => {
         )}
       </div>
     </div>
-    </Suspense>
+    // </Suspense>
   );
 };
 
