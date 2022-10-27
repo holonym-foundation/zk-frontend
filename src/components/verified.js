@@ -23,6 +23,14 @@ const dummyUserCreds = {
   subdivision: "New York",
   completedAt: "2022-09-16", // "2022-09-16T02:21:59.510Z",
   birthdate: "1950-01-01",
+  secret: "0x189d205ea0a4496fe321718cfe0a5722",
+  signature:
+    "0xa5cc5582d14a4e16d61dbdd904215a685688442e36babf2aa887a8104b0684b60d4cb0a81f808ad2977571c00437c5881aa340b6f44936f457757638a8832a221b",
+  issuer: serverAddress,
+};
+// "sorted creds" are creds sorted by issuer
+const dummyUserSortedCreds = {
+  "0x8281316aC1D51c94f2DE77575301cEF615aDea84": dummyUserCreds,
 };
 
 // Display success message, and retrieve user credentials to store in browser
