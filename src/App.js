@@ -27,6 +27,8 @@ import LoadingElement from "./components/loading-element";
 //   useDesiredChain,
 // } from "./components/chain-switcher";
 // import Error from "./components/errors.js";
+import { browserName, isMobile } from "react-device-detect";
+const NotChromeDesktop = () => <><h1>Please make sure you're using Chrome on a desktop</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 
 const Proofs = React.lazy(() => import("./components/proofs"));
 
@@ -45,6 +47,8 @@ function App() {
   }, []);
 
   // let myHoloPage = <AuthenticationFlow />;
+  
+  if((browserName !== "Chrome") || isMobile) return <NotChromeDesktop />
   return (
     <Suspense fallback={<LoadingElement />}>
     <div className="App x-section wf-section bg-img">
