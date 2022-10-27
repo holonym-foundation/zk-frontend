@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { InfoButton } from "./info-button";
 import RoundedWindow from "./RoundedWindow";
 
-const Welcome = ()=>{
+const ProofMenu = ()=>{
     const navigate = useNavigate();
     return <RoundedWindow>
             <div className="x-wrapper small-center" style={{width:"100%"}}>
@@ -23,4 +23,4 @@ const Welcome = ()=>{
             </div>
     </RoundedWindow>  
 }
-export default Welcome;
+export default ProofMenu;

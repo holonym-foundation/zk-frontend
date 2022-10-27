@@ -59,7 +59,6 @@ const LoadingProofsButton = (props) => (
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const LoadingElement = (props) => <h3 style={{ textAlign: "center" }}>Loading...</h3>;
 const Proofs = () => {
   const params = useParams();
   const [creds, setCreds] = useState();
