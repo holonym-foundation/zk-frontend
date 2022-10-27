@@ -19,17 +19,23 @@ import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
+import { getExtensionState } from "../utils/extension-helpers";
 
 const ConnectWalletScreen = () => (
   <>
     <ConnectWallet />
     <div className="x-container w-container">
-      <div className="x-wrapper small-center" style={{ width: "100vw" }}>
         <h1>Please Connect Your Wallet First</h1>
-      </div>
     </div>
   </>
 );
+
+const ErrorScreen = ({children}) => (
+  <div className="x-container w-container">
+      {children}
+  </div>
+)
+
 
 const LoadingProofsButton = (props) => (
   <button className="x-button" onClick={props.onClick}>
@@ -67,7 +73,7 @@ const Proofs = () => {
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
-
+  const [es, setES] = useState();
   const { data: account } = useAccount();
   
   const proofs = {
@@ -167,6 +173,13 @@ const Proofs = () => {
   }, [account]);
 
   useEffect(() => {
+    async function f() {
+      setES(await getExtensionState());
+    }
+    f();
+  }, [])
+
+  useEffect(() => {
     if (!(submissionConsent && creds && proof)) return;
     submitTx(
       proofs[params.proofType].contractAddress,
@@ -221,11 +234,15 @@ const Proofs = () => {
     window.ethereum.request({ method: "eth_requestAccounts" });
   } catch(e) {
     console.error("Unable to call eth_requestAccounts. Installing Metamask may fix this bug")
-    return <div className="x-container w-container">
-            <div className="x-wrapper small-center" style={{ width: "100vw" }}>
+    return <ErrorScreen>
             <h3>Please install <a href="https://metamask.io/">Metamask</a></h3>
-            </div>
-          </div>
+          </ErrorScreen>
+  }
+
+  if(!(es?.hasPassword)){
+    return <ErrorScreen>
+            <h3>No Holo found. You must <a href="https://app.holonym.io/mint">mint a Holo</a> to make proofs about your identity</h3>
+          </ErrorScreen>
   }
   return (
     // <Suspense fallback={<LoadingElement />}>
