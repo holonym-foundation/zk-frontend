@@ -18,6 +18,7 @@ import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json
 import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
+import RoundedWindow from "./RoundedWindow";
 
 const ConnectWalletScreen = () => (
   <>
@@ -229,15 +230,15 @@ const Proofs = () => {
   }
   return (
     // <Suspense fallback={<LoadingElement />}>
-    <div className="x-container w-container">
-      <div className="x-wrapper small-center" style={{ width: "100vw" }}>
+    <RoundedWindow>
+    <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"}}>
         {!account?.address ? (
           <ConnectWalletScreen />
         ) : (
           <>
             <h3>Prove {proofs[params.proofType].name}</h3>
-            <div>
-              <div>
+                <div className="spacer-med" />
+                <br />
                 {error ? (
                   <p>Error: {error}</p>
                 ) : (
@@ -254,6 +255,8 @@ const Proofs = () => {
                         `Please confirm the popup so your proof can be generated`
                       )}
                     </p>
+                    <div className="spacer-med" />
+                    <br />
                     {creds ? (
                       proof ? (
                         <button
@@ -270,12 +273,10 @@ const Proofs = () => {
                     )}
                   </>
                 )}
-              </div>
-            </div>
           </>
         )}
-      </div>
     </div>
+    </RoundedWindow>
     // </Suspense>
   );
 };
