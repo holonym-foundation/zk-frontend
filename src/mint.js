@@ -7,6 +7,7 @@ import Progress from "./components/atoms/progress-bar";
 import { WithCheckMark } from "./components/atoms/checkmark";
 import "./vouched-css-customization.css";
 import { browserName, isMobile } from "react-device-detect";
+import RoundedWindow from "./components/RoundedWindow";
 
 // import { Success } from "./components/success";
 
@@ -69,28 +70,18 @@ const Mint = (props) => {
   
   if((browserName !== "Chrome") || isMobile) return <NotChromeDesktop />
   
-  return <>
-    <div style={{display: "flex", alignItems:"center", justifyContent: "center", flexDirection: "column"}}>
-    <div style={{paddingLeft: "5vw", paddingRight: "5vw", width:"70vw", height:"70vh", borderRadius: "100px", border: "1px solid white", display: "flex", justifyContent: "flex-start", flexDirection: "column"}}>
-      {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
-      <div className="spacer-medium" />
-      <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
-      <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
-      {/* <Step title="Step 1: Download the Holonym Extension" complete={Boolean(window.holonym)} current={current === "download"}> */}
-        {(current === 1) && <Step1 />}
-        {(current === 2) && <Step2 />}
-        {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} />}
-        {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}
-        {(current === -1) && <Step3 onSetCredsFromExtension={setCreds} jobID="loadFromExtension" />}
-        {success && <Success />}
-      {/* <Step title="Step 2: Verify your ID" complete={window.holonym?.hasCredentials() current={current === "verify"}>*/}
-      {/* <Step2 /> */}
-      </div>
-      
-      
+  return <RoundedWindow>
+    {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
+    <div className="spacer-medium" />
+    <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
+    <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
+      {(current === 1) && <Step1 />}
+      {(current === 2) && <Step2 />}
+      {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} />}
+      {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}
+      {(current === -1) && <Step3 onSetCredsFromExtension={setCreds} jobID="loadFromExtension" />}
+      {success && <Success />}
     </div>
-    </div>
-    {/* } */}
-  </>
+  </RoundedWindow>
 }
 export default Mint;
