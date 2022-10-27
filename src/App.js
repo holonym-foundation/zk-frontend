@@ -18,6 +18,7 @@ import WebFont from "webfontloader";
 // import WalletModal from "./components/atoms/WalletModal";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Mint from "./mint.js";
+import LoadingElement from "./components/loading-element";
 // import { useConnect, useAccount, useNetwork } from "wagmi";
 // import { desiredChain } from "./constants/desiredChain";
 // import {
@@ -44,8 +45,8 @@ function App() {
   }, []);
 
   // let myHoloPage = <AuthenticationFlow />;
-
   return (
+    <Suspense fallback={<LoadingElement />}>
     <div className="App x-section wf-section bg-img">
       <div className="x-container nav w-container">
         {/* <WalletModal
@@ -144,6 +145,7 @@ function App() {
       </Router>
     </div>
   </div>
+  </Suspense>
   );
 }
 
