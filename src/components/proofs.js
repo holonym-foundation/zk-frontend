@@ -219,6 +219,9 @@ const Proofs = () => {
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
+      // TODO: send tx result to extension. Add the following lines when v0.0.0.21 is published
+      // const leafTxMetadata = { blockNumber: result.blockNumber, txHash: result.hash }
+      // await window.holonym.addLeafMetadata(serverAddress, leafTxMetadata)
       setSuccess(true);
     } catch (e) {
       setError(e.reason);
