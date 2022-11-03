@@ -44,8 +44,8 @@ const Step3 = (props) => {
 const Step4 = (props) => <MintButton {...props} />
 
 const Success = () => {
-  const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint. Each mint makes on-chain privacy stronger ⛓🎭`;
-<>
+  const toTweet = `Just tried out the Holonym beta version and minted my Holo: <a href="https://app.holonym.id/mint". Each mint makes on-chain privacy stronger ⛓🎭`;
+return <>
   <WithCheckMark size={3}><h1>Success</h1></WithCheckMark>
     <h4>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h4>
     <p>! Make sure you remember the browser extension password !</p>
