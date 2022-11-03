@@ -43,16 +43,19 @@ const Step3 = (props) => {
 
 const Step4 = (props) => <MintButton {...props} />
 
-const Success = () => <>
+const Success = () => {
+  const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint. Each mint makes on-chain privacy stronger ⛓🎭`;
+<>
   <WithCheckMark size={3}><h1>Success</h1></WithCheckMark>
     <h4>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h4>
     <p>! Make sure you remember the browser extension password !</p>
     <br />
     <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn the underlying tech</a></p>
-    <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("hey this is a test")}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>bring more privacy to web3: tweet your privacy pool contribution!</a></p>
+    <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(toTweet)}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>bring more privacy to web3: tweet your privacy pool contribution!</a></p>
     {/* <button className="x-button outline">Learn More</button> */}
     {/* <p>Or <a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn more</a></p> */}
 </>
+}
 const Mint = (props) => {
   const { jobID } = useParams();
   const [es, setES] = useState(); // TODO: this should not be isRegistered but rather hasCredentials!!!
