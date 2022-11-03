@@ -16,6 +16,7 @@ import {
 } from "../utils/proofs";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
+import { getExtensionState } from "../utils/extension-helpers";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 const dummyUserCreds = {
@@ -72,10 +73,10 @@ const Verified = (props) => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   async function waitForUserRegister() {
-    let isRegistered = await getIsHoloRegistered();
-    while (!isRegistered) {
+    let es = await getExtensionState();
+    while (!(es?.hasPassword)) {
       await sleep(100);
-      isRegistered = await getIsHoloRegistered();
+      es = await getExtensionState();
     }
   }
 

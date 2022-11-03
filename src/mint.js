@@ -82,7 +82,7 @@ const Mint = (props) => {
     <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
       {(current === 1) && <Step1 />}
-      {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />}
+      {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />}
       {(current === 2) && <Step2 />}
       {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} />}
       {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}

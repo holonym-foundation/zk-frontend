@@ -63,7 +63,7 @@ function getIsRegistered() {
  export async function getExtensionState() {
     let isInstalled; let isRegistered;
     try {
-      isInstalled = await getExtensionIsInstalled()
+      isInstalled = await getExtensionIsInstalled();
     } catch(e) {}
     
     try {
