@@ -220,7 +220,7 @@ const Proofs = () => {
         proof.inputs
       );
       // TODO: send tx result to extension. Add the following lines when v0.0.0.21 is published
-      // const leafTxMetadata = { blockNumber: result.blockNumber, txHash: result.hash }
+      // const leafTxMetadata = { chainId: result.chainId, blockNumber: result.blockNumber, txHash: result.hash }
       // await window.holonym.addLeafMetadata(serverAddress, leafTxMetadata)
       setSuccess(true);
     } catch (e) {
