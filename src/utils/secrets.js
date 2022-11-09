@@ -1,3 +1,50 @@
+
+import LitJsSdk from "@lit-protocol/sdk-browser";
+import { zkIdVerifyEndpoint } from "../constants/misc";
+import lit from './lit';
+
+/**
+ * Lit+server helpers
+ */
+
+/**
+ * @param {object} credentials 
+ */
+export async function encryptAndPostUserCredentials(credentials) {
+  const stringifiedCreds = JSON.stringify(credentials)
+  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  const acConditions = lit.getAccessControlConditions(authSig.address)
+  const { encryptedString, encryptedSymmetricKey } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions)
+  const reqBody = {
+    address: authSig.address, 
+    signature: authSig.sig,
+    signedMessage: authSig.signedMessage,
+    encryptedCredentials: await LitJsSdk.blobToBase64String(encryptedString),
+    encryptedSymmetricKey: encryptedSymmetricKey
+  }
+  const resp = await fetch(`${zkIdVerifyEndpoint}/credentials`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(reqBody)
+  })
+  return await resp.json()
+}
+
+export async function getAndDecryptUserCredentials() {
+  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  const resp = await fetch(`${zkIdVerifyEndpoint}/credentials?address=${authSig.address}&signature=${authSig.sig}&signedMessage=${encodeURIComponent(authSig.signedMessage)}`)
+  const data = await resp.json();
+  if (!data) return;
+  const { address, encryptedCredentials, encryptedSymmetricKey } = data
+  const acConditions = lit.getAccessControlConditions(authSig.address)
+  const encryptedString = LitJsSdk.base64StringToBlob(encryptedCredentials)
+  const stringifiedCreds = await lit.decrypt(encryptedString, encryptedSymmetricKey, 'ethereum', acConditions)
+  return JSON.parse(stringifiedCreds);
+}
+
+
 /**
  * Helpers for interacting with Holonym browser extension and for zokrates
  */
