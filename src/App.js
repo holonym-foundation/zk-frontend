@@ -7,7 +7,6 @@ import "./webflow.css";
 // import { HomeLogo } from "./components/logo.js";
 // import { Lookup } from "./components/lookup.js";
 // import Verify from "./components/verify";
-// import Verified from "./components/verified";
 // import Proofs from "./components/proofs"
 import ProofMenu from "./components/proof-menu";
 import React, { Suspense, useEffect } from "react";
