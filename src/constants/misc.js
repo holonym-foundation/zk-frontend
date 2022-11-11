@@ -1,6 +1,6 @@
 export const preprocEndpoint = "https://preproc-zkp.s3.us-east-2.amazonaws.com";
-// old zkIdVerifyEndpoint = 'https://zk.sciverse.id'
-export const zkIdVerifyEndpoint =
+// old idServerUrl = 'https://zk.sciverse.id'
+export const idServerUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:3000"
     : "https://id-server.holonym.io";

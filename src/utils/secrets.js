@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import LitJsSdk from "@lit-protocol/sdk-browser";
-import { zkIdVerifyEndpoint } from "../constants/misc";
+import { idServerUrl } from "../constants/misc";
 import lit from './lit';
 
 /**
@@ -81,7 +81,7 @@ export async function getEncryptedUserCredentials() {
   console.log('Did not find creds in localStorage. Requesting from API')
   const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const sigDigest = await sha256(authSig)
-  const resp = await fetch(`${zkIdVerifyEndpoint}/credentials?sigDigest=${sigDigest}`)
+  const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
   return await resp.json();
 }
 

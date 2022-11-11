@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAccount, useSignMessage, useConnect, chain } from "wagmi";
-import { zkIdVerifyEndpoint } from "../constants/misc";
+import { idServerUrl } from "../constants/misc";
 import WalletModal from "./atoms/WalletModal";
 
 // TODO: Delete this file?
@@ -9,7 +9,7 @@ const Verify = (props) => {
   const { data: account } = useAccount();
   const { data, isLoading, signMessage } = useSignMessage({
     onSuccess(data, variables) {
-      window.location.href = `${zkIdVerifyEndpoint}/register?address=${account.address}&signature=${data}`;
+      window.location.href = `${idServerUrl}/register?address=${account.address}&signature=${data}`;
     },
   });
   const walletIsConnected = account?.address && account?.connector;
@@ -19,7 +19,7 @@ const Verify = (props) => {
   async function getSecretMessage() {
     try {
       const resp = await fetch(
-        `${zkIdVerifyEndpoint}/initialize?address=${account.address}`
+        `${idServerUrl}/initialize?address=${account.address}`
       );
       return (await resp.json()).message;
     } catch (err) {

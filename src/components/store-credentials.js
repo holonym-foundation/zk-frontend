@@ -9,7 +9,7 @@ import {
   decryptUserCredentials,
   generateSecret,
 } from "../utils/secrets";
-import { zkIdVerifyEndpoint, serverAddress } from "../constants/misc";
+import { idServerUrl, serverAddress } from "../constants/misc";
 import {
   getDateAsInt,
 } from "../utils/proofs";
@@ -34,7 +34,7 @@ const Verified = (props) => {
     setLoading(true);
     try {
       const resp = await fetch(
-        `${zkIdVerifyEndpoint}/registerVouched/vouchedCredentials?jobID=${jobID}`
+        `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
       );
       // Shape of data == { user: completeUser }
       const data = await resp.json();
