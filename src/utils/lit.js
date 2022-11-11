@@ -1,6 +1,6 @@
 import LitJsSdk from "@lit-protocol/sdk-browser";
 
-const client = new LitJsSdk.LitNodeClient()
+const client = new LitJsSdk.LitNodeClient({ debug: false })
 
 class Lit {
   litNodeClient
@@ -45,7 +45,7 @@ class Lit {
     })
 
     return {
-      encryptedString,
+      encryptedString: await LitJsSdk.blobToBase64String(encryptedString),
       encryptedSymmetricKey: LitJsSdk.uint8arrayToString(encryptedSymmetricKey, "base16")
     }
   }
@@ -63,8 +63,9 @@ class Lit {
       authSig
     })
 
+    const encryptedStringAsBlob = LitJsSdk.base64StringToBlob(encryptedString)
     const decryptedString = await LitJsSdk.decryptString(
-      encryptedString,
+      encryptedStringAsBlob,
       symmetricKey
     );
 

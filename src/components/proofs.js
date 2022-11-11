@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
-import { requestCredentials } from "../utils/secrets";
+import { getEncryptedUserCredentials, decryptUserCredentials } from "../utils/secrets";
 import {
   getDateAsInt,
   poseidonTwoInputs,
@@ -94,6 +94,7 @@ const Proofs = () => {
   async function loadPoR() {
     const salt =
       "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
+    console.log('creds.newSecret...', creds.newSecret)
     const footprint = await poseidonTwoInputs([
       salt,
       ethers.BigNumber.from(creds.newSecret).toString(),
@@ -143,7 +144,8 @@ const Proofs = () => {
   useEffect(() => {
     if (!readyToLoadCreds) return;
     async function getCreds() {
-      const sortedCreds = await requestCredentials();
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = await getEncryptedUserCredentials()
+      const sortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
       if (sortedCreds) {
         const c = sortedCreds[serverAddress];
         setCreds({
@@ -154,7 +156,7 @@ const Proofs = () => {
         });
       } else {
         setError(
-          "Could not retrieve credentials for proof. Please make sure you have the Holonym extension installed and have minted your Holo."
+          "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
         );
       }
     }
@@ -171,13 +173,6 @@ const Proofs = () => {
   useEffect(() => {
     if (account?.address) setReadyToLoadCreds(true);
   }, [account]);
-
-  useEffect(() => {
-    async function f() {
-      setES(await getExtensionState());
-    }
-    f();
-  }, [])
 
   useEffect(() => {
     if (!(submissionConsent && creds && proof)) return;
@@ -219,9 +214,7 @@ const Proofs = () => {
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
-      // TODO: send tx result to extension. Add the following lines when v0.0.0.21 is published
-      // const leafTxMetadata = { chainId: result.chainId, blockNumber: result.blockNumber, txHash: result.hash }
-      // await window.holonym.addLeafMetadata(serverAddress, leafTxMetadata)
+      // TODO: Maybe: Store tx result, esp. chainId, blockNumber, and txHash
       setSuccess(true);
     } catch (e) {
       setError(e.reason);
@@ -242,11 +235,6 @@ const Proofs = () => {
           </ErrorScreen>
   }
 
-  if(!(es?.hasPassword)){
-    return <ErrorScreen>
-            <h3>No Holo found. You must <a href="https://app.holonym.io/mint">mint a Holo</a> to make proofs about your identity</h3>
-          </ErrorScreen>
-  }
   return (
     // <Suspense fallback={<LoadingElement />}>
     <RoundedWindow>
@@ -271,7 +259,7 @@ const Proofs = () => {
                           may take 5-15 seconds to load.
                         </>
                       ) : (
-                        `Please confirm the popup so your proof can be generated`
+                        `Please sign the message in the wallet popup so your proof can be generated`
                       )}
                     </p>
                     <div className="spacer-med" />

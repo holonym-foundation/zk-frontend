@@ -1,4 +1,4 @@
-
+import { ethers } from "ethers";
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import { zkIdVerifyEndpoint } from "../constants/misc";
 import lit from './lit';
@@ -8,44 +8,86 @@ import lit from './lit';
  */
 
 /**
- * @param {object} credentials 
+ * @param {string} input 
  */
-export async function encryptAndPostUserCredentials(credentials) {
-  const stringifiedCreds = JSON.stringify(credentials)
-  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
-  const acConditions = lit.getAccessControlConditions(authSig.address)
-  const { encryptedString, encryptedSymmetricKey } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions)
-  const reqBody = {
-    address: authSig.address, 
-    signature: authSig.sig,
-    signedMessage: authSig.signedMessage,
-    encryptedCredentials: await LitJsSdk.blobToBase64String(encryptedString),
-    encryptedSymmetricKey: encryptedSymmetricKey
-  }
-  const resp = await fetch(`${zkIdVerifyEndpoint}/credentials`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(reqBody)
-  })
-  return await resp.json()
+async function sha256(input) {
+  const data =  new TextEncoder().encode(input);
+  return await crypto.subtle.digest('SHA-256', data);
 }
 
-export async function getAndDecryptUserCredentials() {
+/**
+ * @param {object} credentials Plaintext credentials object
+ * @returns {object} { sigDigest, encryptedString, encryptedSymmetricKey }
+ */
+ export async function encryptUserCredentials(credentials) {
+  const stringifiedCreds = JSON.stringify(credentials)
   const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
-  const resp = await fetch(`${zkIdVerifyEndpoint}/credentials?address=${authSig.address}&signature=${authSig.sig}&signedMessage=${encodeURIComponent(authSig.signedMessage)}`)
-  const data = await resp.json();
-  if (!data) return;
-  const { address, encryptedCredentials, encryptedSymmetricKey } = data
+  const sigDigest = sha256(authSig.sig)
   const acConditions = lit.getAccessControlConditions(authSig.address)
-  const encryptedString = LitJsSdk.base64StringToBlob(encryptedCredentials)
-  const stringifiedCreds = await lit.decrypt(encryptedString, encryptedSymmetricKey, 'ethereum', acConditions)
+  const { 
+    encryptedString, 
+    encryptedSymmetricKey 
+  } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions)
+  return { sigDigest, encryptedString, encryptedSymmetricKey };
+}
+
+/**
+ * Set Set user credentials in localStorage
+ * @param {string} sigDigest 
+ * @param {string} encryptedCredentials 
+ * @param {string} encryptedSymmetricKey 
+ * @returns True if successful, false if error occurs
+ */
+export async function setUserCredentials(sigDigest, encryptedCredentials, encryptedSymmetricKey) {
+  try {
+    window.localStorage.setItem('holoSigDigest', sigDigest)
+    window.localStorage.setItem('holoEncryptedCredentials', encryptedCredentials)
+    window.localStorage.setItem('holoEncryptedSymmetricKey', encryptedSymmetricKey)
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+export async function decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey) {
+  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  const acConditions = lit.getAccessControlConditions(authSig.address)
+  const stringifiedCreds = await lit.decrypt(encryptedCredentials, encryptedSymmetricKey, 'ethereum', acConditions)
   return JSON.parse(stringifiedCreds);
 }
 
+/**
+ * Returns encrypted credentials from localStorage if present. Otherwise queries credential storage API
+ * @returns {object} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
+ */
+export async function getEncryptedUserCredentials() {
+  const localSigDigest = window.localStorage.getItem('holoSigDigest')
+  const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials')
+  const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedSymmetricKey')
+  if (localEncryptedCreds && localEncryptedSymmetricKey) {
+    return {
+      sigDigest: localSigDigest,
+      encryptedCredentials: localEncryptedCreds,
+      encryptedSymmetricKey: localEncryptedSymmetricKey
+    }
+  }
+
+  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  const sigDigest = sha256(authSig)
+  const resp = await fetch(`${zkIdVerifyEndpoint}/credentials?sigDigest=${sigDigest}`)
+  return await resp.json();
+}
+
+export function generateSecret() {
+  const newSecret = new Uint8Array(16);
+  crypto.getRandomValues(newSecret);
+  return ethers.BigNumber.from(newSecret).toHexString();
+}
 
 /**
+ * TODO: Remove these functions?
+ * 
  * Helpers for interacting with Holonym browser extension and for zokrates
  */
 

@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import LitJsSdk from "@lit-protocol/sdk-browser";
 
 import {
-  storeCredentials,
-  getIsHoloRegistered,
-  requestCredentials,
+  encryptUserCredentials,
+  setUserCredentials,
+  getEncryptedUserCredentials,
+  decryptUserCredentials,
+  generateSecret,
 } from "../utils/secrets";
 import { zkIdVerifyEndpoint, serverAddress } from "../constants/misc";
 import {
@@ -16,16 +19,6 @@ import MintButton from "./atoms/mint-button";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-async function waitForUserRegister() {
-  let isRegistered = await getIsHoloRegistered();
-  while (!isRegistered) {
-    await sleep(100);
-    isRegistered = await getIsHoloRegistered();
-  }
-}
-
 // Display success message, and retrieve user credentials to store in browser
 const Verified = (props) => {
   // const p = useParams();
@@ -33,12 +26,8 @@ const Verified = (props) => {
   const { jobID } = useParams();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
-  const [credsAreStored, setCredsAreStored] = useState(false);
-  const [registered, setRegistered] = useState(false);
   const [successScreen, setSuccessScreen] = useState(false);
   const [minting, setMinting] = useState(false);
-  // TODO: Check whether user is logged in too
-  const [creds, setCreds] = useState();
 
   async function loadCredentials() {
     setError(undefined);
@@ -54,51 +43,34 @@ const Verified = (props) => {
         return;
       } else {
         setLoading(false);
-        const credsTemp = data.user;
-        setCreds(credsTemp);
-        return credsTemp;
+        return data.user;
       }
     } catch (err) {
       console.error(`Could not retrieve credentials. Details: ${err}`);
     }
   }
 
-  async function setCredsFromExtension() {
-    try {
-      // Request credentials. Need to request because extension generates new secret
-      const sortedCreds = await requestCredentials();
-      const creds_ = sortedCreds[serverAddress];
-      const formattedCreds = {
-        ...creds_,
-        subdivisionHex: "0x" + Buffer.from(creds_.subdivision).toString("hex"),
-        completedAtHex: getDateAsInt(creds_.completedAt),
-        birthdateHex: getDateAsInt(creds_.birthdate),
-      }
-      setCreds(formattedCreds);
-      console.log(formattedCreds, props.onSetCredsFromExtension);
-      props.onSetCredsFromExtension && props.onSetCredsFromExtension(formattedCreds);
-    } catch (e) {
-      console.error(e);
-      setError("There was a problem in storing your credentials");
-    }
-  }
-
   useEffect(() => {
     async function func() {
-      const isRegistered = await getIsHoloRegistered();
-      // Only setRegistered at this first check. If user had not registered before
-      // reaching this page, we want to keep on the page the instructions for the
-      // non-registered user
-      setRegistered(isRegistered);
-      if (!isRegistered) {
-        await waitForUserRegister();
-        setError(undefined);
-      }
+      // TODO: Check that
+      // 1. user has wallet
+      // 2. wallet is unlocked (i.e., user is logged into it)
+
       console.log("props", props)
-      // If user has already stored credentials (e.g., they weren't able to successfully mint and are trying again, this will let them get credentials from extension withotu redoing verification, which they would be banned from)
-      if(props.jobID === "loadFromExtension"){
-        console.log("loading from extenssion", props)
-        setCredsFromExtension();
+      // If user has already retrieved and stored their credentials, we shouldn't
+      // generate a new secret for them; we should just set creds for the next step
+      if (props.jobID === 'retryMint') {
+        console.log('retrying mint')
+        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = await getEncryptedUserCredentials()
+        const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+        const formattedCreds = {
+          ...currentSortedCreds[serverAddress],
+          subdivisionHex: "0x" + Buffer.from(currentSortedCreds[serverAddress].subdivision).toString("hex"),
+          completedAtHex: getDateAsInt(currentSortedCreds[serverAddress].completedAt),
+          birthdateHex: getDateAsInt(currentSortedCreds[serverAddress].birthdate),
+        }
+        console.log(formattedCreds, props.onCredsStored);
+        props.onCredsStored && props.onCredsStored(formattedCreds);
         return;
       }
       const credsTemp = await loadCredentials();
@@ -108,12 +80,10 @@ const Verified = (props) => {
       }
 
       try {
-        setCreds({
-          ...credsTemp,
-          subdivisionHex: "0x" + Buffer.from(credsTemp.subdivision).toString("hex"),
-          completedAtHex: getDateAsInt(credsTemp.completedAt),
-          birthdateHex: getDateAsInt(credsTemp.birthdate),
-        });
+        // Check that subdivision, completedAt, and birthdate can be properly formatted
+        const formattedSubdivision = "0x" + Buffer.from(credsTemp.subdivision).toString("hex")
+        const formattedCompletedAt = getDateAsInt(credsTemp.completedAt)
+        const formattedBirthdate = getDateAsInt(credsTemp.birthdate)
       } catch (e) {
         console.error(
           `There was a problem in storing your credentials. Details: ${e}`
@@ -121,40 +91,45 @@ const Verified = (props) => {
         setError("Error: There was a problem in storing your credentials");
       }
 
-      const success = await storeCredentials(credsTemp);
-      setCredsAreStored(success);
-      if (success)
-        setCredsFromExtension();
-      else {
-        setError("Could not receive confirmation from user to store credentials");
+      credsTemp.newSecret = generateSecret();
+
+      let newSortedCreds;
+      const encryptedCurrentCredsResp = await getEncryptedUserCredentials()
+      if (encryptedCurrentCredsResp) {
+        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp
+        const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+        newSortedCreds = { ...currentSortedCreds, [serverAddress]: credsTemp }
+      } else {
+        newSortedCreds = { [serverAddress]: credsTemp }
       }
+      const { sigDigest, encryptedString, encryptedSymmetricKey } = encryptUserCredentials(newSortedCreds);
+      const storageSuccess = setUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
+      if (!storageSuccess) {
+        console.log('Failed to store user credentials in localStorage')
+        setError("Error: There was a problem in storing your credentials");
+      }
+      const formattedCreds = {
+        ...credsTemp,
+        subdivisionHex: "0x" + Buffer.from(credsTemp.subdivision).toString("hex"),
+        completedAtHex: getDateAsInt(credsTemp.completedAt),
+        birthdateHex: getDateAsInt(credsTemp.birthdate),
+      }
+      console.log(formattedCreds, props.onCredsStored);
+      props.onCredsStored && props.onCredsStored(formattedCreds);
     }
     try {
       func();
+      LitJsSdk.disconnectWeb3(); // Clear authSig
     } catch (err) {
       console.log(err);
       setError(`Error: ${err.message}`);
     }
-    // For tests
-    // setLoading(false);
-    // storeCredentials(dummyUserCreds).then(async (success) => {
-    //   const newCreds = await requestCredentials();
-    //   setCreds({
-    //     ...newCreds,
-    //     subdivisionHex: getStateAsHexString(newCreds.subdivision),
-    //     completedAtHex: getDateAsInt(newCreds.completedAt),
-    //     birthdateHex: getDateAsInt(newCreds.birthdate),
-    //   });
-    //   setCredsAreStored(success);
-    // });
   }, []);
-
-  
 
   if (successScreen) {
     return <Success />;
   }
-  console.log(creds, credsAreStored, registered)
+  // console.log(creds, credsAreStored, registered)
   return (
     <>
       {loading ? (
@@ -180,22 +155,8 @@ const Verified = (props) => {
         <div>
           <div style={{ maxWidth: "600px", fontSize: "16px" }}>
               <ol>
-                {!registered && (
-                  <li>
-                    <p>
-                      Open the Holonym extension, and create an account by entering a
-                      password (be sure to remember it)
-                    </p>
-                  </li>
-                )}
                 <li>
-                  <p>
-                    Login to the Holonym popup{" "}
-                    {!registered && "(after creating an account)"}
-                  </p>
-                </li>
-                <li>
-                  <p>Confirm your credentials</p>
+                  <p>When you see the wallet popup, sign the message to encrypt your credentials</p>
                 </li>
                 {/* <li>
                   <p>Mint your Holo:</p>
