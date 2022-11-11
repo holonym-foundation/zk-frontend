@@ -8,21 +8,23 @@ import lit from './lit';
  */
 
 /**
- * @param {string} input 
+ * @param {string} input
+ * @returns {Promise<string>}
  */
 async function sha256(input) {
   const data =  new TextEncoder().encode(input);
-  return await crypto.subtle.digest('SHA-256', data);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return new TextDecoder().decode(digest)
 }
 
 /**
  * @param {object} credentials Plaintext credentials object
- * @returns {object} { sigDigest, encryptedString, encryptedSymmetricKey }
+ * @returns {Promise<object>} { sigDigest, encryptedString, encryptedSymmetricKey }
  */
  export async function encryptUserCredentials(credentials) {
   const stringifiedCreds = JSON.stringify(credentials)
   const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
-  const sigDigest = sha256(authSig.sig)
+  const sigDigest = await sha256(authSig.sig)
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const { 
     encryptedString, 
@@ -32,11 +34,11 @@ async function sha256(input) {
 }
 
 /**
- * Set Set user credentials in localStorage
+ * Set user credentials in localStorage
  * @param {string} sigDigest 
  * @param {string} encryptedCredentials 
  * @param {string} encryptedSymmetricKey 
- * @returns True if successful, false if error occurs
+ * @returns {Promise<boolean>} True if successful, false if error occurs
  */
 export async function setUserCredentials(sigDigest, encryptedCredentials, encryptedSymmetricKey) {
   try {
@@ -59,22 +61,26 @@ export async function decryptUserCredentials(encryptedCredentials, encryptedSymm
 
 /**
  * Returns encrypted credentials from localStorage if present. Otherwise queries credential storage API
- * @returns {object} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
+ * @returns {Promise<object>} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
  */
 export async function getEncryptedUserCredentials() {
   const localSigDigest = window.localStorage.getItem('holoSigDigest')
   const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials')
   const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedSymmetricKey')
-  if (localEncryptedCreds && localEncryptedSymmetricKey) {
-    return {
-      sigDigest: localSigDigest,
-      encryptedCredentials: localEncryptedCreds,
-      encryptedSymmetricKey: localEncryptedSymmetricKey
-    }
+  const varsAreDefined = localSigDigest && localEncryptedCreds && localEncryptedSymmetricKey;
+  const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedCreds === 'undefined' || localEncryptedSymmetricKey === 'undefined'
+  if (varsAreDefined && !varsAreUndefinedStr) {
+      console.log('Found creds in localStorage')
+      return {
+        sigDigest: localSigDigest,
+        encryptedCredentials: localEncryptedCreds,
+        encryptedSymmetricKey: localEncryptedSymmetricKey
+      }
   }
 
+  console.log('Did not find creds in localStorage. Requesting from API')
   const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
-  const sigDigest = sha256(authSig)
+  const sigDigest = await sha256(authSig)
   const resp = await fetch(`${zkIdVerifyEndpoint}/credentials?sigDigest=${sigDigest}`)
   return await resp.json();
 }

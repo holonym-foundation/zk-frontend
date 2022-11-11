@@ -102,7 +102,7 @@ const Verified = (props) => {
       } else {
         newSortedCreds = { [serverAddress]: credsTemp }
       }
-      const { sigDigest, encryptedString, encryptedSymmetricKey } = encryptUserCredentials(newSortedCreds);
+      const { sigDigest, encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(newSortedCreds);
       const storageSuccess = setUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
       if (!storageSuccess) {
         console.log('Failed to store user credentials in localStorage')
