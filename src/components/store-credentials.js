@@ -6,7 +6,7 @@ import {
   getIsHoloRegistered,
   requestCredentials,
 } from "../utils/secrets";
-import { zkIdVerifyEndpoint, serverAddress } from "../constants/misc";
+import { zkIdVerifyEndpoint, zkPhoneVerifyEndpoint, serverAddress } from "../constants/misc";
 import {
   getDateAsInt,
 } from "../utils/proofs";
@@ -40,12 +40,35 @@ const Verified = (props) => {
   // TODO: Check whether user is logged in too
   const [creds, setCreds] = useState();
 
-  async function loadCredentials() {
+  async function loadCredentialsVouched() {
     setError(undefined);
     setLoading(true);
     try {
       const resp = await fetch(
         `${zkIdVerifyEndpoint}/registerVouched/vouchedCredentials?jobID=${jobID}`
+      );
+      // Shape of data == { user: completeUser }
+      const data = await resp.json();
+      if (!data || data.error) {
+        console.error(`Could not retrieve credentials. Details: ${data.error}`);
+        return;
+      } else {
+        setLoading(false);
+        const credsTemp = data.user;
+        setCreds(credsTemp);
+        return credsTemp;
+      }
+    } catch (err) {
+      console.error(`Could not retrieve credentials. Details: ${err}`);
+    }
+  }
+
+  async function loadCredentials2FA() {
+    setError(undefined);
+    setLoading(true);
+    try {
+      const resp = await fetch(
+        `${zkPhoneVerifyEndpoint}/getCredentials/${jobID}`
       );
       // Shape of data == { user: completeUser }
       const data = await resp.json();
@@ -101,19 +124,27 @@ const Verified = (props) => {
         setCredsFromExtension();
         return;
       }
-      const credsTemp = await loadCredentials();
+
+      let credsTemp;
+      if(props.credType === "idgov"){credsTemp = await loadCredentialsVouched()};
+      if(props.credType === "phone"){credsTemp = await loadCredentials2FA()};
+
       if (!credsTemp) {
         setError(`Error: Could not retrieve credentials.`);
         return;
       }
 
       try {
-        setCreds({
-          ...credsTemp,
-          subdivisionHex: "0x" + Buffer.from(credsTemp.subdivision).toString("hex"),
-          completedAtHex: getDateAsInt(credsTemp.completedAt),
-          birthdateHex: getDateAsInt(credsTemp.birthdate),
-        });
+        let formattedCreds = credsTemp;
+        if (props.credType === "vouched") {
+          formattedCreds = {
+            ...credsTemp,
+            subdivisionHex: "0x" + Buffer.from(credsTemp.subdivision).toString("hex"),
+            completedAtHex: getDateAsInt(credsTemp.completedAt),
+            birthdateHex: getDateAsInt(credsTemp.birthdate),
+          }
+        } 
+        setCreds(formattedCreds);
       } catch (e) {
         console.error(
           `There was a problem in storing your credentials. Details: ${e}`

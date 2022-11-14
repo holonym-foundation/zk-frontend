@@ -1,4 +1,5 @@
-const config = {
+const loadVouched = (phoneNumber) => {
+  const config = {
     // Optional verification properties.
       verification: {
         // verify the user's information 
@@ -6,7 +7,7 @@ const config = {
         lastName: '',
         // used for the crosscheck feature
         email: '',
-        phone: ''
+        phone: phoneNumber,
       },
       liveness: 'mouth',
       id: 'camera',
@@ -41,7 +42,7 @@ const config = {
         // Redirect to the next page based on the job success
         if( job.result.success){
           console.log('jobID is', job.id)
-          window.location.href=(`/mint/${job.id}`);
+          window.location.href=(`/mint/idgov/${job.id}`);
       } else{
           alert('Verification failed')
       //   window.location.href=("");
@@ -74,21 +75,18 @@ const config = {
 
       },
     };
-  
-  const loadVouched = () => {
-    const existingScript = document.getElementById("vouched");
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = "https://static.vouched.id/widget/vouched-2.0.0.js";
-      script.id = "vouched";
-      script.async = true;
-      document.head.appendChild(script);
-      script.onload = () => {
-        var vouched = window["Vouched"]({ ...config });
-        console.log("mount vouched-element");
-        vouched.mount("#vouched-element");
-      };
+  const existingScript = document.getElementById("vouched");
+  if (!existingScript) {
+    const script = document.createElement("script");
+    script.src = "https://static.vouched.id/widget/vouched-2.0.0.js";
+    script.id = "vouched";
+    script.async = true;
+    document.head.appendChild(script);
+    script.onload = () => {
+      var vouched = window["Vouched"]({ ...config });
+      console.log("mount vouched-element");
+      vouched.mount("#vouched-element");
+    };
     }
-  };
-  
-  export default loadVouched;
+};  
+export default loadVouched;

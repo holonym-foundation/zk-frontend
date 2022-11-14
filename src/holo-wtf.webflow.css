@@ -988,6 +988,29 @@ p {
   border-color: #ff9190;
 }
 
+.PhoneInputInput {
+  margin-right: 20px;
+  margin-bottom: 0px;
+  padding: 20px 10px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #fff;
+  border-radius: 5px;
+  background-color: transparent;
+  font-family: 'Clover Regular', sans-serif;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.PhoneInputInput:active {
+  border-color: #ff9190;
+}
+
+.PhoneInputInput:focus {
+  border-color: #ff9190;
+}
+
 .form {
   display: -webkit-box;
   display: -webkit-flex;
