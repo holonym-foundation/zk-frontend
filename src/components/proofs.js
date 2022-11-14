@@ -265,9 +265,10 @@ const Proofs = () => {
                     <p>
                       {creds ? (
                         <>
-                          This will prove you (
-                          <code>{truncateAddress(account.address)})</code> have the
-                          attribute: <code>{proofs[params.proofType].name}</code>. It
+                          This will give you, 
+                          <code> {truncateAddress(account.address)} </code>, 
+                          a soul-bound token (SBT)
+                          showing only this one attribute of you: <code>{proofs[params.proofType].name}</code>. It
                           may take 5-15 seconds to load.
                         </>
                       ) : (
