@@ -6,6 +6,8 @@ export const idServerUrl =
     : "https://id-server.holonym.io";
 export const serverAddress = "0x8281316aC1D51c94f2DE77575301cEF615aDea84";
 
+export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
+
 export const stateAbbreviations = {
   ALABAMA: "AL",
   ALASKA: "AK",

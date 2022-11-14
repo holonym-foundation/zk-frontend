@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import { idServerUrl } from "../constants/misc";
@@ -11,26 +12,25 @@ import lit from './lit';
  * @param {string} input
  * @returns {Promise<string>}
  */
-async function sha256(input) {
+export async function sha256(input) {
   const data =  new TextEncoder().encode(input);
   const digest = await crypto.subtle.digest('SHA-256', data);
-  return new TextDecoder().decode(digest)
+  return Buffer.from(digest).toString('hex')
 }
 
 /**
  * @param {object} credentials Plaintext credentials object
- * @returns {Promise<object>} { sigDigest, encryptedString, encryptedSymmetricKey }
+ * @returns {Promise<object>} { encryptedString, encryptedSymmetricKey }
  */
  export async function encryptUserCredentials(credentials) {
   const stringifiedCreds = JSON.stringify(credentials)
   const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
-  const sigDigest = await sha256(authSig.sig)
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const { 
     encryptedString, 
     encryptedSymmetricKey 
   } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions)
-  return { sigDigest, encryptedString, encryptedSymmetricKey };
+  return { encryptedString, encryptedSymmetricKey };
 }
 
 /**

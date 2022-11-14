@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useSignMessage } from 'wagmi'
 import LitJsSdk from "@lit-protocol/sdk-browser";
 
 import {
@@ -8,8 +9,9 @@ import {
   getEncryptedUserCredentials,
   decryptUserCredentials,
   generateSecret,
+  sha256,
 } from "../utils/secrets";
-import { idServerUrl, serverAddress } from "../constants/misc";
+import { idServerUrl, serverAddress, holonymAuthMessage } from "../constants/misc";
 import {
   getDateAsInt,
 } from "../utils/proofs";
@@ -24,10 +26,18 @@ const Verified = (props) => {
   // const p = useParams();
   // const jobID = p.jobID || props.jobID;
   const { jobID } = useParams();
+  const [sortedCreds, setSortedCreds] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
   const [minting, setMinting] = useState(false);
+  const { 
+    data: holoAuthSig, 
+    isError: holoAuthSigIsError, 
+    isLoading, 
+    isSuccess: holoAuthSigIsSuccess, 
+    signMessage 
+  } = useSignMessage({ message: holonymAuthMessage })
 
   async function loadCredentials() {
     setError(undefined);
@@ -79,18 +89,6 @@ const Verified = (props) => {
         return;
       }
 
-      try {
-        // Check that subdivision, completedAt, and birthdate can be properly formatted
-        const formattedSubdivision = "0x" + Buffer.from(credsTemp.subdivision).toString("hex")
-        const formattedCompletedAt = getDateAsInt(credsTemp.completedAt)
-        const formattedBirthdate = getDateAsInt(credsTemp.birthdate)
-      } catch (e) {
-        console.error(
-          `There was a problem in storing your credentials. Details: ${e}`
-        );
-        setError("Error: There was a problem in storing your credentials");
-      }
-
       credsTemp.newSecret = generateSecret();
 
       let newSortedCreds;
@@ -102,17 +100,36 @@ const Verified = (props) => {
       } else {
         newSortedCreds = { [serverAddress]: credsTemp }
       }
-      const { sigDigest, encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(newSortedCreds);
+      setSortedCreds(newSortedCreds);
+      signMessage()
+      // This flow is continued in the next useEffect, after user signs holo auth message
+    }
+    try {
+      func();
+    } catch (err) {
+      console.log(err);
+      setError(`Error: ${err.message}`);
+    }
+  }, []);
+
+  useEffect(() => {    
+    async function func() {
+      if (!holoAuthSig && !holoAuthSigIsSuccess) return;
+      if (holoAuthSigIsError) {
+        throw new Error('Failed to sign Holonym authentication message needed to store credentials.')
+      }
+      const sigDigest = await sha256(holoAuthSig);
+      const { encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(sortedCreds);
       const storageSuccess = setUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
       if (!storageSuccess) {
         console.log('Failed to store user credentials in localStorage')
         setError("Error: There was a problem in storing your credentials");
       }
       const formattedCreds = {
-        ...credsTemp,
-        subdivisionHex: "0x" + Buffer.from(credsTemp.subdivision).toString("hex"),
-        completedAtHex: getDateAsInt(credsTemp.completedAt),
-        birthdateHex: getDateAsInt(credsTemp.birthdate),
+        ...sortedCreds[serverAddress],
+        subdivisionHex: "0x" + Buffer.from(sortedCreds[serverAddress].subdivision).toString("hex"),
+        completedAtHex: getDateAsInt(sortedCreds[serverAddress].completedAt),
+        birthdateHex: getDateAsInt(sortedCreds[serverAddress].birthdate),
       }
       console.log(formattedCreds, props.onCredsStored);
       props.onCredsStored && props.onCredsStored(formattedCreds);
@@ -124,7 +141,7 @@ const Verified = (props) => {
       console.log(err);
       setError(`Error: ${err.message}`);
     }
-  }, []);
+  }, [holoAuthSig])
 
   if (successScreen) {
     return <Success />;
@@ -156,7 +173,7 @@ const Verified = (props) => {
           <div style={{ maxWidth: "600px", fontSize: "16px" }}>
               <ol>
                 <li>
-                  <p>When you see the wallet popup, sign the message to encrypt your credentials</p>
+                  <p>Sign the messages in the wallet popups. This allows you to encrypt and store your credentials</p>
                 </li>
                 {/* <li>
                   <p>Mint your Holo:</p>
