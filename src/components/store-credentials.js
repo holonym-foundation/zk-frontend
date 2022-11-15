@@ -31,6 +31,7 @@ const Verified = (props) => {
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
   const [minting, setMinting] = useState(false);
+  const [litAuthSig, setLitAuthSig] = useState();
   const { 
     data: holoAuthSig, 
     isError: holoAuthSigIsError, 
@@ -72,7 +73,7 @@ const Verified = (props) => {
   }
 
   // First half of data flow if user is minting for first time
-  async function normalFlowFirstHalf() {
+  async function normalFlowFirstHalf(authSig) {
     const credsTemp = await loadCredentials();
     if (!credsTemp) {
       setError(`Error: Could not retrieve credentials.`);
@@ -84,7 +85,7 @@ const Verified = (props) => {
     const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
     if (encryptedCurrentCredsResp) {
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp
-      const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+      const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, authSig)
       setSortedCreds({ ...currentSortedCreds, [serverAddress]: credsTemp })
     } else {
       setSortedCreds({ [serverAddress]: credsTemp })
@@ -94,7 +95,7 @@ const Verified = (props) => {
 
   // Second half of data flow if user is minting for first time
   async function normalFlowSecondHalf(sigDigest) {
-    const { encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(sortedCreds);
+    const { encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(sortedCreds, litAuthSig);
     const storageSuccess = setLocalUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
     if (!storageSuccess) {
       console.log('Failed to store user credentials in localStorage')
@@ -108,6 +109,10 @@ const Verified = (props) => {
       // TODO: Check that
       // 1. user has wallet
       // 2. wallet is unlocked (i.e., user is logged into it)
+      console.log('store-credentials: checkAndSignAuthMessage at line 112')
+      const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+      setLitAuthSig(authSig);
+
       console.log("props", props)
       // If user has already retrieved and stored their credentials, we shouldn't
       // generate a new secret for them; we should just set creds for the next step
@@ -118,11 +123,11 @@ const Verified = (props) => {
           throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
         }
         const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-        const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+        const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, authSig)
         formatCredsAndCallCb(currentSortedCreds[serverAddress])
         return;
       }
-      else await normalFlowFirstHalf()
+      else await normalFlowFirstHalf(authSig)
     }
     try {
       func();

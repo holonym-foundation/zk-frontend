@@ -20,16 +20,18 @@ export async function sha256(input) {
 
 /**
  * @param {object} credentials Plaintext credentials object
+ * @param {object} litAuthSig SIWE-compliant object
  * @returns {Promise<object>} { encryptedString, encryptedSymmetricKey }
  */
- export async function encryptUserCredentials(credentials) {
+ export async function encryptUserCredentials(credentials, litAuthSig) {
   const stringifiedCreds = JSON.stringify(credentials)
-  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  console.log('secrets: checkAndSignAuthMessage at line 28')
+  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const { 
     encryptedString, 
     encryptedSymmetricKey 
-  } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions)
+  } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions, authSig)
   return { encryptedString, encryptedSymmetricKey };
 }
 
@@ -52,10 +54,11 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
   }
 }
 
-export async function decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey) {
-  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+export async function decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, litAuthSig) {
+  console.log('secrets: checkAndSignAuthMessage at line 58')
+  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const acConditions = lit.getAccessControlConditions(authSig.address)
-  const stringifiedCreds = await lit.decrypt(encryptedCredentials, encryptedSymmetricKey, 'ethereum', acConditions)
+  const stringifiedCreds = await lit.decrypt(encryptedCredentials, encryptedSymmetricKey, 'ethereum', acConditions, litAuthSig)
   return JSON.parse(stringifiedCreds);
 }
 

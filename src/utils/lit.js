@@ -29,12 +29,13 @@ class Lit {
     ]
   }
 
-  async encrypt(message, chain, accessControlConditions) {
+  async encrypt(message, chain, accessControlConditions, litAuthSig) {
     if (!this.litNodeClient) {
       await this.connect()
     }
 
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain })
+    console.log('lit: checkAndSignAuthMessage at line 37')
+    const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain })
     const { encryptedString, symmetricKey } = await LitJsSdk.encryptString(message)
 
     const encryptedSymmetricKey = await this.litNodeClient.saveEncryptionKey({
@@ -50,12 +51,13 @@ class Lit {
     }
   }
 
-  async decrypt(encryptedString, encryptedSymmetricKey, chain, accessControlConditions) {
+  async decrypt(encryptedString, encryptedSymmetricKey, chain, accessControlConditions, litAuthSig) {
     if (!this.litNodeClient) {
       await this.connect()
     }
 
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain })
+    console.log('lit: checkAndSignAuthMessage at line 59')
+    const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain })
     const symmetricKey = await this.litNodeClient.getEncryptionKey({
       accessControlConditions,
       toDecrypt: encryptedSymmetricKey,
