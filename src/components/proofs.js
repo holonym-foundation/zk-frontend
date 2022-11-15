@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
-import { getEncryptedUserCredentials, decryptUserCredentials } from "../utils/secrets";
+import { useAccount, useSignMessage } from "wagmi";
+import { 
+  getLocalEncryptedUserCredentials, 
+  decryptUserCredentials, 
+  sha256 
+} from "../utils/secrets";
 import {
   getDateAsInt,
   poseidonTwoInputs,
   proofOfResidency,
   antiSybil,
 } from "../utils/proofs";
-import { serverAddress } from "../constants/misc";
+import { serverAddress, idServerUrl, holonymAuthMessage } from "../constants/misc";
 import ConnectWallet from "./atoms/ConnectWallet";
 import proofContractAddresses from "../constants/proofContractAddresses.json";
 import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
@@ -75,6 +79,13 @@ const Proofs = () => {
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
   const { data: account } = useAccount();
+  const {
+    data: holoAuthSig,
+    isError: holoAuthSigIsError,
+    isLoading,
+    isSuccess: holoAuthSigIsSuccess, 
+    signMessage
+  } = useSignMessage({ message: holonymAuthMessage })
   
   const proofs = {
     "us-residency": {
@@ -141,27 +152,66 @@ const Proofs = () => {
     console.log("proof is", JSON.stringify(as));
   }
 
+  async function decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey) {
+    const sortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+    if (sortedCreds) {
+      const c = sortedCreds[serverAddress];
+      setCreds({
+        ...c,
+        subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
+        completedAtHex: getDateAsInt(c.completedAt),
+        birthdateHex: getDateAsInt(c.birthdate),
+      });
+    } else {
+      setError(
+        "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
+      );
+    }
+  }
+
   useEffect(() => {
     if (!readyToLoadCreds) return;
     async function getCreds() {
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = await getEncryptedUserCredentials()
-      const sortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
-      if (sortedCreds) {
-        const c = sortedCreds[serverAddress];
-        setCreds({
-          ...c,
-          subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
-          completedAtHex: getDateAsInt(c.completedAt),
-          birthdateHex: getDateAsInt(c.birthdate),
-        });
-      } else {
-        setError(
-          "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
-        );
+      const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+      if (!localEncryptedCreds) {
+        // If no localEncryptedCreds, then this flow must be continued in the next 
+        // useEffect, after the user signs the message
+        signMessage()
+        return;
       }
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
+      await decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey)
     }
     getCreds();
   }, [readyToLoadCreds]);
+
+  // This useEffect triggers if creds must be retrieved from Holonym db instead of localStorage
+  useEffect(() => {
+    async function getCreds() {
+      if (!holoAuthSig && !holoAuthSigIsSuccess) return;
+      if (holoAuthSigIsError) {
+        throw new Error('Failed to sign Holonym authentication message needed to store credentials.')
+      }
+      const sigDigest = await sha256(holoAuthSig);
+      const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
+      const data = await resp.json();
+      if (!data) {
+        throw new Error("Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
+      }
+      const { 
+        sigDigest: retrievedSigDigest, 
+        encryptedCredentials, 
+        encryptedSymmetricKey 
+      } = data;
+      await decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey)
+    }
+    try {
+      getCreds();
+    } catch (err) {
+      console.log(err);
+      setError(`Error: ${err.message}`);
+    }
+  }, [holoAuthSig])
 
   useEffect(() => {
     if (!account?.address) return;

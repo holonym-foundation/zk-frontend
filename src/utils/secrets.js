@@ -40,7 +40,7 @@ export async function sha256(input) {
  * @param {string} encryptedSymmetricKey 
  * @returns {Promise<boolean>} True if successful, false if error occurs
  */
-export async function setUserCredentials(sigDigest, encryptedCredentials, encryptedSymmetricKey) {
+export async function setLocalUserCredentials(sigDigest, encryptedCredentials, encryptedSymmetricKey) {
   try {
     window.localStorage.setItem('holoSigDigest', sigDigest)
     window.localStorage.setItem('holoEncryptedCredentials', encryptedCredentials)
@@ -63,7 +63,7 @@ export async function decryptUserCredentials(encryptedCredentials, encryptedSymm
  * Returns encrypted credentials from localStorage if present. Otherwise queries credential storage API
  * @returns {Promise<object>} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
  */
-export async function getEncryptedUserCredentials() {
+export async function getLocalEncryptedUserCredentials() {
   const localSigDigest = window.localStorage.getItem('holoSigDigest')
   const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials')
   const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedSymmetricKey')
@@ -77,12 +77,8 @@ export async function getEncryptedUserCredentials() {
         encryptedSymmetricKey: localEncryptedSymmetricKey
       }
   }
-
-  console.log('Did not find creds in localStorage. Requesting from API')
-  const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
-  const sigDigest = await sha256(authSig)
-  const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
-  return await resp.json();
+  console.log('Did not find creds in localStorage')
+  return;
 }
 
 export function generateSecret() {

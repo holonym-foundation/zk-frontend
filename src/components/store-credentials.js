@@ -5,8 +5,8 @@ import LitJsSdk from "@lit-protocol/sdk-browser";
 
 import {
   encryptUserCredentials,
-  setUserCredentials,
-  getEncryptedUserCredentials,
+  setLocalUserCredentials,
+  getLocalEncryptedUserCredentials,
   decryptUserCredentials,
   generateSecret,
   sha256,
@@ -39,6 +39,17 @@ const Verified = (props) => {
     signMessage 
   } = useSignMessage({ message: holonymAuthMessage })
 
+  async function formatCredsAndCallCb(creds) {
+    const formattedCreds = {
+      ...creds,
+      subdivisionHex: "0x" + Buffer.from(creds.subdivision).toString("hex"),
+      completedAtHex: getDateAsInt(creds.completedAt),
+      birthdateHex: getDateAsInt(creds.birthdate),
+    }
+    console.log(formattedCreds, props.onCredsStored);
+    props.onCredsStored && props.onCredsStored(formattedCreds);
+  }
+
   async function loadCredentials() {
     setError(undefined);
     setLoading(true);
@@ -60,49 +71,58 @@ const Verified = (props) => {
     }
   }
 
+  // First half of data flow if user is minting for first time
+  async function normalFlowFirstHalf() {
+    const credsTemp = await loadCredentials();
+    if (!credsTemp) {
+      setError(`Error: Could not retrieve credentials.`);
+      return;
+    }
+    credsTemp.newSecret = generateSecret();
+    // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
+    // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
+    const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
+    if (encryptedCurrentCredsResp) {
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp
+      const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+      setSortedCreds({ ...currentSortedCreds, [serverAddress]: credsTemp })
+    } else {
+      setSortedCreds({ [serverAddress]: credsTemp })
+    }
+    signMessage() // User must sign holo auth message to continue
+  }
+
+  // Second half of data flow if user is minting for first time
+  async function normalFlowSecondHalf(sigDigest) {
+    const { encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(sortedCreds);
+    const storageSuccess = setLocalUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
+    if (!storageSuccess) {
+      console.log('Failed to store user credentials in localStorage')
+      setError("Error: There was a problem in storing your credentials");
+    }
+    formatCredsAndCallCb(sortedCreds[serverAddress])
+  }
+
   useEffect(() => {
     async function func() {
       // TODO: Check that
       // 1. user has wallet
       // 2. wallet is unlocked (i.e., user is logged into it)
-
       console.log("props", props)
       // If user has already retrieved and stored their credentials, we shouldn't
       // generate a new secret for them; we should just set creds for the next step
       if (props.jobID === 'retryMint') {
         console.log('retrying mint')
-        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = await getEncryptedUserCredentials()
-        const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
-        const formattedCreds = {
-          ...currentSortedCreds[serverAddress],
-          subdivisionHex: "0x" + Buffer.from(currentSortedCreds[serverAddress].subdivision).toString("hex"),
-          completedAtHex: getDateAsInt(currentSortedCreds[serverAddress].completedAt),
-          birthdateHex: getDateAsInt(currentSortedCreds[serverAddress].birthdate),
+        const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+        if (!localEncryptedCreds) {
+          throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
         }
-        console.log(formattedCreds, props.onCredsStored);
-        props.onCredsStored && props.onCredsStored(formattedCreds);
-        return;
-      }
-      const credsTemp = await loadCredentials();
-      if (!credsTemp) {
-        setError(`Error: Could not retrieve credentials.`);
-        return;
-      }
-
-      credsTemp.newSecret = generateSecret();
-
-      let newSortedCreds;
-      const encryptedCurrentCredsResp = await getEncryptedUserCredentials()
-      if (encryptedCurrentCredsResp) {
-        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp
+        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
         const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
-        newSortedCreds = { ...currentSortedCreds, [serverAddress]: credsTemp }
-      } else {
-        newSortedCreds = { [serverAddress]: credsTemp }
+        formatCredsAndCallCb(currentSortedCreds[serverAddress])
+        return;
       }
-      setSortedCreds(newSortedCreds);
-      signMessage()
-      // This flow is continued in the next useEffect, after user signs holo auth message
+      else await normalFlowFirstHalf()
     }
     try {
       func();
@@ -119,20 +139,7 @@ const Verified = (props) => {
         throw new Error('Failed to sign Holonym authentication message needed to store credentials.')
       }
       const sigDigest = await sha256(holoAuthSig);
-      const { encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(sortedCreds);
-      const storageSuccess = setUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
-      if (!storageSuccess) {
-        console.log('Failed to store user credentials in localStorage')
-        setError("Error: There was a problem in storing your credentials");
-      }
-      const formattedCreds = {
-        ...sortedCreds[serverAddress],
-        subdivisionHex: "0x" + Buffer.from(sortedCreds[serverAddress].subdivision).toString("hex"),
-        completedAtHex: getDateAsInt(sortedCreds[serverAddress].completedAt),
-        birthdateHex: getDateAsInt(sortedCreds[serverAddress].birthdate),
-      }
-      console.log(formattedCreds, props.onCredsStored);
-      props.onCredsStored && props.onCredsStored(formattedCreds);
+      if (props.jobID !== 'retryMint') await normalFlowSecondHalf(sigDigest)
     }
     try {
       func();

@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
 import { onAddLeafProof } from "../../utils/proofs";
 import { serverAddress } from "../../constants/misc";
-import { getEncryptedUserCredentials } from '../../utils/secrets'
+import { getLocalEncryptedUserCredentials } from '../../utils/secrets'
 
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
@@ -31,7 +31,7 @@ const MintButton = (props) => {
         const { v, r, s } = ethers.utils.splitSignature(creds.signature);
         const RELAYER_URL = "https://relayer.holonym.id";
         let res;
-        const encryptedCredsObj = await getEncryptedUserCredentials()
+        const encryptedCredsObj = await getLocalEncryptedUserCredentials()
         try {
           res = await axios.post(`${RELAYER_URL}/addLeaf`, {
             addLeafArgs: {
