@@ -34,7 +34,6 @@ class Lit {
       await this.connect()
     }
 
-    console.log('lit: checkAndSignAuthMessage at line 37')
     const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain })
     const { encryptedString, symmetricKey } = await LitJsSdk.encryptString(message)
 
@@ -56,7 +55,6 @@ class Lit {
       await this.connect()
     }
 
-    console.log('lit: checkAndSignAuthMessage at line 59')
     const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain })
     const symmetricKey = await this.litNodeClient.getEncryptionKey({
       accessControlConditions,

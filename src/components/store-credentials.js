@@ -109,7 +109,6 @@ const Verified = (props) => {
       // TODO: Check that
       // 1. user has wallet
       // 2. wallet is unlocked (i.e., user is logged into it)
-      console.log('store-credentials: checkAndSignAuthMessage at line 112')
       const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
       setLitAuthSig(authSig);
 

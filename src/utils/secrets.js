@@ -25,7 +25,6 @@ export async function sha256(input) {
  */
  export async function encryptUserCredentials(credentials, litAuthSig) {
   const stringifiedCreds = JSON.stringify(credentials)
-  console.log('secrets: checkAndSignAuthMessage at line 28')
   const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const { 
@@ -55,7 +54,6 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
 }
 
 export async function decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, litAuthSig) {
-  console.log('secrets: checkAndSignAuthMessage at line 58')
   const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const stringifiedCreds = await lit.decrypt(encryptedCredentials, encryptedSymmetricKey, 'ethereum', acConditions, litAuthSig)
