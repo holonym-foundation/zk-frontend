@@ -62,9 +62,9 @@ export async function decryptUserCredentials(encryptedCredentials, encryptedSymm
 
 /**
  * Returns encrypted credentials from localStorage if present. Otherwise queries credential storage API
- * @returns {Promise<object>} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
+ * @returns {object} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
  */
-export async function getLocalEncryptedUserCredentials() {
+export function getLocalEncryptedUserCredentials() {
   const localSigDigest = window.localStorage.getItem('holoSigDigest')
   const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials')
   const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedSymmetricKey')

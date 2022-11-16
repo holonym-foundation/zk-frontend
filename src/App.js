@@ -1,7 +1,7 @@
 import "./App.css";
-import "./holo-wtf.webflow.css";
 import "./normalize.css";
 import "./webflow.css";
+import "./holo-wtf.webflow.css";
 // import AuthenticationFlow from "./components/authentication-flow.js";
 // import Registry from "./components/registry.js";
 // import { HomeLogo } from "./components/logo.js";
@@ -17,6 +17,7 @@ import WebFont from "webfontloader";
 // import WalletModal from "./components/atoms/WalletModal";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Mint from "./mint.js";
+import Profile from './components/profile';
 import LoadingElement from "./components/loading-element";
 // import { useConnect, useAccount, useNetwork } from "wagmi";
 // import { desiredChain } from "./constants/desiredChain";
@@ -144,6 +145,7 @@ function App() {
           {/* <Route path={"/zk-id/proofs/:proofType"} element={<Proofs />} /> */}
           {/* <Route path={"/chainswitchertest"} element={<ChainSwitcher />} /> */}
           {/* <Route path={"/chainswitchermodaltest"} element={<ChainSwitcherModal />} /> */}
+          <Route exact path={"/profile"} element={<Profile />} />
         </Routes>
       </Router>
     </div>
