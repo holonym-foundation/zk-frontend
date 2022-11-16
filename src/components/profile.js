@@ -10,14 +10,14 @@ import {
 } from '../utils/secrets';
 import { serverAddress, primeToCountryCode } from "../constants/misc";
 
-// birthdate: "1950-01-01"
-// completedAt: "2022-09-16"
-// countryCode: 2
-// issuer: "0x8281316aC1D51c94f2DE77575301cEF615aDea84"
-// newSecret: "0x8cf083f6d1e838874e577fc4f735de47"
-// secret: "0x13dfda0ba0c0ff8545dc06daf74f1d15"
-// signature: "0x661d1c65bb5d7bbe275ffa920754105ec4e8f9450c6939b5bafd8f25eca006ae1f80a06514e9c94955adc4d834a5a676d0a77a14295765db3ee17e9941ff42cb1c"
-// subdivision: "NY"
+// birthdate
+// completedAt
+// countryCode
+// issuer
+// newSecret
+// secret
+// signature
+// subdivision
 
 const credsFieldsToIgnore = [
   'completedAt',
