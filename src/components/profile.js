@@ -27,6 +27,33 @@ const credsFieldsToIgnore = [
   'signature'
 ]
 
+function formatCreds(creds) {
+  // Note: This flattening approach assumes two issuers will never provide the same field.
+  // For example, we will never use BOTH Vouched and Persona to retrieve "countryCode"
+  const flattenedCreds = {}
+  for (const issuer of Object.keys(creds)) {
+    Object.assign(flattenedCreds, { ...flattenedCreds, ...creds[issuer] })
+  }
+  const filteredCreds = Object.fromEntries(
+    Object.entries(flattenedCreds).filter(([fieldName, value]) => {
+      return !credsFieldsToIgnore.includes(fieldName);
+    })
+  );
+  const formattedCreds = Object.fromEntries(
+    Object.entries(filteredCreds).map(([fieldName, value]) => {
+      if (fieldName === "countryCode") {
+        return ['Country', primeToCountryCode[value]]
+      } else {
+        let formattedFieldName = fieldName.replace(/([A-Z])/g, " $1");
+        formattedFieldName =
+          formattedFieldName.charAt(0).toUpperCase() + formattedFieldName.slice(1);
+        return [formattedFieldName, value];
+      }
+    })
+  );
+  return formattedCreds;
+}
+
 export default function Profile(props) {
   const [creds, setCreds] = useState();
 
@@ -40,25 +67,8 @@ export default function Profile(props) {
       if (!encryptedCredsObj) return; // TODO: Set error/message here telling user they have no creds. OR call API, and if API returns no creds, then display message
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
       const plaintextCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey) //, litAuthSig)
-      // TODO: Make this compatible with multiple issuers
-      const filteredCreds = Object.fromEntries(
-        Object.entries(plaintextCreds[serverAddress]).filter(([fieldName, value]) => {
-          return !credsFieldsToIgnore.includes(fieldName);
-        })
-      );
-      const formattedFilteredCreds = Object.fromEntries(
-        Object.entries(filteredCreds).map(([fieldName, value]) => {
-          if (fieldName === "countryCode") {
-            return ['Country', primeToCountryCode[value]]
-          } else {
-            let formattedFieldName = fieldName.replace(/([A-Z])/g, " $1");
-            formattedFieldName =
-              formattedFieldName.charAt(0).toUpperCase() + formattedFieldName.slice(1);
-            return [formattedFieldName, value];
-          }
-        })
-      );
-      setCreds(formattedFilteredCreds);
+      const formattedCreds = formatCreds(plaintextCreds);
+      setCreds(formattedCreds);
     }
     getAndSetCreds()
   }, [])
@@ -92,8 +102,9 @@ export default function Profile(props) {
           <ProfileField header="Country" fieldValue={creds?.['Country']} />
           <ProfileField header="Subdivision" fieldValue={creds?.['Subdivision']} />
           <ProfileField header="Birthdate" fieldValue={creds?.['Birthdate']} />
+          {/* <ProfileField header="Phone Number" fieldValue="" verifyCallback={() => {}} /> */}
           <ProfileField header="Phone Number" fieldValue="" />
-        </div>
+          </div>
       </div>
     </div>
   </>
