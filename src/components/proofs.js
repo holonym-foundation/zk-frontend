@@ -4,7 +4,11 @@ import { ethers } from "ethers";
 import { useAccount, useSignMessage } from "wagmi";
 import { 
   getLocalEncryptedUserCredentials, 
-  decryptUserCredentials, 
+  decryptObjectWithLit, 
+  encryptObject,
+  getLocalProofMetadata,
+  setLocalEncryptedProofMetadata,
+  storeProofMetadata,
   sha256 
 } from "../utils/secrets";
 import {
@@ -13,7 +17,12 @@ import {
   proofOfResidency,
   antiSybil,
 } from "../utils/proofs";
-import { serverAddress, idServerUrl, holonymAuthMessage } from "../constants/misc";
+import { 
+  serverAddress, 
+  idServerUrl, 
+  holonymAuthMessage, 
+  defaultActionId 
+} from "../constants/misc";
 import ConnectWallet from "./atoms/ConnectWallet";
 import proofContractAddresses from "../constants/proofContractAddresses.json";
 import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
@@ -126,10 +135,10 @@ const Proofs = () => {
   }
 
   async function loadAntiSybil() {
-    const actionId = params.actionId || "123456789";
+    const actionId = params.actionId || defaultActionId;
     if (!params.actionId)
       console.error(
-        "Warning: no actionId was given, using default of 123456789 (generic cross-action sybil resistance)"
+        `Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`
       );
     console.log("actionId", actionId);
     const footprint = await poseidonTwoInputs([
@@ -153,7 +162,7 @@ const Proofs = () => {
   }
 
   async function decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey) {
-    const sortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+    const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
     if (sortedCreds) {
       const c = sortedCreds[serverAddress];
       setCreds({
@@ -264,7 +273,8 @@ const Proofs = () => {
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
-      // TODO: Maybe: Store tx result, esp. chainId, blockNumber, and txHash
+      const authSig = undefined; // TODO: Get authSig
+      await storeProofMetadata(result, params.proofType, params.actionId, authSig)
       setSuccess(true);
     } catch (e) {
       setError(e.reason);

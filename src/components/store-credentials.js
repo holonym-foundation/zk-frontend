@@ -4,10 +4,10 @@ import { useSignMessage } from 'wagmi'
 import LitJsSdk from "@lit-protocol/sdk-browser";
 
 import {
-  encryptUserCredentials,
+  encryptObject,
   setLocalUserCredentials,
   getLocalEncryptedUserCredentials,
-  decryptUserCredentials,
+  decryptObjectWithLit,
   generateSecret,
   sha256,
 } from "../utils/secrets";
@@ -85,7 +85,7 @@ const Verified = (props) => {
     const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
     if (encryptedCurrentCredsResp) {
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp
-      const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, authSig)
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, authSig)
       setSortedCreds({ ...currentSortedCreds, [serverAddress]: credsTemp })
     } else {
       setSortedCreds({ [serverAddress]: credsTemp })
@@ -95,7 +95,7 @@ const Verified = (props) => {
 
   // Second half of data flow if user is minting for first time
   async function normalFlowSecondHalf(sigDigest) {
-    const { encryptedString, encryptedSymmetricKey } = await encryptUserCredentials(sortedCreds, litAuthSig);
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
     const storageSuccess = setLocalUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
     if (!storageSuccess) {
       console.log('Failed to store user credentials in localStorage')
@@ -122,7 +122,7 @@ const Verified = (props) => {
           throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
         }
         const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-        const currentSortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, authSig)
+        const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, authSig)
         formatCredsAndCallCb(currentSortedCreds[serverAddress])
         return;
       }
@@ -147,7 +147,6 @@ const Verified = (props) => {
     }
     try {
       func();
-      LitJsSdk.disconnectWeb3(); // Clear authSig
     } catch (err) {
       console.log(err);
       setError(`Error: ${err.message}`);

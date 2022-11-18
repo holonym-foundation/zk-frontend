@@ -1,8 +1,28 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import LitJsSdk from "@lit-protocol/sdk-browser";
-import { idServerUrl } from "../constants/misc";
+import { idServerUrl, defaultActionId } from "../constants/misc";
 import lit from './lit';
+
+
+/**
+ * @typedef {Object} ProofMetadataItem
+ * @property {string} proofType
+ * @property {string} [actionId] Only required if proofType is 'uniqueness'
+ * @property {string} address 
+ * @property {number} chainId 
+ * @property {number} blockNumber 
+ * @property {string} txHash 
+ * @property {string|Array<string>} credentials
+ */
+
+/**
+ * @typedef {Array<ProofMetadataItem>} ProofMetadata
+ */
+
+/**
+ * @typedef {string} EncryptedProofMetadata
+ */
 
 /**
  * Lit+server helpers
@@ -19,12 +39,12 @@ export async function sha256(input) {
 }
 
 /**
- * @param {object} credentials Plaintext credentials object
+ * @param {object | Array} data js object to be encrypted, e.g., plaintext credentials object
  * @param {object} litAuthSig SIWE-compliant object
  * @returns {Promise<object>} { encryptedString, encryptedSymmetricKey }
  */
- export async function encryptUserCredentials(credentials, litAuthSig) {
-  const stringifiedCreds = JSON.stringify(credentials)
+ export async function encryptObject(data, litAuthSig) {
+  const stringifiedCreds = JSON.stringify(data)
   const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const { 
@@ -53,10 +73,16 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
   }
 }
 
-export async function decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey, litAuthSig) {
+/**
+ * @param {string} encryptedData String that should be an object when decrypted
+ * @param {*} encryptedSymmetricKey 
+ * @param {*} litAuthSig 
+ * @returns {object}
+ */
+export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
   const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
   const acConditions = lit.getAccessControlConditions(authSig.address)
-  const stringifiedCreds = await lit.decrypt(encryptedCredentials, encryptedSymmetricKey, 'ethereum', acConditions, litAuthSig)
+  const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, 'ethereum', acConditions, litAuthSig)
   return JSON.parse(stringifiedCreds);
 }
 
@@ -67,6 +93,7 @@ export async function decryptUserCredentials(encryptedCredentials, encryptedSymm
 export function getLocalEncryptedUserCredentials() {
   const localSigDigest = window.localStorage.getItem('holoSigDigest')
   const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials')
+  // TODO: Rename 'holoEncryptedSymmetricKey' to 'holoEncryptedCredentialsSymmetricKey'
   const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedSymmetricKey')
   const varsAreDefined = localSigDigest && localEncryptedCreds && localEncryptedSymmetricKey;
   const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedCreds === 'undefined' || localEncryptedSymmetricKey === 'undefined'
@@ -79,7 +106,60 @@ export function getLocalEncryptedUserCredentials() {
       }
   }
   console.log('Did not find creds in localStorage')
-  return;
+}
+
+export async function storeProofMetadata(tx, proofType, actionId, authSig) {
+  try {
+    const thisProofMetadata = {
+      proofType: proofType,
+      address: tx.from, 
+      chainId: tx.chainId, 
+      blockNumber: tx.blockNumber,
+      txHash: tx.hash,
+    }
+    if (proofType === 'uniqueness') {
+      thisProofMetadata.actionId = actionId || defaultActionId;
+    }
+    let newProofMetadata = []
+    const localProofMetadata = getLocalProofMetadata()
+    // TODO: if (!localProofMetadata) query server for encrypted proof metadata
+    if (localProofMetadata) {
+      const oldProofMetadata = await decryptObjectWithLit(
+        localProofMetadata.encryptedProofMetadata, 
+        localProofMetadata.encryptedSymmetricKey, 
+        authSig
+      )
+      newProofMetadata = oldProofMetadata
+    }
+    newProofMetadata.push(thisProofMetadata)
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(newProofMetadata, authSig)
+    setLocalEncryptedProofMetadata(encryptedString, encryptedSymmetricKey)
+    // TODO: Store encrypted proof metadata in server
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export function setLocalEncryptedProofMetadata(encryptedProofMetadata, encryptedSymmetricKey) {
+  window.localStorage.setItem('holoEncryptedProofMetadata', encryptedProofMetadata)
+  window.localStorage.setItem('holoProofMetadataSymmetricKey', encryptedSymmetricKey)
+}
+
+export function getLocalProofMetadata() {
+  const localSigDigest = window.localStorage.getItem('holoSigDigest')
+  const localEncryptedProofMetadata = window.localStorage.getItem('holoEncryptedProofMetadata')
+  const localEncryptedSymmetricKey = window.localStorage.getItem('holoProofMetadataSymmetricKey')
+  const varsAreDefined = localSigDigest && localEncryptedProofMetadata && localEncryptedSymmetricKey;
+  const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedProofMetadata === 'undefined' || localEncryptedSymmetricKey === 'undefined'
+  if (varsAreDefined && !varsAreUndefinedStr) {
+      console.log('Found proof metadata in localStorage')
+      return {
+        sigDigest: localSigDigest,
+        encryptedProofMetadata: localEncryptedProofMetadata,
+        encryptedSymmetricKey: localEncryptedSymmetricKey
+      }
+  }
+  console.log('Did not find proof metadata in localStorage')
 }
 
 export function generateSecret() {

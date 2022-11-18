@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getDateAsHexString, getStateAsHexString } from "../utils/proofs";
-import { getLocalEncryptedUserCredentials, decryptUserCredentials } from "../utils/secrets";
+import { getLocalEncryptedUserCredentials, decryptObjectWithLit } from "../utils/secrets";
 import { serverAddress } from "../constants/misc";
 import MintButton from "./atoms/mint-button";
 
@@ -10,7 +10,7 @@ async function getCredsFromExtension() {
     try {
       // Request credentials. Need to request because extension generates new secret
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = await getLocalEncryptedUserCredentials()
-      const sortedCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey)
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
       const c = sortedCreds[serverAddress];
       return {
         ...c,

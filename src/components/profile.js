@@ -6,7 +6,7 @@ import Navbar from "./atoms/Navbar";
 import ProfileField from "./atoms/ProfileField";
 import { 
   getLocalEncryptedUserCredentials, 
-  decryptUserCredentials 
+  decryptObjectWithLit 
 } from '../utils/secrets';
 import { serverAddress, primeToCountryCode } from "../constants/misc";
 
@@ -66,7 +66,7 @@ export default function Profile(props) {
       const encryptedCredsObj = getLocalEncryptedUserCredentials()
       if (!encryptedCredsObj) return; // TODO: Set error/message here telling user they have no creds. OR call API, and if API returns no creds, then display message
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
-      const plaintextCreds = await decryptUserCredentials(encryptedCredentials, encryptedSymmetricKey) //, litAuthSig)
+      const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey) //, litAuthSig)
       const formattedCreds = formatCreds(plaintextCreds);
       setCreds(formattedCreds);
     }
