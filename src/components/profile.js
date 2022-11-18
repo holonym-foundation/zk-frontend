@@ -7,8 +7,9 @@ import Navbar from "./atoms/Navbar";
 import ProfileField from "./atoms/ProfileField";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { 
-  getLocalEncryptedUserCredentials, 
-  decryptObjectWithLit 
+  getLocalEncryptedUserCredentials,
+  getLocalProofMetadata,
+  decryptObjectWithLit
 } from '../utils/secrets';
 import { serverAddress, primeToCountryCode, chainUsedForLit } from "../constants/misc";
 
@@ -56,30 +57,56 @@ function formatCreds(creds) {
   return formattedCreds;
 }
 
+function populateProofMetadataDisplayData(proofMetadata) {
+  for (const metadataItem of proofMetadata) {
+    if (metadataItem.proofType === 'uniqueness') {
+      metadataItem.displayName = 'Unique Person'
+      // metadataItem.fieldValue = `for action ${metadataItem.actionId}`
+      metadataItem.fieldValue = 'Yes'
+    }
+    else if (metadataItem.proofType === 'us-residency') {
+      metadataItem.displayName = 'US Resident'
+      metadataItem.fieldValue = 'Yes'
+    }
+  }
+  return proofMetadata;
+}
+
 export default function Profile(props) {
   const [creds, setCreds] = useState();
+  const [proofMetadata, setProofMetadata] = useState();
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
-
-  // TODO: Get on-chain data. Figure out best way to store & retrieve info 
-  // when user submits proofs. Do we just check the user's default wallet 
-  // address? What if they submit proofs from different addresses?
 
   useEffect(() => {
     async function getAndSetCreds() {
-      console.log('line 69')
-      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-      setLitAuthSig(authSig);
-      console.log('line 72')
       const encryptedCredsObj = getLocalEncryptedUserCredentials()
       if (!encryptedCredsObj) return; // TODO: Set error/message here telling user they have no creds. OR call API, and if API returns no creds, then display message
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
-      console.log('line 76')
-      const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, authSig)
-      console.log('line 78')
+      const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
       const formattedCreds = formatCreds(plaintextCreds);
       setCreds(formattedCreds);
     }
-    getAndSetCreds()
+    async function getAndSetProofMetadata() {
+      const localProofMetadata = getLocalProofMetadata()
+      if (localProofMetadata) {
+        const decryptedLocalProofMetadata = await decryptObjectWithLit(
+          localProofMetadata.encryptedProofMetadata,
+          localProofMetadata.encryptedSymmetricKey,
+          litAuthSig
+        )
+        setProofMetadata(
+          populateProofMetadataDisplayData(decryptedLocalProofMetadata)
+        )
+      }
+      // TODO: Query server for proof metadata
+    }
+    async function init() {
+      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+      setLitAuthSig(authSig);
+      await getAndSetCreds()
+      getAndSetProofMetadata()
+    }
+    init()
   }, [])
 
   // TODO: Be sure to store & display addresses for proofs & public info that are linked 
@@ -98,8 +125,17 @@ export default function Profile(props) {
         <div className="x-wrapper dash">
           {/* <ProfileField header="Age" fieldValue="24" /> */}
           {/* <ProfileField header="Unique Person" fieldValue="Yes" /> */}
-          <ProfileField header="Unique Person" fieldValue="" />
-          <ProfileField header="US Resident" fieldValue="" />
+          {/* <ProfileField header="Unique Person" fieldValue="" /> */}
+          {/* <ProfileField header="US Resident" fieldValue="" /> */}
+          {proofMetadata && proofMetadata.length > 0 ? (
+            proofMetadata.map((metadataItem) => 
+              <ProfileField
+                key={metadataItem.txHash} 
+                header={metadataItem.displayName} 
+                fieldValue={metadataItem.fieldValue}
+              />
+            )
+          ) : null}
         </div>
         <div className="spacer-large"></div>
         <div className="x-dash-div">

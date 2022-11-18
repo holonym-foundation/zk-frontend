@@ -15,7 +15,7 @@ export default function Navbar(props) {
       <div data-animation="default" data-collapse="medium" data-duration="700" data-easing="ease-out-quint" data-easing2="ease-out-quint" role="banner" className="navbar w-nav">
       <div className="x-container nav w-container">
         <a href="https://www.holonym.id/" className="logo-div w-nav-brand">
-          <div className="logo hide w-embed"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 222.17 50">
+          <div className="logo hide w-embed"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.17 50">
               <defs>
                 <style>{`.cls-1{fill:currentColor;}`}</style>
               </defs>
