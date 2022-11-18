@@ -10,6 +10,8 @@ export const holonymAuthMessage = "Signature requested for holonym.id. Do not si
 
 export const defaultActionId = "123456789"
 
+export const chainUsedForLit = 'optimism';
+
 export const stateAbbreviations = {
   ALABAMA: "AL",
   ALASKA: "AK",

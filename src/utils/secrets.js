@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import LitJsSdk from "@lit-protocol/sdk-browser";
-import { idServerUrl, defaultActionId } from "../constants/misc";
+import { idServerUrl, defaultActionId, chainUsedForLit } from "../constants/misc";
 import lit from './lit';
 
 
@@ -45,12 +45,12 @@ export async function sha256(input) {
  */
  export async function encryptObject(data, litAuthSig) {
   const stringifiedCreds = JSON.stringify(data)
-  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
   const acConditions = lit.getAccessControlConditions(authSig.address)
   const { 
     encryptedString, 
     encryptedSymmetricKey 
-  } = await lit.encrypt(stringifiedCreds, 'ethereum', acConditions, authSig)
+  } = await lit.encrypt(stringifiedCreds, chainUsedForLit, acConditions, authSig)
   return { encryptedString, encryptedSymmetricKey };
 }
 
@@ -80,10 +80,14 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
  * @returns {object}
  */
 export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
-  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
   const acConditions = lit.getAccessControlConditions(authSig.address)
-  const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, 'ethereum', acConditions, litAuthSig)
-  return JSON.parse(stringifiedCreds);
+  try {
+    const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, chainUsedForLit, acConditions, litAuthSig)
+    return JSON.parse(stringifiedCreds);
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 /**
@@ -120,6 +124,8 @@ export async function storeProofMetadata(tx, proofType, actionId, authSig) {
     if (proofType === 'uniqueness') {
       thisProofMetadata.actionId = actionId || defaultActionId;
     }
+    console.log('Storing proof metadata')
+    console.log(thisProofMetadata)
     let newProofMetadata = []
     const localProofMetadata = getLocalProofMetadata()
     // TODO: if (!localProofMetadata) query server for encrypted proof metadata

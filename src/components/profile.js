@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
+import LitJsSdk from "@lit-protocol/sdk-browser";
 import HolonymLogo from '../img/Holonym-Logo-W.png';
 import UserImage from '../img/User.svg';
 import HoloBurgerIcon from '../img/Holo-Burger-Icon.svg';
 import Navbar from "./atoms/Navbar";
 import ProfileField from "./atoms/ProfileField";
+import { useLitAuthSig } from "../context/LitAuthSig";
 import { 
   getLocalEncryptedUserCredentials, 
   decryptObjectWithLit 
 } from '../utils/secrets';
-import { serverAddress, primeToCountryCode } from "../constants/misc";
+import { serverAddress, primeToCountryCode, chainUsedForLit } from "../constants/misc";
 
 // birthdate
 // completedAt
@@ -56,6 +58,7 @@ function formatCreds(creds) {
 
 export default function Profile(props) {
   const [creds, setCreds] = useState();
+  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
 
   // TODO: Get on-chain data. Figure out best way to store & retrieve info 
   // when user submits proofs. Do we just check the user's default wallet 
@@ -63,10 +66,16 @@ export default function Profile(props) {
 
   useEffect(() => {
     async function getAndSetCreds() {
+      console.log('line 69')
+      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+      setLitAuthSig(authSig);
+      console.log('line 72')
       const encryptedCredsObj = getLocalEncryptedUserCredentials()
       if (!encryptedCredsObj) return; // TODO: Set error/message here telling user they have no creds. OR call API, and if API returns no creds, then display message
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
-      const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey) //, litAuthSig)
+      console.log('line 76')
+      const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, authSig)
+      console.log('line 78')
       const formattedCreds = formatCreds(plaintextCreds);
       setCreds(formattedCreds);
     }

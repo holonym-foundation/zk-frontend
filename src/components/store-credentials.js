@@ -11,10 +11,16 @@ import {
   generateSecret,
   sha256,
 } from "../utils/secrets";
-import { idServerUrl, serverAddress, holonymAuthMessage } from "../constants/misc";
+import {
+  idServerUrl,
+  serverAddress,
+  holonymAuthMessage,
+  chainUsedForLit,
+} from "../constants/misc";
 import {
   getDateAsInt,
 } from "../utils/proofs";
+import { useLitAuthSig } from '../context/LitAuthSig';
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
 import MintButton from "./atoms/mint-button";
@@ -31,7 +37,7 @@ const Verified = (props) => {
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
   const [minting, setMinting] = useState(false);
-  const [litAuthSig, setLitAuthSig] = useState();
+  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { 
     data: holoAuthSig, 
     isError: holoAuthSigIsError, 
@@ -109,7 +115,8 @@ const Verified = (props) => {
       // TODO: Check that
       // 1. user has wallet
       // 2. wallet is unlocked (i.e., user is logged into it)
-      const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: 'ethereum' })
+      
+      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
 
       console.log("props", props)

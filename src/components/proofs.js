@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useSignMessage } from "wagmi";
+import LitJsSdk from "@lit-protocol/sdk-browser";
 import { 
   getLocalEncryptedUserCredentials, 
   decryptObjectWithLit, 
@@ -21,7 +22,8 @@ import {
   serverAddress, 
   idServerUrl, 
   holonymAuthMessage, 
-  defaultActionId 
+  defaultActionId,
+  chainUsedForLit,
 } from "../constants/misc";
 import ConnectWallet from "./atoms/ConnectWallet";
 import proofContractAddresses from "../constants/proofContractAddresses.json";
@@ -33,6 +35,7 @@ import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
 import { getExtensionState } from "../utils/extension-helpers";
+import { useLitAuthSig } from "../context/LitAuthSig";
 
 const ConnectWalletScreen = () => (
   <>
@@ -87,6 +90,7 @@ const Proofs = () => {
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
+  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
   const {
     data: holoAuthSig,
@@ -273,7 +277,8 @@ const Proofs = () => {
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
-      const authSig = undefined; // TODO: Get authSig
+      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+      setLitAuthSig(authSig);
       await storeProofMetadata(result, params.proofType, params.actionId, authSig)
       setSuccess(true);
     } catch (e) {

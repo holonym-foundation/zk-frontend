@@ -1,4 +1,5 @@
 import LitJsSdk from "@lit-protocol/sdk-browser";
+import { chainUsedForLit } from '../constants/misc';
 
 const client = new LitJsSdk.LitNodeClient({ debug: false })
 
@@ -15,8 +16,7 @@ class Lit {
       {
         contractAddress: '',
         standardContractType: '',
-        // TODO: Should we use a different chain?
-        chain: 'ethereum',
+        chain: chainUsedForLit,
         method: '',
         parameters: [
           ':userAddress',
