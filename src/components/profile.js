@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSignMessage } from 'wagmi';
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import HolonymLogo from '../img/Holonym-Logo-W.png';
 import UserImage from '../img/User.svg';
@@ -9,9 +10,16 @@ import { useLitAuthSig } from "../context/LitAuthSig";
 import { 
   getLocalEncryptedUserCredentials,
   getLocalProofMetadata,
-  decryptObjectWithLit
+  decryptObjectWithLit,
+  sha256
 } from '../utils/secrets';
-import { serverAddress, primeToCountryCode, chainUsedForLit } from "../constants/misc";
+import { 
+  serverAddress,
+  idServerUrl,
+  primeToCountryCode,
+  chainUsedForLit,
+  holonymAuthMessage
+} from "../constants/misc";
 
 // birthdate
 // completedAt
@@ -57,7 +65,8 @@ function formatCreds(creds) {
   return formattedCreds;
 }
 
-function populateProofMetadataDisplayData(proofMetadata) {
+function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
+  const proofMetadataObj = {}
   for (const metadataItem of proofMetadata) {
     if (metadataItem.proofType === 'uniqueness') {
       metadataItem.displayName = 'Unique Person'
@@ -68,14 +77,36 @@ function populateProofMetadataDisplayData(proofMetadata) {
       metadataItem.displayName = 'US Resident'
       metadataItem.fieldValue = 'Yes'
     }
+    proofMetadataObj[metadataItem.proofType] = metadataItem;
   }
-  return proofMetadata;
+  return proofMetadataObj;
 }
 
 export default function Profile(props) {
   const [creds, setCreds] = useState();
   const [proofMetadata, setProofMetadata] = useState();
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
+  const {
+    data: holoAuthSig,
+    isError: holoAuthSigIsError,
+    isLoading,
+    isSuccess: holoAuthSigIsSuccess, 
+    signMessage
+  } = useSignMessage({ message: holonymAuthMessage })
+
+  async function getAndSetProofMetadataFromServer() {
+    const sigDigest = await sha256(holoAuthSig)
+    const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${sigDigest}`)
+    const data = await resp.json();
+    const decryptedLocalProofMetadata = data ? await decryptObjectWithLit(
+      data.encryptedProofMetadata,
+      data.encryptedSymmetricKey,
+      litAuthSig
+    ) : []
+    setProofMetadata(
+      populateProofMetadataDisplayDataAndRestructure(decryptedLocalProofMetadata)
+    )
+  }
 
   useEffect(() => {
     async function getAndSetCreds() {
@@ -95,10 +126,16 @@ export default function Profile(props) {
           litAuthSig
         )
         setProofMetadata(
-          populateProofMetadataDisplayData(decryptedLocalProofMetadata)
+          populateProofMetadataDisplayDataAndRestructure(decryptedLocalProofMetadata)
         )
+      } else {
+        if (!holoAuthSig) {
+          // Continue in next useEffect
+          signMessage()
+        } else {
+          await getAndSetProofMetadataFromServer()
+        }
       }
-      // TODO: Query server for proof metadata
     }
     async function init() {
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
@@ -109,8 +146,18 @@ export default function Profile(props) {
     init()
   }, [])
 
+  useEffect(() => {
+    if (!holoAuthSig && !holoAuthSigIsSuccess) return;
+    if (holoAuthSigIsError) {
+      throw new Error('Failed to sign Holonym authentication message needed to get proof metadata.')
+    }
+    getAndSetProofMetadataFromServer()
+  }, [holoAuthSig])
+
   // TODO: Be sure to store & display addresses for proofs & public info that are linked 
   // to a user's blockchain address. For example, "0x123... is a unique person: Yes"
+
+  console.log(proofMetadata)
 
   return (
     <>
@@ -124,18 +171,14 @@ export default function Profile(props) {
         <div className="spacer-small"></div>
         <div className="x-wrapper dash">
           {/* <ProfileField header="Age" fieldValue="24" /> */}
-          {/* <ProfileField header="Unique Person" fieldValue="Yes" /> */}
-          {/* <ProfileField header="Unique Person" fieldValue="" /> */}
-          {/* <ProfileField header="US Resident" fieldValue="" /> */}
-          {proofMetadata && proofMetadata.length > 0 ? (
-            proofMetadata.map((metadataItem) => 
-              <ProfileField
-                key={metadataItem.txHash} 
-                header={metadataItem.displayName} 
-                fieldValue={metadataItem.fieldValue}
-              />
-            )
-          ) : null}
+          <ProfileField 
+            header="Unique Person" 
+            fieldValue={proofMetadata?.['uniqueness']?.fieldValue} 
+          />
+          <ProfileField 
+            header="US Resident" 
+            fieldValue={proofMetadata?.['us-residency']?.fieldValue} 
+          />
         </div>
         <div className="spacer-large"></div>
         <div className="x-dash-div">
