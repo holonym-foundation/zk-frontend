@@ -90,6 +90,8 @@ const Proofs = () => {
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
+  const [reasonForHoloAuthSig, setReasonForHoloAuthSig] = useState() // 'get-creds' | 'store-proof-metadata'
+  const [proofMetadataParams, setProofMetadataParams] = useState()
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
   const {
@@ -189,6 +191,7 @@ const Proofs = () => {
       if (!localEncryptedCreds) {
         // If no localEncryptedCreds, then this flow must be continued in the next 
         // useEffect, after the user signs the message
+        setReasonForHoloAuthSig('get-creds')
         signMessage()
         return;
       }
@@ -198,13 +201,14 @@ const Proofs = () => {
     getCreds();
   }, [readyToLoadCreds]);
 
-  // This useEffect triggers if creds must be retrieved from Holonym db instead of localStorage
+  // This useEffect triggers if creds must be retrieved from Holonym db instead of 
+  // from localStorage OR if proof metadata needs to be sent to server
   useEffect(() => {
+    if (!holoAuthSig && !holoAuthSigIsSuccess) return;
+    if (holoAuthSigIsError) {
+      throw new Error('Failed to sign Holonym authentication message needed to store proof metadata.')
+    }
     async function getCreds() {
-      if (!holoAuthSig && !holoAuthSigIsSuccess) return;
-      if (holoAuthSigIsError) {
-        throw new Error('Failed to sign Holonym authentication message needed to store credentials.')
-      }
       const sigDigest = await sha256(holoAuthSig);
       const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
       const data = await resp.json();
@@ -218,8 +222,19 @@ const Proofs = () => {
       } = data;
       await decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey)
     }
+    async function callStoreProofMetadata() {
+      const { tx, proofType, actionId, authSig } = proofMetadataParams
+      const sigDigest = await sha256(holoAuthSig)
+      await storeProofMetadata(tx, proofType, actionId, authSig, sigDigest)
+      setSuccess(true);
+    }
     try {
-      getCreds();
+      if (reasonForHoloAuthSig === 'get-creds') {
+        getCreds();
+      }
+      else if (reasonForHoloAuthSig === 'store-proof-metadata') {
+        callStoreProofMetadata()
+      }
     } catch (err) {
       console.log(err);
       setError(`Error: ${err.message}`);
@@ -252,7 +267,7 @@ const Proofs = () => {
 
   async function submitTx(addr, abi) {
     console.log("submitting");
-    window.ethereum.request({
+    await window.ethereum.request({
       method: "wallet_addEthereumChain",
       params: [
         {
@@ -277,10 +292,24 @@ const Proofs = () => {
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
+      // TODO: At this point, display message to user that they are now signing to store their proof metadata
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
-      await storeProofMetadata(result, params.proofType, params.actionId, authSig)
-      setSuccess(true);
+      if (holoAuthSig) {
+        const sigDigest = await sha256(holoAuthSig)
+        await storeProofMetadata(result, params.proofType, params.actionId, authSig, sigDigest)
+        setSuccess(true);
+      }
+      else {
+        setReasonForHoloAuthSig('store-proof-metadata')
+        setProofMetadataParams({
+          tx: result,
+          proofType: params.proofType,
+          actionId: params.actionId,
+          authSig: authSig,
+        })
+        signMessage()
+      }
     } catch (e) {
       setError(e.reason);
     }
@@ -324,7 +353,7 @@ const Proofs = () => {
                           may take 5-15 seconds to load.
                         </>
                       ) : (
-                        `Please sign the message in the wallet popup so your proof can be generated`
+                        `Please sign the messages in the wallet popup so your proof can be generated`
                       )}
                     </p>
                     <div className="spacer-med" />

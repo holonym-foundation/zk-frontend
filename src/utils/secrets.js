@@ -112,7 +112,7 @@ export function getLocalEncryptedUserCredentials() {
   console.log('Did not find creds in localStorage')
 }
 
-export async function storeProofMetadata(tx, proofType, actionId, authSig) {
+export async function storeProofMetadata(tx, proofType, actionId, authSig, sigDigest) {
   try {
     const thisProofMetadata = {
       proofType: proofType,
@@ -126,21 +126,37 @@ export async function storeProofMetadata(tx, proofType, actionId, authSig) {
     }
     console.log('Storing proof metadata')
     console.log(thisProofMetadata)
-    let newProofMetadata = []
-    const localProofMetadata = getLocalProofMetadata()
-    // TODO: if (!localProofMetadata) query server for encrypted proof metadata
-    if (localProofMetadata) {
-      const oldProofMetadata = await decryptObjectWithLit(
-        localProofMetadata.encryptedProofMetadata, 
-        localProofMetadata.encryptedSymmetricKey, 
-        authSig
-      )
-      newProofMetadata = oldProofMetadata
+    // Get proof metadata from localStorage or from server (if localStorage is empty)
+    let oldEncryptedProofMetadata = getLocalProofMetadata()
+    if (!oldEncryptedProofMetadata) {
+      const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${sigDigest}`)
+      const data = await resp.json();
+      if (data) oldEncryptedProofMetadata = data
     }
-    newProofMetadata.push(thisProofMetadata)
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(newProofMetadata, authSig)
+    const oldProofMetadataArr = oldEncryptedProofMetadata ? await decryptObjectWithLit(
+      oldEncryptedProofMetadata.encryptedProofMetadata, 
+      oldEncryptedProofMetadata.encryptedSymmetricKey, 
+      authSig
+    ) : [];
+    // Merge old proof metadata with new proof metadata
+    const newProofMetadataArr = Array.from(
+      oldProofMetadataArr.length > 0 ? [...oldProofMetadataArr, thisProofMetadata] : [thisProofMetadata]
+    )
+
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(newProofMetadataArr, authSig)
     setLocalEncryptedProofMetadata(encryptedString, encryptedSymmetricKey)
-    // TODO: Store encrypted proof metadata in server
+    
+    // Store encrypted proof metadata in server
+    const reqBody = {
+      sigDigest: sigDigest,
+      encryptedProofMetadata: encryptedString,
+      encryptedSymmetricKey: encryptedSymmetricKey
+    }
+    const resp = await fetch(`${idServerUrl}/proof-metadata`, {
+      method: 'POST',
+      body: JSON.stringify(reqBody)
+    })
+    const data = await resp.json();
   } catch (err) {
     console.log(err)
   }
