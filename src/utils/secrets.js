@@ -65,7 +65,7 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
   try {
     window.localStorage.setItem('holoSigDigest', sigDigest)
     window.localStorage.setItem('holoEncryptedCredentials', encryptedCredentials)
-    window.localStorage.setItem('holoEncryptedSymmetricKey', encryptedSymmetricKey)
+    window.localStorage.setItem('holoEncryptedCredentialsSymmetricKey', encryptedSymmetricKey)
     return true;
   } catch (err) {
     console.error(err);
@@ -97,8 +97,7 @@ export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey,
 export function getLocalEncryptedUserCredentials() {
   const localSigDigest = window.localStorage.getItem('holoSigDigest')
   const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials')
-  // TODO: Rename 'holoEncryptedSymmetricKey' to 'holoEncryptedCredentialsSymmetricKey'
-  const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedSymmetricKey')
+  const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedCredentialsSymmetricKey')
   const varsAreDefined = localSigDigest && localEncryptedCreds && localEncryptedSymmetricKey;
   const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedCreds === 'undefined' || localEncryptedSymmetricKey === 'undefined'
   if (varsAreDefined && !varsAreUndefinedStr) {

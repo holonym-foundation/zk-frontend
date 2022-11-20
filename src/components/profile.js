@@ -114,7 +114,8 @@ export default function Profile(props) {
   useEffect(() => {
     async function getAndSetCreds() {
       const encryptedCredsObj = getLocalEncryptedUserCredentials()
-      if (!encryptedCredsObj) return; // TODO: Set error/message here telling user they have no creds. OR call API, and if API returns no creds, then display message
+      // TODO: if (!encryptedCredsObj) query server for creds
+      if (!encryptedCredsObj) return;
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
       const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
       const formattedCreds = formatCreds(plaintextCreds);
