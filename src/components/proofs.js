@@ -36,6 +36,7 @@ import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
 import { getExtensionState } from "../utils/extension-helpers";
 import { useLitAuthSig } from "../context/LitAuthSig";
+import { useHoloAuthSig } from "../context/HoloAuthSig";
 
 const ConnectWalletScreen = () => (
   <>
@@ -95,12 +96,13 @@ const Proofs = () => {
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
   const {
-    data: holoAuthSig,
-    isError: holoAuthSigIsError,
-    isLoading,
-    isSuccess: holoAuthSigIsSuccess, 
-    signMessage
-  } = useSignMessage({ message: holonymAuthMessage })
+    signHoloAuthMessage,
+    holoAuthSig,
+    holoAuthSigDigest,
+    holoAuthSigIsError,
+    holoAuthSigIsLoading,
+    holoAuthSigIsSuccess,
+  } = useHoloAuthSig();
   
   const proofs = {
     "us-residency": {
@@ -192,7 +194,7 @@ const Proofs = () => {
         // If no localEncryptedCreds, then this flow must be continued in the next 
         // useEffect, after the user signs the message
         setReasonForHoloAuthSig('get-creds')
-        signMessage()
+        signHoloAuthMessage()
         return;
       }
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
@@ -204,12 +206,12 @@ const Proofs = () => {
   // This useEffect triggers if creds must be retrieved from Holonym db instead of 
   // from localStorage OR if proof metadata needs to be sent to server
   useEffect(() => {
-    if (!holoAuthSig && !holoAuthSigIsSuccess) return;
+    if (!holoAuthSig && !holoAuthSigDigest) return;
     if (holoAuthSigIsError) {
       throw new Error('Failed to sign Holonym authentication message needed to store proof metadata.')
     }
     async function getCreds() {
-      const sigDigest = await sha256(holoAuthSig);
+      const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig);
       const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
       const data = await resp.json();
       if (!data) {
@@ -224,7 +226,7 @@ const Proofs = () => {
     }
     async function callStoreProofMetadata() {
       const { tx, proofType, actionId, authSig } = proofMetadataParams
-      const sigDigest = await sha256(holoAuthSig)
+      const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
       await storeProofMetadata(tx, proofType, actionId, authSig, sigDigest)
       setSuccess(true);
     }
@@ -295,8 +297,8 @@ const Proofs = () => {
       // TODO: At this point, display message to user that they are now signing to store their proof metadata
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
-      if (holoAuthSig) {
-        const sigDigest = await sha256(holoAuthSig)
+      if (holoAuthSig || holoAuthSigDigest) {
+        const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
         await storeProofMetadata(result, params.proofType, params.actionId, authSig, sigDigest)
         setSuccess(true);
       }
@@ -308,7 +310,7 @@ const Proofs = () => {
           actionId: params.actionId,
           authSig: authSig,
         })
-        signMessage()
+        signHoloAuthMessage()
       }
     } catch (e) {
       setError(e.reason);

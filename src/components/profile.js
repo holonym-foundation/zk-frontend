@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSignMessage } from 'wagmi';
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import HolonymLogo from '../img/Holonym-Logo-W.png';
 import UserImage from '../img/User.svg';
@@ -22,6 +21,7 @@ import {
   chainUsedForLit,
   holonymAuthMessage
 } from "../constants/misc";
+import { useHoloAuthSig } from "../context/HoloAuthSig";
 
 // birthdate
 // completedAt
@@ -90,15 +90,16 @@ export default function Profile(props) {
   const [proofMetadata, setProofMetadata] = useState();
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const {
-    data: holoAuthSig,
-    isError: holoAuthSigIsError,
-    isLoading,
-    isSuccess: holoAuthSigIsSuccess, 
-    signMessage
-  } = useSignMessage({ message: holonymAuthMessage })
+    signHoloAuthMessage,
+    holoAuthSig,
+    holoAuthSigDigest,
+    holoAuthSigIsError,
+    holoAuthSigIsLoading,
+    holoAuthSigIsSuccess,
+  } = useHoloAuthSig();
 
   async function getAndSetProofMetadataFromServer() {
-    const sigDigest = await sha256(holoAuthSig)
+    const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
     const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${sigDigest}`)
     const data = await resp.json();
     const decryptedLocalProofMetadata = data ? await decryptObjectWithLit(
@@ -133,9 +134,9 @@ export default function Profile(props) {
           populateProofMetadataDisplayDataAndRestructure(decryptedLocalProofMetadata)
         )
       } else {
-        if (!holoAuthSig) {
+        if (!holoAuthSig && !holoAuthSigDigest) {
           // Continue in next useEffect
-          signMessage()
+          signHoloAuthMessage()
         } else {
           await getAndSetProofMetadataFromServer()
         }

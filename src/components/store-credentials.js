@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useSignMessage } from 'wagmi'
 import LitJsSdk from "@lit-protocol/sdk-browser";
 
 import {
@@ -21,6 +20,7 @@ import {
   getDateAsInt,
 } from "../utils/proofs";
 import { useLitAuthSig } from '../context/LitAuthSig';
+import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
 import MintButton from "./atoms/mint-button";
@@ -38,13 +38,14 @@ const Verified = (props) => {
   const [successScreen, setSuccessScreen] = useState(false);
   const [minting, setMinting] = useState(false);
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
-  const { 
-    data: holoAuthSig, 
-    isError: holoAuthSigIsError, 
-    isLoading, 
-    isSuccess: holoAuthSigIsSuccess, 
-    signMessage 
-  } = useSignMessage({ message: holonymAuthMessage })
+  const {
+    signHoloAuthMessage,
+    holoAuthSig,
+    holoAuthSigDigest,
+    holoAuthSigIsError,
+    holoAuthSigIsLoading,
+    holoAuthSigIsSuccess,
+  } = useHoloAuthSig();
 
   async function formatCredsAndCallCb(creds) {
     const formattedCreds = {
@@ -96,7 +97,7 @@ const Verified = (props) => {
     } else {
       setSortedCreds({ [serverAddress]: credsTemp })
     }
-    signMessage() // User must sign holo auth message to continue
+    signHoloAuthMessage() // User must sign holo auth message to continue
   }
 
   // Second half of data flow if user is minting for first time
@@ -141,11 +142,11 @@ const Verified = (props) => {
 
   useEffect(() => {    
     async function func() {
-      if (!holoAuthSig && !holoAuthSigIsSuccess) return;
+      if (!holoAuthSig && !holoAuthSigDigest) return;
       if (holoAuthSigIsError) {
         throw new Error('Failed to sign Holonym authentication message needed to store credentials.')
       }
-      const sigDigest = await sha256(holoAuthSig);
+      const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig);
       if (props.jobID !== 'retryMint') await normalFlowSecondHalf(sigDigest)
     }
     try {
