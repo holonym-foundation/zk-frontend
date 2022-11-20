@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import classNames from 'classnames';
 import CircleWavy from '../../img/CircleWavy.svg';
 import CircleWavyCheck from '../../img/CircleWavyCheck.svg';
@@ -27,8 +26,6 @@ export default function PrivateProfileField({
               <img src={CircleWavy} loading="lazy" alt="" className="card-status"/>
           )}
         </div>
-        {/* TODO: Figure out the best way to display a "Verify" button here, and 
-            figure out the best way to direct user to a verification page */}
         {verifyButtonCallback ? (
           <>
             <div onClick={verifyButtonCallback}>

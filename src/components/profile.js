@@ -157,11 +157,6 @@ export default function Profile(props) {
     getAndSetProofMetadataFromServer()
   }, [holoAuthSig])
 
-  // TODO: Be sure to store & display addresses for proofs & public info that are linked 
-  // to a user's blockchain address. For example, "0x123... is a unique person: Yes"
-
-  console.log(proofMetadata)
-
   return (
     <>
     <Navbar />
