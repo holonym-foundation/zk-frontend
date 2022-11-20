@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSignMessage } from 'wagmi';
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import HolonymLogo from '../img/Holonym-Logo-W.png';
 import UserImage from '../img/User.svg';
 import HoloBurgerIcon from '../img/Holo-Burger-Icon.svg';
 import Navbar from "./atoms/Navbar";
-import ProfileField from "./atoms/ProfileField";
+import PublicProfileField from './atoms/PublicProfileField';
+import PrivateProfileField from './atoms/PrivateProfileField';
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { 
   getLocalEncryptedUserCredentials,
@@ -83,6 +85,7 @@ function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
 }
 
 export default function Profile(props) {
+  const navigate = useNavigate();
   const [creds, setCreds] = useState();
   const [proofMetadata, setProofMetadata] = useState();
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
@@ -170,14 +173,21 @@ export default function Profile(props) {
         </div>
         <div className="spacer-small"></div>
         <div className="x-wrapper dash">
-          {/* <ProfileField header="Age" fieldValue="24" /> */}
-          <ProfileField 
+          {/* <PublicProfileField header="Age" fieldValue="24" /> */}
+          <PublicProfileField 
             header="Unique Person" 
-            fieldValue={proofMetadata?.['uniqueness']?.fieldValue} 
+            fieldValue={proofMetadata?.['uniqueness']?.fieldValue}
+            proofSubmissionAddr={proofMetadata?.['uniqueness']?.address}
+            proveButtonCallback={proofMetadata?.['uniqueness']?.address ? null :
+              () => navigate('/prove/uniqueness')
+            }
           />
-          <ProfileField 
+          <PublicProfileField 
             header="US Resident" 
             fieldValue={proofMetadata?.['us-residency']?.fieldValue} 
+            proveButtonCallback={proofMetadata?.['us-residency']?.address ? null :
+              () => navigate('/prove/us-residency')
+            }
           />
         </div>
         <div className="spacer-large"></div>
@@ -187,11 +197,33 @@ export default function Profile(props) {
         </div>
         <div className="spacer-small"></div>
         <div className="x-wrapper dash">
-          <ProfileField header="Country" fieldValue={creds?.['Country']} />
-          <ProfileField header="Subdivision" fieldValue={creds?.['Subdivision']} />
-          <ProfileField header="Birthdate" fieldValue={creds?.['Birthdate']} />
-          {/* <ProfileField header="Phone Number" fieldValue="" verifyCallback={() => {}} /> */}
-          <ProfileField header="Phone Number" fieldValue="" />
+          {creds?.['Country'] && creds?.['Subdivision'] && creds?.['Birthdate'] ? (
+            <>
+              <PrivateProfileField 
+                header="Country" 
+                fieldValue={creds?.['Country']} 
+              />
+              <PrivateProfileField 
+                header="Subdivision" 
+                fieldValue={creds?.['Subdivision']}
+              />
+              <PrivateProfileField 
+                header="Birthdate" 
+                fieldValue={creds?.['Birthdate']}
+              />
+            </>
+          ) : (
+            <PrivateProfileField 
+              header="Government ID" 
+              fieldValue={undefined}
+              verifyButtonCallback={() => navigate('/mint')}
+            />
+          )}
+          <PrivateProfileField 
+            header="Phone Number" 
+            fieldValue=""
+            // verifyButtonCallback={() => navigate('/mint')}
+          />
           </div>
       </div>
     </div>

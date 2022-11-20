@@ -4,7 +4,11 @@ import CircleWavy from '../../img/CircleWavy.svg';
 import CircleWavyCheck from '../../img/CircleWavyCheck.svg';
 
 
-export default function ProfileField({ header, fieldValue, verifyCallback }) {
+export default function PrivateProfileField({ 
+  header, 
+  fieldValue,
+  verifyButtonCallback,
+}) {
 
   const fieldValueClasses = classNames({
     'dash-display-text': true,
@@ -25,10 +29,10 @@ export default function ProfileField({ header, fieldValue, verifyCallback }) {
         </div>
         {/* TODO: Figure out the best way to display a "Verify" button here, and 
             figure out the best way to direct user to a verification page */}
-        {verifyCallback ? (
+        {verifyButtonCallback ? (
           <>
-            <div onClick={verifyCallback}>
-              <h3 onClick={verifyCallback} className="h3 no-margin dash">Verify</h3>
+            <div onClick={verifyButtonCallback}>
+              <h3 onClick={verifyButtonCallback} className="h3 no-margin dash">Verify</h3>
             </div>
           </>
         ) : null}

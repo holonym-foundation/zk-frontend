@@ -810,6 +810,15 @@ p {
   color: #fdc094;
 }
 
+.h3.no-margin.dash:hover {
+  cursor: pointer;
+  color: #fdc094;
+}
+
+p.no-margin.small {
+  font-size: 12px;
+}
+
 .spacer-large {
   height: 75px;
 }
