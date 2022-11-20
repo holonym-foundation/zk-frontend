@@ -112,10 +112,6 @@ const Verified = (props) => {
 
   useEffect(() => {
     async function func() {
-      // TODO: Check that
-      // 1. user has wallet
-      // 2. wallet is unlocked (i.e., user is logged into it)
-      
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
 

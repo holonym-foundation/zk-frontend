@@ -1,15 +1,25 @@
 import { useState, useEffect } from "react";
 import loadVouched from "./load-vouched";
+import { useAccount } from "wagmi";
 import { useParams } from "react-router-dom";
 import StoreCredentials from "./components/store-credentials";
 import MintButton from "./components/atoms/mint-button";
 import Progress from "./components/atoms/progress-bar";
+import ConnectWallet from "./components/atoms/ConnectWallet";
 import { WithCheckMark } from "./components/atoms/checkmark";
 import "./vouched-css-customization.css";
 import RoundedWindow from "./components/RoundedWindow";
 import { getExtensionState } from "./utils/extension-helpers";
 
 // import { Success } from "./components/success";
+
+const ConnectWalletScreen = () => (
+  <>
+    <ConnectWallet />
+    <h1>Please Connect Your Wallet First</h1>
+    <h3>If you do not have a browser wallet, please install one, such as <a href="https://metamask.io/" target="_blank" rel="noreferrer">MetaMask</a></h3>
+  </>
+);
 
 const Step1 = () => {
   useEffect(loadVouched, []);
@@ -44,6 +54,7 @@ const Mint = (props) => {
   const { jobID } = useParams();
   const [success, setSuccess] = useState();
   const [creds, setCreds] = useState();
+  const { data: account } = useAccount();
 
   let current = 1;
   if(jobID) current = 2;
@@ -52,17 +63,25 @@ const Mint = (props) => {
   console.log("Current", current)
   if(success) current = null;
     
-  return <RoundedWindow>
-    {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
-    <div className="spacer-medium" />
-    <Progress steps={["Verify", "Store", "Mint"] } currentIdx={current-1} />
-    <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
-      {(current === 1) && <Step1 />}
-      {(current === 2) && <Step2 onCredsStored={setCreds} />}
-      {(current === 3) && <Step3 onSuccess={()=>setSuccess(true)} creds={creds} />}
-      {(current === -1) && <Step2 onCredsStored={setCreds} jobID="retryMint" />}
-      {success && <Success />}
-    </div>
-  </RoundedWindow>
+  return (
+    <>
+      {!account?.address ? (
+        <ConnectWalletScreen />
+      ) : (
+        <RoundedWindow>
+          {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
+          <div className="spacer-medium" />
+          <Progress steps={["Verify", "Store", "Mint"] } currentIdx={current-1} />
+          <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
+            {(current === 1) && <Step1 />}
+            {(current === 2) && <Step2 onCredsStored={setCreds} />}
+            {(current === 3) && <Step3 onSuccess={()=>setSuccess(true)} creds={creds} />}
+            {(current === -1) && <Step2 onCredsStored={setCreds} jobID="retryMint" />}
+            {success && <Success />}
+          </div>
+        </RoundedWindow>
+      )}
+    </>
+  )
 }
 export default Mint;
