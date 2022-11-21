@@ -24,6 +24,7 @@ const MintOptions = ()=>{
                     {/* <p>Most informative and rigorous; hard to fake identity and extremely hard to create sybil attacks</p> */}
                 </button>
                 <div className="spacer-large"></div>
+                {/* TODO: add buttons for future credential types such as accredited investor status */}
                 {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
 
             </div>

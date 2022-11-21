@@ -9,10 +9,21 @@ import "./vouched-css-customization.css";
 import RoundedWindow from "./components/RoundedWindow";
 import { getExtensionState } from "./utils/extension-helpers";
 import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
-
+import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
+import { zkPhoneEndpoint } from "./constants/misc";
+import axios from "axios";
 // import { Success } from "./components/success";
 
+// TODO: refactor phone number and gov id to different files
+const sendCode = (phoneNumber) => {
+  axios.get(zkPhoneEndpoint + "/send/" + phoneNumber);
+}
+
+const getCredentialsPhone = (phoneNumber, code, country, callback) => {
+  console.log(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`);
+  axios.get(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`)
+  .then((response) => callback(response.data));
+}
 const Step1 = () => (
   <>
     <h1>Download the Holonym Extension</h1>
@@ -44,8 +55,8 @@ const Step2 = (props) => {
 }
 
 // Step 2A happens when user is using phone with crosscheck for government ID
-const Step2A = (props) => {
-  useEffect(()=>loadVouched(props.phoneNumber), []);
+const Step2A = ({phoneNumber}) => {
+  useEffect(()=>loadVouched(phoneNumber), []);
   return <>
     <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
     <div id="vouched-element" style={{ height: "10vh"}}></div>
@@ -53,12 +64,21 @@ const Step2A = (props) => {
 }
 
 // Step 2B happens when user is using phone by itself, needing 2FA
-const Step2B = (props) => {
-  console.log(props)
+const Step2B = ({phoneNumber, callback}) => {
+  sendCode(phoneNumber);
+  console.log(phoneNumber);
   const [code, setCode] = useState("");
   const onChange = (e) => {
-    setCode(e.target.value);
-    if(code.length === 6){alert(code)}
+    const newCode = e.target.value
+    setCode(newCode);
+    if(newCode.length === 6){
+      getCredentialsPhone(
+        phoneNumber, 
+        newCode, 
+        parsePhoneNumber(phoneNumber).country, 
+        callback
+      );
+    }
   }
   return <>
     <h1 style={{"marginBottom":"25px"}}>Enter the code texted to you</h1>
@@ -129,7 +149,7 @@ const Mint = (props) => {
       {(current === 1) && <Step1 />}
       {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />}
       {(current === 2) && <Step2 onSubmit={setPhoneNumber} />}
-      {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} />}
+      {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />}
       {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} credsType={credType} />}
       {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}
       {(current === -1) && <Step3 onSetCredsFromExtension={setCreds} jobID="loadFromExtension" />}

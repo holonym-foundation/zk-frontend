@@ -4,10 +4,11 @@ export const zkIdVerifyEndpoint =
   process.env.NODE_ENV === "development"
     ? "http://localhost:3000"
     : "https://id-server.holonym.io";
-export const zkPhoneVerifyEndpoint =
+    
+export const zkPhoneEndpoint =
   process.env.NODE_ENV === "development"
-    ? "http://localhost:3001"
-    : "https://phone-server.holonym.io";
+    ? "http://ec2-13-59-84-72.us-east-2.compute.amazonaws.com:3030"
+    : "https://phone.holonym.io";
 export const serverAddress = "0x8281316aC1D51c94f2DE77575301cEF615aDea84";
 
 export const stateAbbreviations = {

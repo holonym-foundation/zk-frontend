@@ -6,7 +6,7 @@ import {
   getIsHoloRegistered,
   requestCredentials,
 } from "../utils/secrets";
-import { zkIdVerifyEndpoint, zkPhoneVerifyEndpoint, serverAddress } from "../constants/misc";
+import { zkIdVerifyEndpoint, zkPhoneEndpoint, serverAddress } from "../constants/misc";
 import {
   getDateAsInt,
 } from "../utils/proofs";
@@ -63,28 +63,28 @@ const Verified = (props) => {
     }
   }
 
-  async function loadCredentials2FA() {
-    setError(undefined);
-    setLoading(true);
-    try {
-      const resp = await fetch(
-        `${zkPhoneVerifyEndpoint}/getCredentials/${jobID}`
-      );
-      // Shape of data == { user: completeUser }
-      const data = await resp.json();
-      if (!data || data.error) {
-        console.error(`Could not retrieve credentials. Details: ${data.error}`);
-        return;
-      } else {
-        setLoading(false);
-        const credsTemp = data.user;
-        setCreds(credsTemp);
-        return credsTemp;
-      }
-    } catch (err) {
-      console.error(`Could not retrieve credentials. Details: ${err}`);
-    }
-  }
+  // async function loadCredentials2FA() {
+  //   setError(undefined);
+  //   setLoading(true);
+  //   try {
+  //     const resp = await fetch(
+  //       `${zkPhoneVerifyEndpoint}/getCredentials/${jobID}`
+  //     );
+  //     // Shape of data == { user: completeUser }
+  //     const data = await resp.json();
+  //     if (!data || data.error) {
+  //       console.error(`Could not retrieve credentials. Details: ${data.error}`);
+  //       return;
+  //     } else {
+  //       setLoading(false);
+  //       const credsTemp = data.user;
+  //       setCreds(credsTemp);
+  //       return credsTemp;
+  //     }
+  //   } catch (err) {
+  //     console.error(`Could not retrieve credentials. Details: ${err}`);
+  //   }
+  // }
 
   async function setCredsFromExtension() {
     try {
@@ -127,7 +127,7 @@ const Verified = (props) => {
 
       let credsTemp;
       if(props.credType === "idgov"){credsTemp = await loadCredentialsVouched()};
-      if(props.credType === "phone"){credsTemp = await loadCredentials2FA()};
+      // if(props.credType === "phone"){credsTemp = await loadCredentials2FA()};
 
       if (!credsTemp) {
         setError(`Error: Could not retrieve credentials.`);
