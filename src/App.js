@@ -28,7 +28,7 @@ import LoadingElement from "./components/loading-element";
 // } from "./components/chain-switcher";
 // import Error from "./components/errors.js";
 import { browserName, isMobile } from "react-device-detect";
-import { MintOptions } from "./components/atoms/mint-options.js";
+import MintOptions from "./components/mint-options.js";
 const NotChromeDesktop = () => <><h1>Please make sure you're using Chrome or Brave browser, on a desktop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 
 const Proofs = React.lazy(() => import("./components/proofs"));
@@ -130,7 +130,6 @@ function App() {
           {/* <Route path={"/zk-id/verify"} element={<Verify />} /> */}
           {/* <Route exact path={"/"} element={<Welcome />} /> */}
           <Route exact path={"/"} element={<MintOptions />} />
-          <Route exact path={"/:credType/:jobID"} element={<Mint />} />
           <Route exact path={"/mint/:credType/:jobID"} element={<Mint />} />
           <Route exact path={"/mint/:credType"} element={<Mint />} />
           <Route exact path={"/retry"} element={<Mint retry={true} />} />
