@@ -111,15 +111,33 @@ export default function Profile(props) {
     )
   }
 
+  async function getAndSetCredsFromServer() {
+    const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
+    const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
+    const data = await resp.json();
+    if (data) {
+      const plaintextCreds = await decryptObjectWithLit(data.encryptedCredentials, data.encryptedSymmetricKey, litAuthSig)
+      const formattedCreds = formatCreds(plaintextCreds);
+      setCreds(formattedCreds);
+    }
+  }
+
   useEffect(() => {
     async function getAndSetCreds() {
       const encryptedCredsObj = getLocalEncryptedUserCredentials()
-      // TODO: if (!encryptedCredsObj) query server for creds
-      if (!encryptedCredsObj) return;
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
-      const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
-      const formattedCreds = formatCreds(plaintextCreds);
-      setCreds(formattedCreds);
+      if (encryptedCredsObj) {
+        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
+        const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+        const formattedCreds = formatCreds(plaintextCreds);
+        setCreds(formattedCreds);
+      } else {
+        if (!holoAuthSig && !holoAuthSigDigest) {
+          // Continue in next useEffect
+          signHoloAuthMessage()
+        } else {
+          await getAndSetCredsFromServer()
+        }
+      }
     }
     async function getAndSetProofMetadata() {
       const localProofMetadata = getLocalProofMetadata()
@@ -155,7 +173,8 @@ export default function Profile(props) {
     if (holoAuthSigIsError) {
       throw new Error('Failed to sign Holonym authentication message needed to get proof metadata.')
     }
-    getAndSetProofMetadataFromServer()
+    if (!creds) getAndSetCredsFromServer()
+    if (!proofMetadata) getAndSetProofMetadataFromServer()
   }, [holoAuthSig])
 
   return (
