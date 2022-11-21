@@ -768,6 +768,7 @@ p {
   font-family: 'Clover Semibold', sans-serif;
   color: #fdc094;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .nav-link.hide {
@@ -1732,6 +1733,7 @@ p.no-margin.small {
   display: -ms-flexbox;
   display: flex;
   padding: 5px 10px;
+  margin-left: 20px;
   border-style: solid;
   border-width: 1px;
   border-color: #fdc094;
@@ -1742,6 +1744,12 @@ p.no-margin.small {
 .nav-wallet-text {
   font-family: 'Clover Regular', sans-serif;
   color: #fff;
+  padding: 5px;
+  padding-left: 10px;
+}
+
+.nav-wallet-img {
+  padding-bottom: 2px;
 }
 
 @media screen and (max-width: 991px) {

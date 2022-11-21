@@ -4,7 +4,6 @@ import LitJsSdk from "@lit-protocol/sdk-browser";
 import HolonymLogo from '../img/Holonym-Logo-W.png';
 import UserImage from '../img/User.svg';
 import HoloBurgerIcon from '../img/Holo-Burger-Icon.svg';
-import Navbar from "./atoms/Navbar";
 import PublicProfileField from './atoms/PublicProfileField';
 import PrivateProfileField from './atoms/PrivateProfileField';
 import { useLitAuthSig } from "../context/LitAuthSig";
@@ -161,7 +160,6 @@ export default function Profile(props) {
 
   return (
     <>
-    <Navbar />
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
         <div className="x-dash-div">
