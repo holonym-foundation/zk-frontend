@@ -346,18 +346,24 @@ const Proofs = () => {
                   <p>Error: {error}</p>
                 ) : (
                   <>
+                  {creds ? (
                     <p>
-                      {creds ? (
-                        <>
-                          This will prove you (
-                          <code>{truncateAddress(account.address)})</code> have the
-                          attribute: <code>{proofs[params.proofType].name}</code>. It
-                          may take 5-15 seconds to load.
-                        </>
-                      ) : (
-                        `Please sign the messages in the wallet popup so your proof can be generated`
-                      )}
+                      This will prove you (
+                      <code>{truncateAddress(account.address)})</code> have the
+                      attribute: <code>{proofs[params.proofType].name}</code>. It
+                      may take 5-15 seconds to load.
                     </p>
+                    ) : (
+                    <>
+                      <p>
+                        Please sign the messages in the wallet popup so your proof can be generated.
+                      </p>
+                      <p>
+                        &nbsp;Note: You cannot generate proofs before minting a holo. If you have not
+                        already, please <a href="/mint" style={{ color: '#fdc094'}}>mint your holo</a>.
+                      </p>
+                    </>
+                    )}
                     <div className="spacer-med" />
                     <br />
                     {creds ? (
