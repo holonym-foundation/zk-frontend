@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
-import loadVouched from "./load-vouched";
+import loadVouched from "../load-vouched";
 import { useAccount } from "wagmi";
 import { useParams } from "react-router-dom";
-import StoreCredentials from "./components/store-credentials";
-import MintButton from "./components/atoms/mint-button";
-import Progress from "./components/atoms/progress-bar";
-import ConnectWallet from "./components/atoms/ConnectWallet";
-import { WithCheckMark } from "./components/atoms/checkmark";
-import "./vouched-css-customization.css";
-import RoundedWindow from "./components/RoundedWindow";
-import { getExtensionState } from "./utils/extension-helpers";
+import StoreCredentials from "./store-credentials";
+import MintButton from "./atoms/mint-button";
+import Progress from "./atoms/progress-bar";
+import ConnectWallet from "./atoms/ConnectWallet";
+import { WithCheckMark } from "./atoms/checkmark";
+import "../vouched-css-customization.css";
+import RoundedWindow from "./RoundedWindow";
+import { getExtensionState } from "../utils/extension-helpers";
 import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
-import { zkPhoneEndpoint } from "./constants/misc";
+import { zkPhoneEndpoint } from "../constants/misc";
 import axios from "axios";
 // import { Success } from "./components/success";
 
@@ -147,7 +147,7 @@ const Mint = (props) => {
       {(current === 2) && <Step2 onSubmit={setPhoneNumber} />}
       {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />}
       {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} credsType={credType} />}
-      {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />}
+      {/* {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />} */}
       {(current === -1) && <Step3 onSetCredsFromExtension={setCreds} jobID="loadFromExtension" />}
       {success && <Success />}
     </div>
