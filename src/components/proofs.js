@@ -4,13 +4,10 @@ import { ethers } from "ethers";
 import { useAccount, useSignMessage } from "wagmi";
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import { 
-  getLocalEncryptedUserCredentials, 
-  decryptObjectWithLit, 
-  encryptObject,
-  getLocalProofMetadata,
-  setLocalEncryptedProofMetadata,
+  getLocalEncryptedUserCredentials,
+  decryptObjectWithLit,
   storeProofMetadata,
-  sha256 
+  sha256
 } from "../utils/secrets";
 import {
   getDateAsInt,
@@ -80,7 +77,6 @@ const LoadingProofsButton = (props) => (
   </button>
 );
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const Proofs = () => {
   const params = useParams();
@@ -91,8 +87,6 @@ const Proofs = () => {
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
-  const [reasonForHoloAuthSig, setReasonForHoloAuthSig] = useState() // 'get-creds' | 'store-proof-metadata'
-  const [proofMetadataParams, setProofMetadataParams] = useState()
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
   const {
@@ -103,7 +97,7 @@ const Proofs = () => {
     holoAuthSigIsLoading,
     holoAuthSigIsSuccess,
   } = useHoloAuthSig();
-  
+
   const proofs = {
     "us-residency": {
       name: "US Residency",
@@ -122,7 +116,7 @@ const Proofs = () => {
   async function loadPoR() {
     const salt =
       "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
-    console.log('creds.newSecret...', creds.newSecret)
+    // console.log('creds.newSecret...', creds.newSecret)
     const footprint = await poseidonTwoInputs([
       salt,
       ethers.BigNumber.from(creds.newSecret).toString(),
@@ -140,6 +134,7 @@ const Proofs = () => {
       creds.newSecret
     );
     setProof(por);
+    console.log("proof is", JSON.stringify(por));
   }
 
   async function loadAntiSybil() {
@@ -169,90 +164,64 @@ const Proofs = () => {
     console.log("proof is", JSON.stringify(as));
   }
 
-  async function decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey) {
-    const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
-    if (sortedCreds) {
-      const c = sortedCreds[serverAddress];
-      setCreds({
-        ...c,
-        subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
-        completedAtHex: getDateAsInt(c.completedAt),
-        birthdateHex: getDateAsInt(c.birthdate),
-      });
-    } else {
-      setError(
-        "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
-      );
+  // Steps:
+  // 1. Ensure user's wallet is connected (i.e., get account)
+  // 2. Get & set holoAuthSigDigest
+  // 3. Get & set creds
+  // 4. Get & set proof
+  // 5. Submit proof tx
+
+  useEffect(() => {
+    if (account?.address && !holoAuthSigDigest) {
+      console.log('Requesting signature for holoAuthSigDigest')
+      signHoloAuthMessage()
     }
-  }
+    if (account?.address && holoAuthSigDigest) setReadyToLoadCreds(true);
+  }, [account, holoAuthSigDigest]);
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
-    async function getCreds() {
+    async function loadCreds() {
+      console.log('Loading creds')
+      let encryptedCredentials, encryptedSymmetricKey;
       const localEncryptedCreds = await getLocalEncryptedUserCredentials()
-      if (!localEncryptedCreds) {
-        // If no localEncryptedCreds, then this flow must be continued in the next 
-        // useEffect, after the user signs the message
-        setReasonForHoloAuthSig('get-creds')
-        signHoloAuthMessage()
-        return;
+      if (localEncryptedCreds) {
+        encryptedCredentials = localEncryptedCreds.encryptedCredentials
+        encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
+      } else {
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
+        const data = await resp.json();
+        if (!data) {
+          setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
+        }
+        encryptedCredentials = data.encryptedCredentials
+        encryptedSymmetricKey = data.encryptedSymmetricKey
       }
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-      await decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey)
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
+      if (sortedCreds) {
+        const c = sortedCreds[serverAddress];
+        setCreds({
+          ...c,
+          subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
+          completedAtHex: getDateAsInt(c.completedAt),
+          birthdateHex: getDateAsInt(c.birthdate),
+        });
+      } else {
+        setError(
+          "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
+        );
+      }
     }
-    getCreds();
+    loadCreds();
   }, [readyToLoadCreds]);
-
-  // This useEffect triggers if creds must be retrieved from Holonym db instead of 
-  // from localStorage OR if proof metadata needs to be sent to server
-  useEffect(() => {
-    if (!holoAuthSig && !holoAuthSigDigest) return;
-    if (holoAuthSigIsError) {
-      throw new Error('Failed to sign Holonym authentication message needed to store proof metadata.')
-    }
-    async function getCreds() {
-      const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig);
-      const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
-      const data = await resp.json();
-      if (!data) {
-        throw new Error("Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
-      }
-      const { 
-        sigDigest: retrievedSigDigest, 
-        encryptedCredentials, 
-        encryptedSymmetricKey 
-      } = data;
-      await decryptAndSetCreds(encryptedCredentials, encryptedSymmetricKey)
-    }
-    async function callStoreProofMetadata() {
-      const { tx, proofType, actionId, authSig } = proofMetadataParams
-      const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
-      await storeProofMetadata(tx, proofType, actionId, authSig, sigDigest)
-      setSuccess(true);
-    }
-    try {
-      if (reasonForHoloAuthSig === 'get-creds') {
-        getCreds();
-      }
-      else if (reasonForHoloAuthSig === 'store-proof-metadata') {
-        callStoreProofMetadata()
-      }
-    } catch (err) {
-      console.log(err);
-      setError(`Error: ${err.message}`);
-    }
-  }, [holoAuthSig])
 
   useEffect(() => {
     if (!account?.address) return;
     if (!creds) return;
     if (!(params.proofType in proofs)) return;
+    console.log('Loading proof')
     proofs[params.proofType].loadProof();
   }, [creds]);
-
-  useEffect(() => {
-    if (account?.address) setReadyToLoadCreds(true);
-  }, [account]);
 
   useEffect(() => {
     if (!(submissionConsent && creds && proof)) return;
@@ -297,21 +266,8 @@ const Proofs = () => {
       // TODO: At this point, display message to user that they are now signing to store their proof metadata
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
-      if (holoAuthSig || holoAuthSigDigest) {
-        const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
-        await storeProofMetadata(result, params.proofType, params.actionId, authSig, sigDigest)
-        setSuccess(true);
-      }
-      else {
-        setReasonForHoloAuthSig('store-proof-metadata')
-        setProofMetadataParams({
-          tx: result,
-          proofType: params.proofType,
-          actionId: params.actionId,
-          authSig: authSig,
-        })
-        signHoloAuthMessage()
-      }
+      await storeProofMetadata(result, params.proofType, params.actionId, authSig, holoAuthSigDigest)
+      setSuccess(true);
     } catch (e) {
       setError(e.reason);
     }
