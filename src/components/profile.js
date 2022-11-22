@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import LitJsSdk from "@lit-protocol/sdk-browser";
-import HolonymLogo from '../img/Holonym-Logo-W.png';
-import UserImage from '../img/User.svg';
-import HoloBurgerIcon from '../img/Holo-Burger-Icon.svg';
 import PublicProfileField from './atoms/PublicProfileField';
 import PrivateProfileField from './atoms/PrivateProfileField';
 import { useLitAuthSig } from "../context/LitAuthSig";
@@ -11,14 +8,11 @@ import {
   getLocalEncryptedUserCredentials,
   getLocalProofMetadata,
   decryptObjectWithLit,
-  sha256
 } from '../utils/secrets';
 import { 
-  serverAddress,
   idServerUrl,
   primeToCountryCode,
   chainUsedForLit,
-  holonymAuthMessage
 } from "../constants/misc";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 
@@ -87,6 +81,7 @@ export default function Profile(props) {
   const navigate = useNavigate();
   const [creds, setCreds] = useState();
   const [proofMetadata, setProofMetadata] = useState();
+  const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const {
     signHoloAuthMessage,
@@ -97,85 +92,60 @@ export default function Profile(props) {
     holoAuthSigIsSuccess,
   } = useHoloAuthSig();
 
-  async function getAndSetProofMetadataFromServer() {
-    const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
-    const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${sigDigest}`)
-    const data = await resp.json();
-    const decryptedLocalProofMetadata = data ? await decryptObjectWithLit(
-      data.encryptedProofMetadata,
-      data.encryptedSymmetricKey,
-      litAuthSig
-    ) : []
-    setProofMetadata(
-      populateProofMetadataDisplayDataAndRestructure(decryptedLocalProofMetadata)
-    )
-  }
-
-  async function getAndSetCredsFromServer() {
-    const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig)
-    const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${sigDigest}`)
-    const data = await resp.json();
-    if (data) {
-      const plaintextCreds = await decryptObjectWithLit(data.encryptedCredentials, data.encryptedSymmetricKey, litAuthSig)
-      const formattedCreds = formatCreds(plaintextCreds);
-      setCreds(formattedCreds);
-    }
-  }
-
   useEffect(() => {
-    async function getAndSetCreds() {
-      const encryptedCredsObj = getLocalEncryptedUserCredentials()
-      if (encryptedCredsObj) {
-        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCredsObj;
-        const plaintextCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
-        const formattedCreds = formatCreds(plaintextCreds);
-        setCreds(formattedCreds);
-      } else {
-        if (!holoAuthSig && !holoAuthSigDigest) {
-          // Continue in next useEffect
-          signHoloAuthMessage()
-        } else {
-          await getAndSetCredsFromServer()
-        }
+    (async () => {
+      if (!litAuthSig) {
+        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+        setLitAuthSig(authSig);
       }
-    }
-    async function getAndSetProofMetadata() {
-      const localProofMetadata = getLocalProofMetadata()
-      if (localProofMetadata) {
-        const decryptedLocalProofMetadata = await decryptObjectWithLit(
-          localProofMetadata.encryptedProofMetadata,
-          localProofMetadata.encryptedSymmetricKey,
-          litAuthSig
-        )
-        setProofMetadata(
-          populateProofMetadataDisplayDataAndRestructure(decryptedLocalProofMetadata)
-        )
-      } else {
-        if (!holoAuthSig && !holoAuthSigDigest) {
-          // Continue in next useEffect
-          signHoloAuthMessage()
-        } else {
-          await getAndSetProofMetadataFromServer()
-        }
-      }
-    }
-    async function init() {
-      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-      setLitAuthSig(authSig);
-      await getAndSetCreds()
-      getAndSetProofMetadata()
-    }
-    init()
+      if (!holoAuthSigDigest) signHoloAuthMessage()
+      setReadyToLoadCredsAndProofs(true);
+    })()
   }, [])
 
   useEffect(() => {
-    if (!holoAuthSig && !holoAuthSigIsSuccess) return;
-    if (holoAuthSigIsError) {
-      throw new Error('Failed to sign Holonym authentication message needed to get proof metadata.')
+    async function getAndSetCreds() {
+      let encryptedCredsObj = getLocalEncryptedUserCredentials()
+      if (!encryptedCredsObj) {
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
+        encryptedCredsObj = await resp.json();
+      }
+      if (encryptedCredsObj) {
+        const plaintextCreds = await decryptObjectWithLit(
+          encryptedCredsObj.encryptedCredentials, 
+          encryptedCredsObj.encryptedSymmetricKey, 
+          litAuthSig
+        )
+        const formattedCreds = formatCreds(plaintextCreds);
+        setCreds(formattedCreds);
+      }
     }
-    if (!creds) getAndSetCredsFromServer()
-    if (!proofMetadata) getAndSetProofMetadataFromServer()
-  }, [holoAuthSig])
+    async function getAndSetProofMetadata() {
+      let encryptedProofMetadata = getLocalProofMetadata()
+      if (!encryptedProofMetadata) {
+        const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
+        encryptedProofMetadata = await resp.json();
+      }
+      if (encryptedProofMetadata) {
+        const decryptedProofMetadata = await decryptObjectWithLit(
+          encryptedProofMetadata.encryptedProofMetadata,
+          encryptedProofMetadata.encryptedSymmetricKey,
+          litAuthSig
+        )
+        setProofMetadata(
+          populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
+        )
+      }
+    }
+    try {
+      console.log('entered useEffect for [litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs]')
+      console.log([litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs])
+      getAndSetCreds()
+      getAndSetProofMetadata()
+    } catch (err) {
+      console.log(err)
+    }
+  }, [litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs])
 
   return (
     <>
