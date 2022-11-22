@@ -13,7 +13,6 @@ import {
 import {
   idServerUrl,
   serverAddress,
-  holonymAuthMessage,
   chainUsedForLit,
 } from "../constants/misc";
 import {
@@ -33,6 +32,7 @@ const Verified = (props) => {
   // const jobID = p.jobID || props.jobID;
   const { jobID } = useParams();
   const [sortedCreds, setSortedCreds] = useState();
+  const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
@@ -79,31 +79,23 @@ const Verified = (props) => {
     }
   }
 
-  // First half of data flow if user is minting for first time
-  async function normalFlowFirstHalf(authSig) {
-    const credsTemp = await loadCredentials();
-    if (!credsTemp) {
-      setError(`Error: Could not retrieve credentials.`);
-      return;
-    }
+  async function mergeAndSetCreds(credsTemp) {
     credsTemp.newSecret = generateSecret();
+    // Merge new creds with old creds
     // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
     // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
     const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
     if (encryptedCurrentCredsResp) {
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp
-      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, authSig)
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
       setSortedCreds({ ...currentSortedCreds, [serverAddress]: credsTemp })
     } else {
       setSortedCreds({ [serverAddress]: credsTemp })
     }
-    signHoloAuthMessage() // User must sign holo auth message to continue
-  }
 
-  // Second half of data flow if user is minting for first time
-  async function normalFlowSecondHalf(sigDigest) {
+    // Set creds
     const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
-    const storageSuccess = setLocalUserCredentials(sigDigest, encryptedString, encryptedSymmetricKey)
+    const storageSuccess = setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     if (!storageSuccess) {
       console.log('Failed to store user credentials in localStorage')
       setError("Error: There was a problem in storing your credentials");
@@ -111,51 +103,59 @@ const Verified = (props) => {
     formatCredsAndCallCb(sortedCreds[serverAddress])
   }
 
+  // Steps:
+  // Branch a: User is retrying mint
+  // Branch a: 1. Get & set litAuthSig and holoAuthSigDigest
+  // Branch a: 2. Get and set creds from localStorage
+  // Branch a: 3. Call callback with new creds
+  // 
+  // Branch b: User is not retrying mint
+  // Branch b: 1. Get & set litAuthSig and holoAuthSigDigest
+  // Branch b: 2. Get creds from server
+  // Branch b: 3. Merge new creds with current creds
+  // Branch b: 4. Call callback with merged creds
+
   useEffect(() => {
-    async function func() {
-      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-      setLitAuthSig(authSig);
+    console.log("props", props)
+    (async () => {
+      if (!litAuthSig) {
+        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+        setLitAuthSig(authSig);
+      }
+      if (!holoAuthSigDigest) signHoloAuthMessage();
+      setReadyToLoadCreds(true);
+    })()
+  }, [])
 
-      console.log("props", props)
-      // If user has already retrieved and stored their credentials, we shouldn't
-      // generate a new secret for them; we should just set creds for the next step
-      if (props.jobID === 'retryMint') {
-        console.log('retrying mint')
-        const localEncryptedCreds = await getLocalEncryptedUserCredentials()
-        if (!localEncryptedCreds) {
-          throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
+  useEffect(() => {
+    if (!readyToLoadCreds) return;
+    if (!litAuthSig) return;
+    if (!holoAuthSigDigest) return;
+    (async () => {
+      try {
+        if (props.jobID === 'retryMint') {
+          console.log('retrying mint')
+          const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+          if (!localEncryptedCreds) {
+            throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
+          }
+          const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
+          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+          formatCredsAndCallCb(currentSortedCreds[serverAddress])
+          return;
         }
-        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-        const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, authSig)
-        formatCredsAndCallCb(currentSortedCreds[serverAddress])
-        return;
+        else {
+          const credsTemp = await loadCredentials();
+          if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
+          await mergeAndSetCreds(credsTemp)
+        }
+      } catch (err) {
+        console.log(err);
+        setError(`Error: ${err.message}`);
       }
-      else await normalFlowFirstHalf(authSig)
-    }
-    try {
-      func();
-    } catch (err) {
-      console.log(err);
-      setError(`Error: ${err.message}`);
-    }
-  }, []);
+    })()
+  }, [readyToLoadCreds, litAuthSig, holoAuthSigDigest])
 
-  useEffect(() => {    
-    async function func() {
-      if (!holoAuthSig && !holoAuthSigDigest) return;
-      if (holoAuthSigIsError) {
-        throw new Error('Failed to sign Holonym authentication message needed to store credentials.')
-      }
-      const sigDigest = holoAuthSigDigest ? holoAuthSigDigest : await sha256(holoAuthSig);
-      if (props.jobID !== 'retryMint') await normalFlowSecondHalf(sigDigest)
-    }
-    try {
-      func();
-    } catch (err) {
-      console.log(err);
-      setError(`Error: ${err.message}`);
-    }
-  }, [holoAuthSig])
 
   if (successScreen) {
     return <Success />;
