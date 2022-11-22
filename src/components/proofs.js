@@ -1,15 +1,27 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
-import { requestCredentials } from "../utils/secrets";
+import { useAccount, useSignMessage } from "wagmi";
+import LitJsSdk from "@lit-protocol/sdk-browser";
+import { 
+  getLocalEncryptedUserCredentials,
+  decryptObjectWithLit,
+  storeProofMetadata,
+  sha256
+} from "../utils/secrets";
 import {
   getDateAsInt,
   poseidonTwoInputs,
   proofOfResidency,
   antiSybil,
 } from "../utils/proofs";
-import { serverAddress } from "../constants/misc";
+import { 
+  serverAddress, 
+  idServerUrl, 
+  holonymAuthMessage, 
+  defaultActionId,
+  chainUsedForLit,
+} from "../constants/misc";
 import ConnectWallet from "./atoms/ConnectWallet";
 import proofContractAddresses from "../constants/proofContractAddresses.json";
 import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
@@ -20,6 +32,8 @@ import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
 import { getExtensionState } from "../utils/extension-helpers";
+import { useLitAuthSig } from "../context/LitAuthSig";
+import { useHoloAuthSig } from "../context/HoloAuthSig";
 
 const ConnectWalletScreen = () => (
   <>
@@ -63,7 +77,6 @@ const LoadingProofsButton = (props) => (
   </button>
 );
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const Proofs = () => {
   const params = useParams();
@@ -74,8 +87,17 @@ const Proofs = () => {
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
+  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
-  
+  const {
+    signHoloAuthMessage,
+    holoAuthSig,
+    holoAuthSigDigest,
+    holoAuthSigIsError,
+    holoAuthSigIsLoading,
+    holoAuthSigIsSuccess,
+  } = useHoloAuthSig();
+
   const proofs = {
     "us-residency": {
       name: "US Residency",
@@ -94,6 +116,7 @@ const Proofs = () => {
   async function loadPoR() {
     const salt =
       "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
+    // console.log('creds.newSecret...', creds.newSecret)
     const footprint = await poseidonTwoInputs([
       salt,
       ethers.BigNumber.from(creds.newSecret).toString(),
@@ -111,13 +134,14 @@ const Proofs = () => {
       creds.newSecret
     );
     setProof(por);
+    console.log("proof is", JSON.stringify(por));
   }
 
   async function loadAntiSybil() {
-    const actionId = params.actionId || "123456789";
+    const actionId = params.actionId || defaultActionId;
     if (!params.actionId)
       console.error(
-        "Warning: no actionId was given, using default of 123456789 (generic cross-action sybil resistance)"
+        `Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`
       );
     console.log("actionId", actionId);
     const footprint = await poseidonTwoInputs([
@@ -140,10 +164,40 @@ const Proofs = () => {
     console.log("proof is", JSON.stringify(as));
   }
 
+  // Steps:
+  // 1. Ensure user's wallet is connected (i.e., get account)
+  // 2. Get & set holoAuthSigDigest
+  // 3. Get & set creds
+  // 4. Get & set proof
+  // 5. Submit proof tx
+
+  useEffect(() => {
+    if (account?.address && !holoAuthSigDigest) {
+      console.log('Requesting signature for holoAuthSigDigest')
+      signHoloAuthMessage()
+    }
+    if (account?.address && holoAuthSigDigest) setReadyToLoadCreds(true);
+  }, [account, holoAuthSigDigest]);
+
   useEffect(() => {
     if (!readyToLoadCreds) return;
-    async function getCreds() {
-      const sortedCreds = await requestCredentials();
+    async function loadCreds() {
+      console.log('Loading creds')
+      let encryptedCredentials, encryptedSymmetricKey;
+      const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+      if (localEncryptedCreds) {
+        encryptedCredentials = localEncryptedCreds.encryptedCredentials
+        encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
+      } else {
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
+        const data = await resp.json();
+        if (!data) {
+          setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
+        }
+        encryptedCredentials = data.encryptedCredentials
+        encryptedSymmetricKey = data.encryptedSymmetricKey
+      }
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
       if (sortedCreds) {
         const c = sortedCreds[serverAddress];
         setCreds({
@@ -154,30 +208,20 @@ const Proofs = () => {
         });
       } else {
         setError(
-          "Could not retrieve credentials for proof. Please make sure you have the Holonym extension installed and have minted your Holo."
+          "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
         );
       }
     }
-    getCreds();
+    loadCreds();
   }, [readyToLoadCreds]);
 
   useEffect(() => {
     if (!account?.address) return;
     if (!creds) return;
     if (!(params.proofType in proofs)) return;
+    console.log('Loading proof')
     proofs[params.proofType].loadProof();
   }, [creds]);
-
-  useEffect(() => {
-    if (account?.address) setReadyToLoadCreds(true);
-  }, [account]);
-
-  useEffect(() => {
-    async function f() {
-      setES(await getExtensionState());
-    }
-    f();
-  }, [])
 
   useEffect(() => {
     if (!(submissionConsent && creds && proof)) return;
@@ -194,7 +238,7 @@ const Proofs = () => {
 
   async function submitTx(addr, abi) {
     console.log("submitting");
-    window.ethereum.request({
+    await window.ethereum.request({
       method: "wallet_addEthereumChain",
       params: [
         {
@@ -219,9 +263,10 @@ const Proofs = () => {
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
-      // TODO: send tx result to extension. Add the following lines when v0.0.0.21 is published
-      // const leafTxMetadata = { blockNumber: result.blockNumber, txHash: result.hash }
-      // await window.holonym.addLeafMetadata(serverAddress, leafTxMetadata)
+      // TODO: At this point, display message to user that they are now signing to store their proof metadata
+      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+      setLitAuthSig(authSig);
+      await storeProofMetadata(result, params.proofType, params.actionId, authSig, holoAuthSigDigest)
       setSuccess(true);
     } catch (e) {
       setError(e.reason);
@@ -242,11 +287,6 @@ const Proofs = () => {
           </ErrorScreen>
   }
 
-  if(!(es?.hasPassword)){
-    return <ErrorScreen>
-            <h3>No Holo found. You must <a href="https://app.holonym.io/mint">mint a Holo</a> to make proofs about your identity</h3>
-          </ErrorScreen>
-  }
   return (
     // <Suspense fallback={<LoadingElement />}>
     <RoundedWindow>
@@ -262,6 +302,7 @@ const Proofs = () => {
                   <p>Error: {error}</p>
                 ) : (
                   <>
+                  {creds ? (
                     <p>
                       {creds ? (
                         <>
@@ -275,6 +316,17 @@ const Proofs = () => {
                         `Please confirm the popup so your proof can be generated`
                       )}
                     </p>
+                    ) : (
+                    <>
+                      <p>
+                        Please sign the messages in the wallet popup so your proof can be generated.
+                      </p>
+                      <p>
+                        &nbsp;Note: You cannot generate proofs before minting a holo. If you have not
+                        already, please <a href="/mint" style={{ color: '#fdc094'}}>mint your holo</a>.
+                      </p>
+                    </>
+                    )}
                     <div className="spacer-med" />
                     <br />
                     {creds ? (

@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useAccount, useSignMessage, useConnect, chain } from "wagmi";
-import { zkIdVerifyEndpoint } from "../constants/misc";
+import { idServerUrl } from "../constants/misc";
 import WalletModal from "./atoms/WalletModal";
+
+// TODO: Delete this file?
 
 const Verify = (props) => {
   const { data: account } = useAccount();
   const { data, isLoading, signMessage } = useSignMessage({
     onSuccess(data, variables) {
-      window.location.href = `${zkIdVerifyEndpoint}/register?address=${account.address}&signature=${data}`;
+      window.location.href = `${idServerUrl}/register?address=${account.address}&signature=${data}`;
     },
   });
   const walletIsConnected = account?.address && account?.connector;
@@ -17,7 +19,7 @@ const Verify = (props) => {
   async function getSecretMessage() {
     try {
       const resp = await fetch(
-        `${zkIdVerifyEndpoint}/initialize?address=${account.address}`
+        `${idServerUrl}/initialize?address=${account.address}`
       );
       return (await resp.json()).message;
     } catch (err) {
@@ -46,8 +48,7 @@ const Verify = (props) => {
             You will scan your ID document and receive information from it. We will not
             store your personal info. You can use the data to generate a zero-knowledge
             proof, a cryptographic proof that hides your data from everyone except for
-            you. Before clicking the button, please make sure you have the Holonym
-            extension installed.
+            you.
           </p>
           <p>
             Note: Only proceed if you are using a personal computer (not a public one).
@@ -69,20 +70,6 @@ const Verify = (props) => {
                     MetaMask
                   </a>
                   ) installed
-                </p>
-              </li>
-              <li>
-                <p>
-                  Make sure you have the{" "}
-                  <a
-                    href="https://chrome.google.com/webstore/detail/holonym/oehcghhbelloglknnpdgoeammglelgna?hl=en"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="simple-peach-link"
-                  >
-                    Holonym browser extension
-                  </a>{" "}
-                  installed
                 </p>
               </li>
             </ul>

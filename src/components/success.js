@@ -17,7 +17,7 @@ export const Success = (props) => {
         <h1 className="h1">{props.title || "Minting Success"}</h1>
           {/* <div className="card-heading"> */}
                       
-                      {/* <h3 className="h3 no-margin">You are free to submit some proofs in the browser extension or return home</h3> */}
+                      {/* <h3 className="h3 no-margin">You are free to submit some proofs or return home</h3> */}
                       {/* <img src={CircleWavyCheck} loading="lazy" alt="" className="verify-icon" />
                     </div>
                     <div className="spacer-xx-small"></div>

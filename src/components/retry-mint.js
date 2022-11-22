@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { getDateAsHexString, getStateAsHexString } from "../utils/proofs";
-import { requestCredentials } from "../utils/secrets";
+import { getLocalEncryptedUserCredentials, decryptObjectWithLit } from "../utils/secrets";
 import { serverAddress } from "../constants/misc";
 import MintButton from "./atoms/mint-button";
+
+// TODO: Delete this file?
 
 async function getCredsFromExtension() {
     try {
       // Request credentials. Need to request because extension generates new secret
-      const sortedCreds = await requestCredentials();
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = await getLocalEncryptedUserCredentials()
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
       const c = sortedCreds[serverAddress];
       return {
         ...c,

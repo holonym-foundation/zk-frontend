@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import loadVouched from "./load-vouched";
+import { useAccount } from "wagmi";
 import { useParams } from "react-router-dom";
 import StoreCredentials from "./components/store-credentials";
 import MintButton from "./components/atoms/mint-button";
 import Progress from "./components/atoms/progress-bar";
+import ConnectWallet from "./components/atoms/ConnectWallet";
 import { WithCheckMark } from "./components/atoms/checkmark";
 import "./vouched-css-customization.css";
 import RoundedWindow from "./components/RoundedWindow";
@@ -26,10 +28,11 @@ const getCredentialsPhone = (phoneNumber, code, country, callback) => {
 }
 const Step1 = () => (
   <>
-    <h1>Download the Holonym Extension</h1>
-      <a style={{width:"100%", textAlign: "center" }} target="_blank" className="x-button secondary" href="https://chrome.google.com/webstore/detail/holonym/obhgknpelgngeabaclepndihajndjjnb">Download</a>
+    <ConnectWallet />
+    <h1>Please Connect Your Wallet First</h1>
+    <h3>If you do not have a browser wallet, please install one, such as <a href="https://metamask.io/" target="_blank" rel="noreferrer">MetaMask</a></h3>
   </>
-)
+);
 
 const Step1Pt1 = ({onComplete}) => (
   <>
@@ -95,14 +98,13 @@ const Step3 = (props) => {
   </>
 }
 
-const Step4 = (props) => <MintButton {...props} />
+// const Step3 = (props) => <MintButton {...props} />
 
 const Success = () => {
   const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint Each mint makes on-chain privacy stronger ⛓🎭`;
 return <>
   <WithCheckMark size={3}><h1>Success</h1></WithCheckMark>
     <h4>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h4>
-    <p>! Make sure you remember the browser extension password !</p>
     <br />
     <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn the underlying tech</a></p>
     <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(toTweet)}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>bring more privacy to web3: tweet your privacy pool contribution!</a></p>
@@ -120,16 +122,10 @@ const Mint = (props) => {
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
   const [creds, setCreds] = useState();
-  const isInstalled = Boolean(window.holonym);
-
-  useEffect(() => {
-    async function setup() {
-      setES(await getExtensionState());
-    }
-    setup(); 
-    }, []);
+  const { data: account } = useAccount();
 
   let current = 1;
+  const isInstalled = Boolean(window.holonym);
   if(isInstalled && !es?.hasPassword) current = 1.1; // TODO: this should not be isRegistered but rather hasCredentials!!!
   if(isInstalled && es?.hasPassword) current = 2;
   if(isInstalled && phoneNumber) current = 2.1;

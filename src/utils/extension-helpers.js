@@ -1,3 +1,5 @@
+// TODO: Remove this file?
+
 let extensionId;
 if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
     extensionId = process.env.REACT_APP_EXTENSION_ID || "cilbidmppfndfhjafdlngkaabddoofea";
