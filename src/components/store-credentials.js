@@ -105,22 +105,23 @@ const Verified = (props) => {
       // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
       // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
       const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
+      let sortedCreds_ = {};
       if (encryptedCurrentCredsResp) {
         const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
         const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-        setSortedCreds({ ...currentSortedCreds, [serverAddress]: credsTemp });
-      } else {
-        setSortedCreds({ [serverAddress]: credsTemp });
+        sortedCreds_ = {...currentSortedCreds};
       }
+      sortedCreds_[serverAddress] = credsTemp;
+      setSortedCreds(sortedCreds_);
 
-      // Set creds
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
+    // Store creds
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
     const storageSuccess = setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     if (!storageSuccess) {
       console.log('Failed to store user credentials in localStorage')
       setError("Error: There was a problem in storing your credentials");
     }
-    formatCredsAndCallCb(sortedCreds[serverAddress]);
+    formatCredsAndCallCb(sortedCreds_[serverAddress]);
   }
   // async function loadCredentials2FA() {
   //   setError(undefined);
@@ -193,7 +194,7 @@ const Verified = (props) => {
         }
       } catch (err) {
         console.log(err);
-        setError(`Error: ${err.message}`);
+        setError(`Error loading credentials: ${err.message}`);
       }
     })()
   }, [readyToLoadCreds, litAuthSig, holoAuthSigDigest])
