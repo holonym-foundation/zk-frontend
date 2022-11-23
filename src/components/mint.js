@@ -26,7 +26,7 @@ const getCredentialsPhone = (phoneNumber, code, country, callback) => {
   axios.get(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`)
   .then((response) => callback(response.data));
 }
-const Step1 = () => (
+const ConnectWalletScreen = () => (
   <>
     <ConnectWallet />
     <h1>Please Connect Your Wallet First</h1>
@@ -34,20 +34,33 @@ const Step1 = () => (
   </>
 );
 
-const Step2 = (props) => {
-  const [phone, setPhone] = useState();
+const Step1 = () => {
+  useEffect(loadVouched, []);
   return <>
-    <h1 style={{"marginBottom":"25px"}}>Verify your real number</h1>
-    <p style={{"marginBottom":"25px"}}>Please enter your personal phone (burner won't work)</p>
-    <PhoneInput
-      placeholder="Enter phone number"
-      defaultCountry="US"
-      value={phone}
-      onChange={setPhone}/>
-      <div className="spacer-medium"></div>
-      <button className="x-button secondary outline" onClick={()=>props.onSubmit(phone)}>next</button>
+    <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
+    <div id="vouched-element" style={{ height: "10vh"}}></div>
   </>
 }
+const Step2 = (props) => {
+  return <>
+    <h1>Store Credentials</h1>
+    {<StoreCredentials {...props} />}
+  </>
+}
+// const Step2 = (props) => {
+//   const [phone, setPhone] = useState();
+//   return <>
+//     <h1 style={{"marginBottom":"25px"}}>Verify your real number</h1>
+//     <p style={{"marginBottom":"25px"}}>Please enter your personal phone (burner won't work)</p>
+//     <PhoneInput
+//       placeholder="Enter phone number"
+//       defaultCountry="US"
+//       value={phone}
+//       onChange={setPhone}/>
+//       <div className="spacer-medium"></div>
+//       <button className="x-button secondary outline" onClick={()=>props.onSubmit(phone)}>next</button>
+//   </>
+// }
 
 // Step 2A happens when user is using phone with crosscheck for government ID
 const Step2A = ({phoneNumber}) => {
@@ -116,10 +129,11 @@ const Mint = (props) => {
   const [creds, setCreds] = useState();
   const { data: account } = useAccount();
 
-  let current = 1;
-  if(jobID) current = 2;
-  if(creds) current = 3;
-  if(props.retry) current = -1; // If there was an issue submitting the minting tx and the user wants to retry
+  let current = "start-idv";
+  if(jobID) current = "get-job-result";
+    // "enter-number";
+  if(creds) current = "mint";
+  if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   console.log("Current", current)
   if(success) current = null;
     
@@ -130,13 +144,13 @@ const Mint = (props) => {
     <div className="spacer-medium" />
     <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
-      {(current === 1) && <Step1 />}
+      {(current === "start-idv") && <Step1 />}
       {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
-      {(current === 2) && <Step2 onSubmit={setPhoneNumber} />}
-      {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />}
-      {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} credsType={credType} />}
+      {/* {(current === 2) && <Step2 onSubmit={setPhoneNumber} />} */}
+      {/* {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />} */}
+      {(current === "get-job-result") && <Step3 onCredsStored={setCreds} credsType={credType} />}
       {/* {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />} */}
-      {(current === -1) && <Step3 onSetCredsFromExtension={setCreds} jobID="loadFromExtension" />}
+      {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />}
       {success && <Success />}
     </div>
   </RoundedWindow>
