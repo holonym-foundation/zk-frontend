@@ -34,14 +34,6 @@ const Step1 = () => (
   </>
 );
 
-const Step1Pt1 = ({onComplete}) => (
-  <>
-    <h1>Set up the Holonym Extension</h1>
-      <h2>Please open the extension and set a password</h2>
-      <a className="x-button secondary" onClick={onComplete}>Done</a>
-  </>
-)
-
 const Step2 = (props) => {
   const [phone, setPhone] = useState();
   return <>
@@ -125,13 +117,9 @@ const Mint = (props) => {
   const { data: account } = useAccount();
 
   let current = 1;
-  const isInstalled = Boolean(window.holonym);
-  if(isInstalled && !es?.hasPassword) current = 1.1; // TODO: this should not be isRegistered but rather hasCredentials!!!
-  if(isInstalled && es?.hasPassword) current = 2;
-  if(isInstalled && phoneNumber) current = 2.1;
-  if(isInstalled && jobID) current = 3;
-  if(isInstalled && creds) current = 4;
-  if(isInstalled && props.retry) current = -1; // If there was an issue and the user wants to retry minting using credentials from extension
+  if(jobID) current = 2;
+  if(creds) current = 3;
+  if(props.retry) current = -1; // If there was an issue submitting the minting tx and the user wants to retry
   console.log("Current", current)
   if(success) current = null;
     
@@ -143,7 +131,7 @@ const Mint = (props) => {
     <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
       {(current === 1) && <Step1 />}
-      {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />}
+      {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
       {(current === 2) && <Step2 onSubmit={setPhoneNumber} />}
       {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />}
       {(current === 3) && <Step3 onSetCredsFromExtension={setCreds} credsType={credType} />}
