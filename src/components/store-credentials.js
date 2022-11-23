@@ -159,7 +159,6 @@ const Verified = (props) => {
   // Branch b: 4. Call callback with merged creds
 
   useEffect(() => {
-    console.log("props", props)
     (async () => {
       if (!litAuthSig) {
         const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
