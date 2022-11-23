@@ -96,14 +96,14 @@ const Step2B = ({phoneNumber, callback}) => {
 
 const Step2Pt1 = (props) => true ? <Step2B {...props} /> : <Step2A {...props} />
 
-const Step3 = (props) => {
-  return <>
-    <h1>Store Credentials</h1>
-    {<StoreCredentials {...props} />}
-  </>
-}
+// const Step3 = (props) => {
+//   return <>
+//     <h1>Store Credentials</h1>
+//     {<StoreCredentials {...props} />}
+//   </>
+// }
 
-// const Step3 = (props) => <MintButton {...props} />
+const Step3 = (props) => <MintButton {...props} />
 
 const Success = () => {
   const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint Each mint makes on-chain privacy stronger ⛓🎭`;
@@ -132,6 +132,7 @@ const Mint = (props) => {
   let current = "start-idv";
   if(jobID) current = "get-job-result";
     // "enter-number";
+  console.log(creds, "creds")
   if(creds) current = "mint";
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   console.log("Current", current)
@@ -148,9 +149,9 @@ const Mint = (props) => {
       {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
       {/* {(current === 2) && <Step2 onSubmit={setPhoneNumber} />} */}
       {/* {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />} */}
-      {(current === "get-job-result") && <Step3 onCredsStored={setCreds} credsType={credType} />}
-      {/* {(current === 4) && <Step4 onSuccess={()=>setSuccess(true)} creds={creds} />} */}
-      {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />}
+      {(current === "get-job-result") && <Step2 onCredsStored={setCreds} credsType={credType} />}
+      {(current === "mint") && <Step3 onSuccess={()=>setSuccess(true)} creds={creds} />}
+      {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <Success />}
     </div>
   </RoundedWindow>
