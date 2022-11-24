@@ -70,9 +70,9 @@ const Verified = (props) => {
   async function formatCredsAndCallCb(creds) {
     const formattedCreds = {
       ...creds,
-      subdivisionHex: "0x" + Buffer.from(creds.subdivision).toString("hex"),
+      subdivisionHex: "0x" + Buffer.from(creds.subdivision || "0").toString("hex"),
       completedAtHex: getDateAsInt(creds.completedAt),
-      birthdateHex: getDateAsInt(creds.birthdate),
+      birthdateHex: getDateAsInt(creds.birthdate || "0"),
     }
     props.onCredsStored && props.onCredsStored(formattedCreds);
   }
@@ -186,7 +186,8 @@ const Verified = (props) => {
           return;
         }
         else {
-          const credsTemp = await loadCredentialsVouched();
+          const credsTemp = props.prefilledCreds || (await loadCredentialsVouched());
+          console.log("creds temp", credsTemp);
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)
         }

@@ -122,11 +122,21 @@ const Mint = (props) => {
   const [phoneNumber, setPhoneNumber] = useState();
   const [creds, setCreds] = useState();
   const { data: account } = useAccount();
-
+  let step1Name;
+  switch(credType){
+    case "idgov" :
+      step1Name = "1-start-idv";
+      break;
+    case "phone" :
+      step1Name = "1-2fa";
+      break;
+    default:
+      break;
+  } 
   let current = "0-enter-number";
-  if(phoneNumber) current = "1-start-idv"
-  if(jobID) current = "2-get-job-result";
+  if(phoneNumber) current = step1Name;
   if(creds) current = "3-mint";
+  if((!creds && jobID) || (creds && !jobID)) current = "2-get-verification-result";
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   if(success) current = null;
     
@@ -137,11 +147,10 @@ const Mint = (props) => {
     <div className="spacer-medium" />
     <Progress steps={["Phone#", "Verify", "Store", "Mint"] } currentIdx={current?.charAt(0)} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
-      {(current === "1-start-idv") && <StepIDV phoneNumber={phoneNumber} />}
-      {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
       {(current === "0-enter-number") && <StepPhoneInput onSubmit={setPhoneNumber} />}
-      {/* {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />} */}
-      {(current === "2-get-job-result") && <StepStoreCreds onCredsStored={setCreds} credsType={credType} />}
+      {(current === "1-start-idv") && <StepIDV phoneNumber={phoneNumber} />}
+      {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} callback={setCreds} />}
+      {(current === "2-get-verification-result") && <StepStoreCreds prefilledCreds={creds} onCredsStored={setCreds} credsType={credType} />}
       {(current === "3-mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
       {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <StepSuccess />}
