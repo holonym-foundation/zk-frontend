@@ -907,7 +907,7 @@ p.no-margin.small {
   border-color: #fdc094;
 }
 
-.x-card:hover {
+.x-card:not(.disable):hover {
   border-width: 3px;
 }
 
@@ -939,7 +939,7 @@ p.no-margin.small {
   text-decoration: none;
 }
 
-.x-card.blue:hover {
+.x-card.blue:not(.disable):hover {
   border-width: 1px;
   background-image: linear-gradient(135deg, #120c6e, #01010c 80%);
 }
@@ -963,6 +963,11 @@ p.no-margin.small {
   border-color: #747474;
   background-image: -webkit-gradient(linear, left top, left bottom, from(#464646), to(#464646));
   background-image: linear-gradient(180deg, #464646, #464646);
+}
+
+.x-card.blue.disable {
+  border-color: #707070;
+  background-image: linear-gradient(135deg, #707070, #01010c 40%);
 }
 
 .x-card.profile {

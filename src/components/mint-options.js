@@ -2,6 +2,11 @@ import { useNavigate } from "react-router-dom";
 // import { InfoButton } from "./info-button";
 import RoundedWindow from "./RoundedWindow";
 
+const opts = [
+    {name : "Phone Number", url : "/mint/phone", disabled : false},
+    {name : "ID + Phone Number", url : "/mint/idgov", disabled : false},
+    {name : "Accredited Investor Status", url : "/mint/idgov", disabled : true}
+];
 const MintOptions = ()=>{
     const navigate = useNavigate();
     return <RoundedWindow>
@@ -13,20 +18,16 @@ const MintOptions = ()=>{
                         type="proofMenu"
                         text={`Anonymity is provided by the anonymity set, a.k.a. Privacy Pool. If we wanted to spy and you only waited a minute, we could see you verified at a certain time and that some wallet submitted a proof a minute later. We could then guess you were that wallet. But if you waited a whole week, a lot of people have also will have registered, so we can't tell it's you. Everyone's verification would be pooled together, so we would only know the prover was one person in the whole pool. Whether you wait a second, a day, or year depends on how much you want to stay anonymous to Holonym Foundation. If you trust us not to track you, you can prove now...`}
                     /> */}
-                <div className="spacer-large"></div>
-                <button onClick={()=>navigate("/mint/phone")} className="x-card blue">
-                    Phone Number
-                    {/* <p>Surprisingly rigorous</p> */}
-                </button>
-                <div className="spacer-large"></div>
-                <button onClick={()=>navigate("/mint/idgov")} className="x-card blue">
-                    ID + Phone Number
-                    {/* <p>Most informative and rigorous; hard to fake identity and extremely hard to create sybil attacks</p> */}
-                </button>
-                <div className="spacer-large"></div>
+                <div style={{display:"flex", alignItems: "center", justifyContent: "space-around", flexDirection: "column", height: "100%"}}>
+                        {opts.map(opt=><>
+                            <button onClick={()=>navigate(opt.url)} className={"x-card blue" + (opt.disabled ? " disable" : "")}>
+                                {opt.name}
+                                </button>
+                        </>
+                        )}
+                </div>
                 {/* TODO: add buttons for future credential types such as accredited investor status */}
                 {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
-
             </div>
     </RoundedWindow>  
 }
