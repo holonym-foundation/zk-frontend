@@ -135,7 +135,7 @@ const Mint = (props) => {
   return <RoundedWindow>
     {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
     <div className="spacer-medium" />
-    <Progress steps={["Phone#", "Verify", "Store", "Mint"] } currentIdx={current.charAt(0)} />
+    <Progress steps={["Phone#", "Verify", "Store", "Mint"] } currentIdx={current?.charAt(0)} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
       {(current === "1-start-idv") && <StepIDV phoneNumber={phoneNumber} />}
       {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
