@@ -157,7 +157,6 @@ const Verified = (props) => {
   // Branch b: 2. Get creds from server
   // Branch b: 3. Merge new creds with current creds
   // Branch b: 4. Call callback with merged creds
-LitJsSdk.disconnectWeb3()
   useEffect(() => {
     (async () => {
       if (!litAuthSig) {
