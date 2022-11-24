@@ -74,7 +74,6 @@ const Verified = (props) => {
       completedAtHex: getDateAsInt(creds.completedAt),
       birthdateHex: getDateAsInt(creds.birthdate),
     }
-    console.log(formattedCreds, props.onCredsStored);
     props.onCredsStored && props.onCredsStored(formattedCreds);
   }
 
@@ -158,7 +157,7 @@ const Verified = (props) => {
   // Branch b: 2. Get creds from server
   // Branch b: 3. Merge new creds with current creds
   // Branch b: 4. Call callback with merged creds
-
+LitJsSdk.disconnectWeb3()
   useEffect(() => {
     (async () => {
       if (!litAuthSig) {
@@ -203,43 +202,43 @@ const Verified = (props) => {
   if (successScreen) {
     return <Success />;
   }
-  console.log(creds, credsAreStored, registered)
   return (
     <>
-      {loading ? (
         <div style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
       }}>
-      <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
-      <ThreeDots 
-        height="20" 
-        width="40" 
-        radius="2"
-        color="#FFFFFF" 
-        ariaLabel="three-dots-loading"
-        wrapperStyle={{marginBottom:"-20px"}}
-        wrapperClassName=""
-        visible={true}
-        />
-    </div>
-        
-      ) : (
-        <div>
-          <div style={{ maxWidth: "600px", fontSize: "16px" }}>
-              <ol>
-                <li>
-                  <p>Sign the messages in the wallet popups. This allows you to encrypt and store your credentials</p>
-                </li>
-                {/* <li>
-                  <p>Mint your Holo:</p>
-                </li> */}
-              </ol>
-            {/* {creds && credsAreStored && <MintButton creds={creds} successCallback={()=>setSuccessScreen(true)} />} */}
-          </div>
-        </div>
-      )}
+        <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
+        <ThreeDots 
+          height="20" 
+          width="40" 
+          radius="2"
+          color="#FFFFFF" 
+          ariaLabel="three-dots-loading"
+          wrapperStyle={{marginBottom:"-20px"}}
+          wrapperClassName=""
+          visible={true}
+          />
+
+      </div>
+      <p>Please sign the new messages in your wallet</p>
+      {/* // : (
+      //   <div>
+      //     <div style={{ maxWidth: "600px", fontSize: "16px" }}>
+      //         <ol>
+      //           <li>
+      //             <p>Sign the messages in the wallet popups. This allows you to encrypt and store your credentials</p>
+      //           </li>
+      //           {/* <li>
+      //             <p>Mint your Holo:</p>
+      //           </li>*-/}
+      //         </ol>
+      //       {/* {creds && credsAreStored && <MintButton creds={creds} successCallback={()=>setSuccessScreen(true)} />} *-/}
+      //     </div>
+      //   </div>
+      // ) */}
+
       <p>{error}</p>
       {error && (
         <p>

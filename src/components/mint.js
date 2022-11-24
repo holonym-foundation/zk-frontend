@@ -36,7 +36,7 @@ const getCredentialsPhone = (phoneNumber, code, country, callback) => {
 // }
 const StepStoreCreds = (props) => {
   return <>
-    <h1>Store Credentials</h1>
+    {/* <h1>Store Credentials</h1> */}
     {<StoreCredentials {...props} />}
   </>
 }
@@ -123,13 +123,11 @@ const Mint = (props) => {
   const [creds, setCreds] = useState();
   const { data: account } = useAccount();
 
-  let current = "start-idv";
-  if(jobID) current = "get-job-result";
-    // "enter-number";
-  console.log(creds, "creds")
-  if(creds) current = "mint";
+  let current = "0-enter-number";
+  if(phoneNumber) current = "1-start-idv"
+  if(jobID) current = "2-get-job-result";
+  if(creds) current = "3-mint";
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
-  console.log("Current", current)
   if(success) current = null;
     
   if (!(allowedCredTypes.includes(credType))) { return }
@@ -137,14 +135,14 @@ const Mint = (props) => {
   return <RoundedWindow>
     {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
     <div className="spacer-medium" />
-    <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
+    <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current.charAt(0)} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
-      {(current === "start-idv") && <StepIDV phoneNumber={phoneNumber} />}
+      {(current === "1-start-idv") && <StepIDV phoneNumber={phoneNumber} />}
       {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
-      {/* {(current === 2) && <Step2 onSubmit={setPhoneNumber} />} */}
+      {(current === "0-enter-number") && <StepPhoneInput onSubmit={setPhoneNumber} />}
       {/* {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />} */}
-      {(current === "get-job-result") && <StepStoreCreds onCredsStored={setCreds} credsType={credType} />}
-      {(current === "mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
+      {(current === "2-get-job-result") && <StepStoreCreds onCredsStored={setCreds} credsType={credType} />}
+      {(current === "3-mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
       {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <StepSuccess />}
     </div>
