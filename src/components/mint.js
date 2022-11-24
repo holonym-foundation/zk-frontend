@@ -26,45 +26,39 @@ const getCredentialsPhone = (phoneNumber, code, country, callback) => {
   axios.get(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`)
   .then((response) => callback(response.data));
 }
-const ConnectWalletScreen = () => (
-  <>
-    <ConnectWallet />
-    <h1>Please Connect Your Wallet First</h1>
-    <h3>If you do not have a browser wallet, please install one, such as <a href="https://metamask.io/" target="_blank" rel="noreferrer">MetaMask</a></h3>
-  </>
-);
 
-const Step1 = () => {
-  useEffect(loadVouched, []);
-  return <>
-    <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
-    <div id="vouched-element" style={{ height: "10vh"}}></div>
-  </>
-}
-const Step2 = (props) => {
+// const StepIDV = () => {
+//   useEffect(loadVouched, []);
+//   return <>
+//     <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
+//     <div id="vouched-element" style={{ height: "10vh"}}></div>
+//   </>
+// }
+const StepStoreCreds = (props) => {
   return <>
     <h1>Store Credentials</h1>
     {<StoreCredentials {...props} />}
   </>
 }
-// const Step2 = (props) => {
-//   const [phone, setPhone] = useState();
-//   return <>
-//     <h1 style={{"marginBottom":"25px"}}>Verify your real number</h1>
-//     <p style={{"marginBottom":"25px"}}>Please enter your personal phone (burner won't work)</p>
-//     <PhoneInput
-//       placeholder="Enter phone number"
-//       defaultCountry="US"
-//       value={phone}
-//       onChange={setPhone}/>
-//       <div className="spacer-medium"></div>
-//       <button className="x-button secondary outline" onClick={()=>props.onSubmit(phone)}>next</button>
-//   </>
-// }
+const StepPhoneInput = (props) => {
+  const [phone, setPhone] = useState();
+  return <>
+    <h1 style={{"marginBottom":"25px"}}>Verify your real number</h1>
+    <p style={{"marginBottom":"25px"}}>Please enter your personal phone (burner won't work)</p>
+    <PhoneInput
+      placeholder="Enter phone number"
+      defaultCountry="US"
+      value={phone}
+      onChange={setPhone}/>
+      <div className="spacer-medium"></div>
+      <button className="x-button secondary outline" onClick={()=>props.onSubmit(phone)}>next</button>
+  </>
+}
 
 // Step 2A happens when user is using phone with crosscheck for government ID
-const Step2A = ({phoneNumber}) => {
+const StepIDV = ({phoneNumber}) => {
   useEffect(()=>loadVouched(phoneNumber), []);
+  if(!phoneNumber){return <p>No phone number specified</p>}
   return <>
     <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
     <div id="vouched-element" style={{ height: "10vh"}}></div>
@@ -72,7 +66,7 @@ const Step2A = ({phoneNumber}) => {
 }
 
 // Step 2B happens when user is using phone by itself, needing 2FA
-const Step2B = ({phoneNumber, callback}) => {
+const Step2FA = ({phoneNumber, callback}) => {
   sendCode(phoneNumber);
   console.log(phoneNumber);
   const [code, setCode] = useState("");
@@ -94,7 +88,7 @@ const Step2B = ({phoneNumber, callback}) => {
   </>
 }
 
-const Step2Pt1 = (props) => true ? <Step2B {...props} /> : <Step2A {...props} />
+// const Step2Pt1 = (props) => true ? <Step2B {...props} /> : <Step2A {...props} />
 
 // const Step3 = (props) => {
 //   return <>
@@ -103,9 +97,9 @@ const Step2Pt1 = (props) => true ? <Step2B {...props} /> : <Step2A {...props} />
 //   </>
 // }
 
-const Step3 = (props) => <MintButton {...props} />
+const StepMint = (props) => <MintButton {...props} />
 
-const Success = () => {
+const StepSuccess = () => {
   const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint Each mint makes on-chain privacy stronger ⛓🎭`;
 return <>
   <WithCheckMark size={3}><h1>Success</h1></WithCheckMark>
@@ -145,14 +139,14 @@ const Mint = (props) => {
     <div className="spacer-medium" />
     <Progress steps={["Download", "Verify", "Store", "Mint"] } currentIdx={current-1} />
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
-      {(current === "start-idv") && <Step1 />}
+      {(current === "start-idv") && <StepIDV phoneNumber={phoneNumber} />}
       {/* {(current === 1.1) && <Step1Pt1 onComplete={async ()=> {let es = await getExtensionState(); console.log(es); setES(es); if(!es?.hasPassword)alert("no you're not done!")}} />} */}
       {/* {(current === 2) && <Step2 onSubmit={setPhoneNumber} />} */}
       {/* {(current === 2.1) && <Step2Pt1 phoneNumber={phoneNumber} callback={setCreds} />} */}
-      {(current === "get-job-result") && <Step2 onCredsStored={setCreds} credsType={credType} />}
-      {(current === "mint") && <Step3 onSuccess={()=>setSuccess(true)} creds={creds} />}
+      {(current === "get-job-result") && <StepStoreCreds onCredsStored={setCreds} credsType={credType} />}
+      {(current === "mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
       {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
-      {success && <Success />}
+      {success && <StepSuccess />}
     </div>
   </RoundedWindow>
 }
