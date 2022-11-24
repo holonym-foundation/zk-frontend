@@ -133,6 +133,7 @@ const Proofs = () => {
       creds.birthdateHex,
       creds.newSecret
     );
+    // Once setProof is called, the proof is submtited
     setProof(por);
     console.log("proof is", JSON.stringify(por));
   }
@@ -160,8 +161,8 @@ const Proofs = () => {
       creds.birthdateHex,
       creds.newSecret
     );
+    // Once setProof is called, the proof is submtited
     setProof(as);
-    console.log("proof is", JSON.stringify(as));
   }
 
   // Steps:
@@ -257,9 +258,9 @@ const Proofs = () => {
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-    const resStore = new ethers.Contract(addr, abi, signer);
+    const proofContract = new ethers.Contract(addr, abi, signer);
     try {
-      const result = await resStore.prove(
+      const result = await proofContract.prove(
         Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
         proof.inputs
       );
