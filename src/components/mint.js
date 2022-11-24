@@ -12,20 +12,10 @@ import RoundedWindow from "./RoundedWindow";
 import { getExtensionState } from "../utils/extension-helpers";
 import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
-import { zkPhoneEndpoint } from "../constants/misc";
-import axios from "axios";
+import { getCredentialsPhone, sendCode } from "../utils/phone";
+
 // import { Success } from "./components/success";
 
-// TODO: refactor phone number and gov id to different files
-const sendCode = (phoneNumber) => {
-  axios.get(zkPhoneEndpoint + "/send/" + phoneNumber);
-}
-
-const getCredentialsPhone = (phoneNumber, code, country, callback) => {
-  console.log(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`);
-  axios.get(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`)
-  .then((response) => callback(response.data));
-}
 
 // const StepIDV = () => {
 //   useEffect(loadVouched, []);
@@ -67,8 +57,6 @@ const StepIDV = ({phoneNumber}) => {
 
 // Step 2B happens when user is using phone by itself, needing 2FA
 const Step2FA = ({phoneNumber, callback}) => {
-  sendCode(phoneNumber);
-  console.log(phoneNumber);
   const [code, setCode] = useState("");
   const onChange = (e) => {
     const newCode = e.target.value
@@ -140,6 +128,8 @@ const Mint = (props) => {
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   if(success) current = null;
     
+  useEffect(()=>{if (phoneNumber && (current === "1-2fa")) {console.log("sending code to ", phoneNumber); sendCode(phoneNumber)}}, [phoneNumber])
+
   if (!(allowedCredTypes.includes(credType))) { return }
 
   return <RoundedWindow>
