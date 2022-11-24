@@ -22,7 +22,7 @@ import {
   defaultActionId,
   chainUsedForLit,
 } from "../constants/misc";
-import ConnectWallet from "./atoms/ConnectWallet";
+// import ConnectWallet from "./atoms/ConnectWallet";
 import proofContractAddresses from "../constants/proofContractAddresses.json";
 import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
@@ -37,7 +37,7 @@ import { useHoloAuthSig } from "../context/HoloAuthSig";
 
 const ConnectWalletScreen = () => (
   <>
-    <ConnectWallet />
+    {/* <ConnectWallet /> */}
     <div className="x-container w-container">
         <h1>Please Connect Your Wallet First</h1>
     </div>
