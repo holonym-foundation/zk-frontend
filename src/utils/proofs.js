@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
-import { preprocEndpoint, serverAddress, stateAbbreviations } from "../constants/misc";
+import { preprocEndpoint } from "../constants/misc";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 
@@ -194,13 +194,20 @@ export async function createLeaf(
     console.log("waiting for zok provider");
     await sleep(5000);
   }
+  console.log("aslknjvasknjd", issuer,
+  secret,
+  countryCode,
+  subdivision,
+  completedAt,
+  birthdate)
+  
   const args = [
     ethers.BigNumber.from(issuer).toString(),
     ethers.BigNumber.from(secret).toString(),
-    ethers.BigNumber.from(countryCode).toString(),
-    ethers.BigNumber.from(subdivision).toString(),
+    ethers.BigNumber.from(countryCode || "0").toString(),
+    ethers.BigNumber.from(subdivision || "0").toString(),
     ethers.BigNumber.from(completedAt).toString(),
-    ethers.BigNumber.from(birthdate).toString(),
+    ethers.BigNumber.from(birthdate || "0").toString(),
   ];
   await loadArtifacts("createLeaf");
   await loadProvingKey("createLeaf");
@@ -235,7 +242,7 @@ export async function onAddLeafProof(
 
   console.log(
     "signed leaf creation parameters", 
-  serverAddress,
+  issuer,
   oldSecret,
   countryCode,
   subdivision,
@@ -244,7 +251,7 @@ export async function onAddLeafProof(
   )
 
   const signedLeaf = await createLeaf(
-    serverAddress,
+    issuer,
     oldSecret,
     countryCode,
     subdivision,
@@ -253,7 +260,7 @@ export async function onAddLeafProof(
   );
 
   const newLeaf = await createLeaf(
-    serverAddress,
+    issuer,
     newSecret,
     countryCode,
     subdivision,
@@ -266,10 +273,10 @@ export async function onAddLeafProof(
     ethers.BigNumber.from(signedLeaf).toString(),
     ethers.BigNumber.from(newLeaf).toString(),
     ethers.BigNumber.from(issuer).toString(),
-    ethers.BigNumber.from(countryCode).toString(),
-    ethers.BigNumber.from(subdivision).toString(),
+    ethers.BigNumber.from(countryCode || "0").toString(),
+    ethers.BigNumber.from(subdivision || "0").toString(),
     ethers.BigNumber.from(completedAt).toString(),
-    ethers.BigNumber.from(birthdate).toString(),
+    ethers.BigNumber.from(birthdate || "0").toString(),
     ethers.BigNumber.from(oldSecret).toString(),
     ethers.BigNumber.from(newSecret).toString(),
   ];
@@ -341,7 +348,7 @@ export async function proofOfResidency(
   }
 
   const leaf = await createLeaf(
-    serverAddress,
+    issuer,
     secret,
     countryCode,
     subdivision,
@@ -413,7 +420,7 @@ export async function antiSybil(
   }
 
   const leaf = await createLeaf(
-    serverAddress,
+    issuer,
     secret,
     countryCode,
     subdivision,

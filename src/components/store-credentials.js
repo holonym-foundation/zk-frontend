@@ -71,10 +71,9 @@ const Verified = (props) => {
     const formattedCreds = {
       ...creds,
       subdivisionHex: "0x" + Buffer.from(creds.subdivision || "0").toString("hex"),
-      completedAtHex: getDateAsInt(creds.completedAt),
-      birthdateHex: getDateAsInt(creds.birthdate || "1900-01-01"), //getDateAsInt("1900-01-01") is 0 because the earliest date it accepts is 1900-01-01
+      completedAtInt: getDateAsInt(creds.completedAt),
+      birthdateInt: getDateAsInt(creds.birthdate || "1900-01-01"), //getDateAsInt("1900-01-01") is 0 because the earliest date it accepts is 1900-01-01
     }
-    console.log(formattedCreds, props.onCredsStored, props.onCredsStored)
     props.onCredsStored && props.onCredsStored(formattedCreds);
   }
 
