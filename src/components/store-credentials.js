@@ -120,6 +120,7 @@ const Verified = (props) => {
       console.log('Failed to store user credentials in localStorage')
       setError("Error: There was a problem in storing your credentials");
     }
+    window.localStorage.removeItem('holoPlaintextVouchedCreds')
     formatCredsAndCallCb(sortedCreds_[serverAddress]);
   }
   // async function loadCredentials2FA() {
@@ -182,12 +183,14 @@ const Verified = (props) => {
           }
           const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
           const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+          window.localStorage.removeItem('holoPlaintextVouchedCreds')
           formatCredsAndCallCb(currentSortedCreds[serverAddress])
           return;
         }
         else {
           const credsTemp = props.prefilledCreds || (await loadCredentialsVouched());
           console.log("creds temp", credsTemp);
+          window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)
         }
