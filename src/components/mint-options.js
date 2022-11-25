@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import RoundedWindow from "./RoundedWindow";
 
 const opts = [
-    {name : "Phone Number", url : "/mint/phone", disabled : false},
+    {name : "Phone Number", url : "/mint/phone", disabled : true},
     {name : "ID + Phone Number", url : "/mint/idgov", disabled : false},
     {name : "Accredited Investor Status", url : "/mint/idgov", disabled : true}
 ];
