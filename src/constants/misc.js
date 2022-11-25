@@ -9,7 +9,11 @@ export const zkPhoneEndpoint =
   process.env.NODE_ENV === "development"
     ? "http://ec2-13-59-84-72.us-east-2.compute.amazonaws.com:3030"
     : "https://phone.holonym.io";
-export const serverAddress = "0x8281316aC1D51c94f2DE77575301cEF615aDea84";
+    
+export const serverAddress = {
+  "idgov" : "0x8281316aC1D51c94f2DE77575301cEF615aDea84", // TODO : should probably be different in testing than in prod for security
+  "phone" : ((process.env.NODE_ENV === "development") ? "0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513" : "0xB625e69aB86db23C23682875Ba10FbC8f8756d16")
+}
 
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
 

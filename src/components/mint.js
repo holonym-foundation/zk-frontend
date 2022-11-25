@@ -108,6 +108,7 @@ const Mint = (props) => {
   const [es, setES] = useState(); // TODO: this should not be isRegistered but rather hasCredentials!!!
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
+  const [successful2FA , setSuccessful2FA] = useState();
   const [creds, setCreds] = useState();
   const { data: account } = useAccount();
   let step1Name;
@@ -123,8 +124,8 @@ const Mint = (props) => {
   } 
   let current = "0-enter-number";
   if(phoneNumber) current = step1Name;
-  if(creds) current = "3-mint";
   if((!creds && jobID) || (creds && !jobID)) current = "2-get-verification-result";
+  if((creds && jobID) || successful2FA) current = "3-mint";
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   if(success) current = null;
     
@@ -139,8 +140,8 @@ const Mint = (props) => {
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
       {(current === "0-enter-number") && <StepPhoneInput onSubmit={setPhoneNumber} />}
       {(current === "1-start-idv") && <StepIDV phoneNumber={phoneNumber} />}
-      {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} callback={setCreds} />}
-      {(current === "2-get-verification-result") && <StepStoreCreds prefilledCreds={creds} onCredsStored={setCreds} credsType={credType} />}
+      {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} callback={c=>{setCreds(c); setSuccessful2FA(true)}} />}
+      {(current === "2-get-verification-result") && <StepStoreCreds prefilledCreds={creds} onCredsStored={setCreds} credType={credType} />}
       {(current === "3-mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
       {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <StepSuccess />}
