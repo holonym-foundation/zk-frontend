@@ -18,12 +18,17 @@ const MintButton = (props) => {
         setMinting(true);
         const oldSecret = creds.secret;
         const newSecret = creds.newSecret;
-        const oalProof = await onAddLeafProof(
-          creds.issuer,
-          creds.countryCode,
+
+        console.log([creds.countryCode,
           creds.subdivisionHex,
           creds.completedAtInt,
-          creds.birthdateInt,
+          creds.birthdateInt].map(x=>ethers.BigNumber.from(x).toString()), "asdihuf")
+        const oalProof = await onAddLeafProof(
+          creds.issuer,
+          [creds.countryCode,
+          creds.subdivisionHex,
+          creds.completedAtInt,
+          creds.birthdateInt].map(x=>ethers.BigNumber.from(x).toString()),
           oldSecret,
           newSecret
         );

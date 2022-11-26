@@ -4,10 +4,6 @@ import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { preprocEndpoint } from "../constants/misc";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
-const { buildPoseidon } = require("circomlibjs");
-
-let poseidon; 
-buildPoseidon().then(p=>{poseidon=p;});
 
 let zokProvider;
 let artifacts = {};
@@ -177,27 +173,26 @@ export function poseidonHashQuinary(input) {
 
 /**
  * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
- * @param {Array<string>} intermediateValues All other values in the leaf's preimage, as an array of strings
+ * @param {Array<string>} customFields All other values in the leaf's preimage, as an array of strings
  * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
  * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
  */
-export async function createLeaf(issuer, intermediateValues, secret) {
-  if(!poseidon){
-    poseidon = await buildPoseidon();
-  }
-  const result = poseidon([issuer, ...intermediateValues, secret]);
-  return poseidon.F.toString(result);
+export async function createLeaf(issuer, customFields, secret) {
+  await loadArtifacts("createLeaf");
+  await loadProvingKey("createLeaf");
+  const { witness, output } = zokProvider.computeWitness(artifacts.createLeaf, [issuer, secret, ...customFields]);
+  return output.replaceAll('"', "");
 }
 
 /**
  * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
- * @param {Array<string>} intermediateValues All other values in the leaf's preimage, as an array of strings
+ * @param {Array<string>} customFields All other values in the leaf's preimage, as an array of strings
  * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
  * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
  */
 export async function onAddLeafProof(
   issuer,
-  intermediateValues,
+  customFields,
   oldSecret,
   newSecret,
   
@@ -208,16 +203,17 @@ export async function onAddLeafProof(
     await sleep(5000);
   }
 
+  console.log("tiappjnpijn")
 
-  const signedLeaf = await createLeaf(issuer, intermediateValues, oldSecret,);
-  const newLeaf = await createLeaf(issuer, ...intermediateValues,newSecret);
-
+  const signedLeaf = await createLeaf(issuer, customFields, oldSecret);
+  const newLeaf = await createLeaf(issuer, customFields, newSecret);
+  console.log("alkjn")
   // const provingKey = new Uint8Array(await resp.json());
   const args = [
     ethers.BigNumber.from(signedLeaf).toString(),
     ethers.BigNumber.from(newLeaf).toString(),
     ethers.BigNumber.from(issuer).toString(),
-    ...(intermediateValues.map(v => ethers.BigNumber.from(v || "0").toString())),
+    ...(customFields.map(cf => ethers.BigNumber.from(cf || "0").toString())),
     ethers.BigNumber.from(oldSecret).toString(),
     ethers.BigNumber.from(newSecret).toString(),
   ];
@@ -338,11 +334,14 @@ export async function antiSybil(
 
   const leaf = await createLeaf(
     issuer,
+    [
+      countryCode,
+      subdivision,
+      completedAt,
+      birthdate
+    ],
     secret,
-    countryCode,
-    subdivision,
-    completedAt,
-    birthdate
+    
   );
 
   const mp = await getMerkleProofParams(leaf);
