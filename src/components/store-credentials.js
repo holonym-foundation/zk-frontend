@@ -67,7 +67,6 @@ const Verified = (props) => {
   } = useHoloAuthSig();
 
   async function formatCredsAndCallCb(creds) {
-    console.log("formatCredsAndCallCb 0.0")
     const formattedCreds = {
       ...creds,
       subdivisionHex: "0x" + Buffer.from(creds.subdivision || "0").toString("hex"),
