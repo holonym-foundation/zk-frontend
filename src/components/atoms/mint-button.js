@@ -22,13 +22,13 @@ const MintButton = (props) => {
         console.log([creds.countryCode,
           creds.subdivisionHex,
           creds.completedAtInt,
-          creds.birthdateInt].map(x=>ethers.BigNumber.from(x).toString()), "asdihuf")
+          creds.birthdateInt].map(x=>ethers.BigNumber.from(x || "0").toString()), "asdihuf")
         const oalProof = await onAddLeafProof(
           creds.issuer,
           [creds.countryCode,
           creds.subdivisionHex,
           creds.completedAtInt,
-          creds.birthdateInt].map(x=>ethers.BigNumber.from(x).toString()),
+          creds.birthdateInt].map(x=>ethers.BigNumber.from(x || "0").toString()),
           oldSecret,
           newSecret
         );
