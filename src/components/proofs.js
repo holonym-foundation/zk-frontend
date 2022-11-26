@@ -204,6 +204,7 @@ const Proofs = () => {
         setCreds({
           ...c,
           subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
+          // these aren't hex, may want to refactor naming in this and code that depends on it:
           completedAtHex: getDateAsInt(c.completedAt),
           birthdateHex: getDateAsInt(c.birthdate),
         });

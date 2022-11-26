@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
 import { onAddLeafProof } from "../../utils/proofs";
-import { serverAddress } from "../../constants/misc";
 import { getLocalEncryptedUserCredentials } from '../../utils/secrets'
 
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
@@ -19,12 +18,7 @@ const MintButton = (props) => {
         const oldSecret = creds.secret;
         const newSecret = creds.newSecret;
         const oalProof = await onAddLeafProof(
-          serverAddress,
-          creds.countryCode,
-          creds.subdivisionHex,
-          creds.completedAtHex,
-          creds.birthdateHex,
-          oldSecret,
+          creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
           newSecret
         );
         console.log("oalProof", oalProof);
@@ -35,7 +29,7 @@ const MintButton = (props) => {
         try {
           res = await axios.post(`${RELAYER_URL}/addLeaf`, {
             addLeafArgs: {
-              issuer: serverAddress,
+              issuer: creds.issuer,
               v: v,
               r: r,
               s: s,

@@ -15,7 +15,6 @@ import {
 } from "../utils/secrets";
 import { 
   idServerUrl,
-  serverAddress,
   chainUsedForLit,
   zkIdVerifyEndpoint, 
   zkPhoneEndpoint
@@ -71,8 +70,8 @@ const Verified = (props) => {
     const formattedCreds = {
       ...creds,
       subdivisionHex: "0x" + Buffer.from(creds.subdivision || "0").toString("hex"),
-      completedAtHex: getDateAsInt(creds.completedAt),
-      birthdateHex: getDateAsInt(creds.birthdate || "0"),
+      completedAtInt: getDateAsInt(creds.completedAt),
+      birthdateInt: getDateAsInt(creds.birthdate || "1900-01-01"), //getDateAsInt("1900-01-01") is 0 because the earliest date it accepts is 1900-01-01
     }
     props.onCredsStored && props.onCredsStored(formattedCreds);
   }
@@ -110,7 +109,7 @@ const Verified = (props) => {
         const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
         sortedCreds_ = {...currentSortedCreds};
       }
-      sortedCreds_[serverAddress] = credsTemp;
+      sortedCreds_[credsTemp.issuer] = credsTemp;
       setSortedCreds(sortedCreds_);
 
     // Store creds
@@ -121,7 +120,7 @@ const Verified = (props) => {
       setError("Error: There was a problem in storing your credentials");
     }
     window.localStorage.removeItem('holoPlaintextVouchedCreds')
-    formatCredsAndCallCb(sortedCreds_[serverAddress]);
+    formatCredsAndCallCb(sortedCreds_[credsTemp.issuer]);
   }
   // async function loadCredentials2FA() {
   //   setError(undefined);
@@ -184,7 +183,7 @@ const Verified = (props) => {
           const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
           const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
           window.localStorage.removeItem('holoPlaintextVouchedCreds')
-          formatCredsAndCallCb(currentSortedCreds[serverAddress])
+          formatCredsAndCallCb(currentSortedCreds[props.issuer])
           return;
         }
         else {
