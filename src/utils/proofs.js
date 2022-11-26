@@ -1,9 +1,13 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { preprocEndpoint } from "../constants/misc";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
+const { buildPoseidon } = require("circomlibjs");
+
+let poseidon; 
+buildPoseidon().then(p=>{poseidon=p;});
 
 let zokProvider;
 let artifacts = {};
@@ -172,67 +176,31 @@ export function poseidonHashQuinary(input) {
 }
 
 /**
- * @param {string} issuer Hex string
- * @param {string} secret Hex string representing 16 bytes
- * @param {number} countryCode
- * @param {string} subdivision UTF-8
- * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} birthdate Hex string representing 3 bytes
- * @returns {string}
+ * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
+ * @param {Array<string>} intermediateValues All other values in the leaf's preimage, as an array of strings
+ * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
+ * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
  */
-export async function createLeaf(
-  issuer,
-  secret,
-  countryCode,
-  subdivision,
-  completedAt,
-  birthdate
-) {
-  if (!zokProvider) {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
-    console.log("waiting for zok provider");
-    await sleep(5000);
+export async function createLeaf(issuer, intermediateValues, secret) {
+  if(!poseidon){
+    poseidon = await buildPoseidon();
   }
-  console.log("aslknjvasknjd", issuer,
-  secret,
-  countryCode,
-  subdivision,
-  completedAt,
-  birthdate)
-  
-  const args = [
-    ethers.BigNumber.from(issuer).toString(),
-    ethers.BigNumber.from(secret).toString(),
-    ethers.BigNumber.from(countryCode || "0").toString(),
-    ethers.BigNumber.from(subdivision || "0").toString(),
-    ethers.BigNumber.from(completedAt).toString(),
-    ethers.BigNumber.from(birthdate || "0").toString(),
-  ];
-  await loadArtifacts("createLeaf");
-  await loadProvingKey("createLeaf");
-
-  const { witness, output } = zokProvider.computeWitness(artifacts.createLeaf, args);
-  return output.replaceAll('"', "");
+  const result = poseidon([issuer, ...intermediateValues, secret]);
+  return poseidon.F.toString(result);
 }
 
 /**
- * @param {string} issuer Hex string
- * @param {number} countryCode
- * @param {string} subdivision UTF-8
- * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} birthdate Hex string representing 3 bytes
- * @param {string} oldSecret Hex string representing 16 bytes
- * @param {string} newSecret Hex string representing 16 bytes
+ * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
+ * @param {Array<string>} intermediateValues All other values in the leaf's preimage, as an array of strings
+ * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
+ * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
  */
 export async function onAddLeafProof(
   issuer,
-  countryCode,
-  subdivision,
-  completedAt,
-  birthdate,
+  intermediateValues,
   oldSecret,
-  newSecret
+  newSecret,
+  
 ) {
   if (!zokProvider) {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -240,43 +208,16 @@ export async function onAddLeafProof(
     await sleep(5000);
   }
 
-  console.log(
-    "signed leaf creation parameters", 
-  issuer,
-  oldSecret,
-  countryCode,
-  subdivision,
-  completedAt,
-  birthdate
-  )
 
-  const signedLeaf = await createLeaf(
-    issuer,
-    oldSecret,
-    countryCode,
-    subdivision,
-    completedAt,
-    birthdate
-  );
-
-  const newLeaf = await createLeaf(
-    issuer,
-    newSecret,
-    countryCode,
-    subdivision,
-    completedAt,
-    birthdate
-  );
+  const signedLeaf = await createLeaf(issuer, intermediateValues, oldSecret,);
+  const newLeaf = await createLeaf(issuer, ...intermediateValues,newSecret);
 
   // const provingKey = new Uint8Array(await resp.json());
   const args = [
     ethers.BigNumber.from(signedLeaf).toString(),
     ethers.BigNumber.from(newLeaf).toString(),
     ethers.BigNumber.from(issuer).toString(),
-    ethers.BigNumber.from(countryCode || "0").toString(),
-    ethers.BigNumber.from(subdivision || "0").toString(),
-    ethers.BigNumber.from(completedAt).toString(),
-    ethers.BigNumber.from(birthdate || "0").toString(),
+    ...(intermediateValues.map(v => ethers.BigNumber.from(v || "0").toString())),
     ethers.BigNumber.from(oldSecret).toString(),
     ethers.BigNumber.from(newSecret).toString(),
   ];
@@ -285,30 +226,6 @@ export async function onAddLeafProof(
   await loadProvingKey("onAddLeaf");
 
   const { witness, output } = zokProvider.computeWitness(artifacts.onAddLeaf, args);
-
-  // //Delete all this------
-  // await loadVerifyingKey("onAddLeaf");
-
-  // const keypair1 = {pk : provingKeys.onAddLeaf, vk : verifyingKeys.onAddLeaf}
-  // const keypair2 = zokProvider.setup(artifacts.onAddLeaf.program);
-
-  // const proof1 = zokProvider.generateProof(
-  //   artifacts.onAddLeaf.program,
-  //   witness,
-  //   keypair1.pk
-  // );
-
-  // const proof2 = zokProvider.generateProof(
-  //   artifacts.onAddLeaf.program,
-  //   witness,
-  //   keypair2.pk
-  // );
-
-  // console.log("keypais", keypair1, keypair2)
-  // const verification1 = zokProvider.verify(keypair1.vk, proof1);
-  // const verification2 = zokProvider.verify(keypair2.vk, proof2);
-  // console.log({1: verification1, 2: verification2}, "verification")
-  // //-----------
 
   const proof = zokProvider.generateProof(
     artifacts.onAddLeaf.program,
