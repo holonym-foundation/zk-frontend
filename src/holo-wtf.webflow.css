@@ -937,6 +937,8 @@ p.no-margin.small {
   -webkit-transition-property: none;
   transition-property: none;
   text-decoration: none;
+  flex-shrink: 1;
+  /* height:100px; */
 }
 
 .x-card.blue:not(.disable):hover {
@@ -1881,6 +1883,10 @@ p.no-margin.small {
 
   .h3 {
     font-size: 32px;
+  }
+
+  .h5 {
+    font-size: 16px;
   }
 
   .h3.no-margin.small {
