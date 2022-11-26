@@ -171,16 +171,13 @@ export function poseidonHashQuinary(input) {
   return output.replaceAll('"', "");
 }
 
-/**
- * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
- * @param {Array<string>} customFields All other values in the leaf's preimage, as an array of strings
- * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
- * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
+/** Computes a poseidon hash of the input array
+ * @param {Array<string>} serializedCreds All other values in the leaf's preimage, as an array of strings
  */
-export async function createLeaf(issuer, customFields, secret) {
+export async function createLeaf(serializedCreds) {
   await loadArtifacts("createLeaf");
   await loadProvingKey("createLeaf");
-  const { witness, output } = zokProvider.computeWitness(artifacts.createLeaf, [issuer, secret, ...customFields]);
+  const { witness, output } = zokProvider.computeWitness(artifacts.createLeaf, serializedCreds);
   return output.replaceAll('"', "");
 }
 
@@ -190,31 +187,25 @@ export async function createLeaf(issuer, customFields, secret) {
  * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
  * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
  */
-export async function onAddLeafProof(
-  issuer,
-  customFields,
-  oldSecret,
-  newSecret,
-  
-) {
+export async function onAddLeafProof(serializedCreds, newSecret) {
   if (!zokProvider) {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
   }
 
-  console.log("tiappjnpijn")
-
-  const signedLeaf = await createLeaf(issuer, customFields, oldSecret);
-  const newLeaf = await createLeaf(issuer, customFields, newSecret);
-  console.log("alkjn")
-  // const provingKey = new Uint8Array(await resp.json());
+  const signedPreimage = serializedCreds;
+  // Replace the server-created secret with a secret only the user knows
+  const newPreimage = [serializedCreds[0], newSecret, ...serializedCreds.slice(2,6)];
+  const signedLeaf = await createLeaf(signedPreimage);
+  console.log("signed leaf", signedLeaf, signedPreimage);
+  const newLeaf = await createLeaf(newPreimage);
+  // When ordering the inputs to the circuit, i didn't think about how annoying this step will be if the orders are different! For now, much easier to keep it this way:
+  const reorderedSerializedCreds = [serializedCreds[0], serializedCreds[2], serializedCreds[3], serializedCreds[4], serializedCreds[5], serializedCreds[1]];
   const args = [
     ethers.BigNumber.from(signedLeaf).toString(),
     ethers.BigNumber.from(newLeaf).toString(),
-    ethers.BigNumber.from(issuer).toString(),
-    ...(customFields.map(cf => ethers.BigNumber.from(cf || "0").toString())),
-    ethers.BigNumber.from(oldSecret).toString(),
+    ...reorderedSerializedCreds,
     ethers.BigNumber.from(newSecret).toString(),
   ];
   // onAddLeafArtifacts = onAddLeafArtifacts ? onAddLeafArtifacts : zokProvider.compile(onAddLeafArtifacts);

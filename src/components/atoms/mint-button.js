@@ -13,23 +13,12 @@ const MintButton = (props) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
     const creds = props.creds;
-    console.log("the cred: ", creds)
     async function addLeaf() {
         setMinting(true);
         const oldSecret = creds.secret;
         const newSecret = creds.newSecret;
-
-        console.log([creds.countryCode,
-          creds.subdivisionHex,
-          creds.completedAtInt,
-          creds.birthdateInt].map(x=>ethers.BigNumber.from(x || "0").toString()), "asdihuf")
         const oalProof = await onAddLeafProof(
-          creds.issuer,
-          [creds.countryCode,
-          creds.subdivisionHex,
-          creds.completedAtInt,
-          creds.birthdateInt].map(x=>ethers.BigNumber.from(x || "0").toString()),
-          oldSecret,
+          creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
           newSecret
         );
         console.log("oalProof", oalProof);
