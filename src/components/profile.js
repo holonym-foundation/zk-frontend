@@ -105,46 +105,47 @@ export default function Profile(props) {
 
   useEffect(() => {
     async function getAndSetCreds() {
-      let encryptedCredsObj = getLocalEncryptedUserCredentials()
-      if (!encryptedCredsObj) {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
-        encryptedCredsObj = await resp.json();
-      }
-      if (encryptedCredsObj) {
-        const plaintextCreds = await decryptObjectWithLit(
-          encryptedCredsObj.encryptedCredentials, 
-          encryptedCredsObj.encryptedSymmetricKey, 
-          litAuthSig
-        )
-        const formattedCreds = formatCreds(plaintextCreds);
-        setCreds(formattedCreds);
+      try {
+        let encryptedCredsObj = getLocalEncryptedUserCredentials()
+        if (!encryptedCredsObj) {
+          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
+          encryptedCredsObj = await resp.json();
+        }
+        if (encryptedCredsObj) {
+          const plaintextCreds = await decryptObjectWithLit(
+            encryptedCredsObj.encryptedCredentials, 
+            encryptedCredsObj.encryptedSymmetricKey, 
+            litAuthSig
+          )
+          const formattedCreds = formatCreds(plaintextCreds);
+          setCreds(formattedCreds);
+        }
+      } catch (err) {
+        console.log(err)
       }
     }
     async function getAndSetProofMetadata() {
-      let encryptedProofMetadata = getLocalProofMetadata()
-      if (!encryptedProofMetadata) {
-        const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
-        encryptedProofMetadata = await resp.json();
-      }
-      if (encryptedProofMetadata) {
-        const decryptedProofMetadata = await decryptObjectWithLit(
-          encryptedProofMetadata.encryptedProofMetadata,
-          encryptedProofMetadata.encryptedSymmetricKey,
-          litAuthSig
-        )
-        setProofMetadata(
-          populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
-        )
+      try {
+        let encryptedProofMetadata = getLocalProofMetadata()
+        if (!encryptedProofMetadata) {
+          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
+          encryptedProofMetadata = await resp.json();
+        }
+        if (encryptedProofMetadata) {
+          const decryptedProofMetadata = await decryptObjectWithLit(
+            encryptedProofMetadata.encryptedProofMetadata,
+            encryptedProofMetadata.encryptedSymmetricKey,
+            litAuthSig
+          )
+          const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
+          setProofMetadata(populatedData)
+        }
+      } catch (err) {
+        console.log(err)
       }
     }
-    try {
-      console.log('entered useEffect for [litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs]')
-      console.log([litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs])
-      getAndSetCreds()
-      getAndSetProofMetadata()
-    } catch (err) {
-      console.log(err)
-    }
+    getAndSetCreds()
+    getAndSetProofMetadata()
   }, [litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs])
 
   return (
