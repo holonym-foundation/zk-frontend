@@ -1,14 +1,26 @@
+import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { useAccount, useNetwork } from 'wagmi'
 // import { InfoButton } from "./info-button";
 import RoundedWindow from "./RoundedWindow";
+import { chainIdUsedForLit } from '../constants/misc';
 
 const opts = [
     {name : "Phone Number", url : "/mint/phone", disabled : true},
     {name : "ID + Phone Number", url : "/mint/idgov", disabled : false},
     {name : "Accredited Investor Status", url : "/mint/idgov", disabled : true}
 ];
-const MintOptions = ()=>{
+const MintOptions = () => {
     const navigate = useNavigate();
+    const { data: account } = useAccount();
+    const { switchNetwork } = useNetwork()
+
+    useEffect(() => {
+        if (!account) return;
+        if (typeof switchNetwork != 'function') return; // this seems to address the unexpected "switchNetwork isn't a function" error
+        switchNetwork(chainIdUsedForLit)
+    }, [account, switchNetwork])
+
     return <RoundedWindow>
             <div className="x-wrapper small-center" style={{width:"100%"}}>
                 <h1>Verify yourself, with privacy</h1>
