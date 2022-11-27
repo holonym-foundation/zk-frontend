@@ -186,16 +186,52 @@ export default function Profile(props) {
           {creds?.['Country'] && creds?.['Subdivision'] && creds?.['Birthdate'] ? (
             <>
               <PrivateProfileField 
-                header="Country" 
-                fieldValue={creds?.['Country']} 
+                header="Name" 
+                fieldValue={creds?.['First Name'] + " " + creds?.['Middle Name'] + " " + creds?.['Last Name']}
+              />
+              {/* <PrivateProfileField 
+                header="First Name" 
+                fieldValue={creds?.['First Name']}
               />
               <PrivateProfileField 
-                header="Subdivision" 
-                fieldValue={creds?.['Subdivision']}
+                header="Middle Name" 
+                fieldValue={creds?.['Middle Name']}
               />
+              <PrivateProfileField 
+                header="Last Name" 
+                fieldValue={creds?.['Last Name']}
+              /> */}
               <PrivateProfileField 
                 header="Birthdate" 
                 fieldValue={creds?.['Birthdate']}
+              />
+              <PrivateProfileField 
+                header="Street Address" 
+                fieldValue={creds?.['Street Number'] + " " + creds?.['Street Name'] + " " + creds?.['Street Unit']}
+              />
+              {/* <PrivateProfileField 
+                header="Street Number" 
+                fieldValue={creds?.['Street Number']}
+              />
+              <PrivateProfileField 
+                header="Street Name" 
+                fieldValue={creds?.['Street Name']}
+              />
+              <PrivateProfileField 
+                header="Street Unit" 
+                fieldValue={creds?.['Street Unit']}
+              /> */}
+              <PrivateProfileField 
+                header="State" 
+                fieldValue={creds?.['Subdivision']}
+              />
+              <PrivateProfileField 
+                header="Zip Code" 
+                fieldValue={creds?.['Zip Code']}
+              />
+              <PrivateProfileField 
+                header="Country" 
+                fieldValue={creds?.['Country']} 
               />
             </>
           ) : (
