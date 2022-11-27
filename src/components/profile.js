@@ -202,7 +202,7 @@ export default function Profile(props) {
             <PrivateProfileField 
               header="Government ID" 
               fieldValue={undefined}
-              verifyButtonCallback={() => navigate('/mint')}
+              verifyButtonCallback={() => navigate('/mint/idgov')}
             />
           )}
           <PrivateProfileField 
