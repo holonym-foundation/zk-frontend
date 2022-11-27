@@ -250,14 +250,24 @@ export async function proofOfResidency(
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
   }
-
-  const leaf = await createLeaf(
+  console.log(sender,
     issuer,
-    secret,
+    salt,
+    footprint,
     countryCode,
     subdivision,
     completedAt,
-    birthdate
+    birthdate,
+    secret, "arrrrrr")
+  const leaf = await createLeaf(
+    [
+      issuer,
+      secret,
+      countryCode,
+      subdivision,
+      completedAt,
+      birthdate
+    ]
   );
 
   const mp = await getMerkleProofParams(leaf);
@@ -277,6 +287,7 @@ export async function proofOfResidency(
     mp.path,
     mp.indices,
   ];
+    
 
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
@@ -317,6 +328,7 @@ export async function antiSybil(
   birthdate,
   secret
 ) {
+  console.log("antiSybil called")
   if (!zokProvider) {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
@@ -324,15 +336,14 @@ export async function antiSybil(
   }
 
   const leaf = await createLeaf(
-    issuer,
     [
+      issuer,
+      secret,
       countryCode,
       subdivision,
       completedAt,
       birthdate
-    ],
-    secret,
-    
+    ]
   );
 
   const mp = await getMerkleProofParams(leaf);
@@ -352,6 +363,7 @@ export async function antiSybil(
     mp.path,
     mp.indices,
   ];
+  
 
   await loadArtifacts("antiSybil");
   await loadProvingKey("antiSybil");

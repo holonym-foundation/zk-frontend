@@ -121,16 +121,16 @@ const Proofs = () => {
       salt,
       ethers.BigNumber.from(creds.newSecret).toString(),
     ]);
-
+    console.log("creds", creds)
     const por = await proofOfResidency(
       account.address,
-      serverAddress,
+      serverAddress["idgov"],
       salt,
       footprint,
-      creds.countryCode,
+      creds.countryCode.toString(),
       creds.subdivisionHex,
-      creds.completedAtHex,
-      creds.birthdateHex,
+      creds.completedAtInt.toString(),
+      creds.birthdateInt.toString(),
       creds.newSecret
     );
     // Once setProof is called, the proof is submtited
@@ -152,13 +152,13 @@ const Proofs = () => {
     console.log("footprint", footprint);
     const as = await antiSybil(
       account.address,
-      serverAddress,
+      serverAddress["idgov"],
       actionId,
       footprint,
-      creds.countryCode,
+      creds.countryCode.toString(),
       creds.subdivisionHex,
-      creds.completedAtHex,
-      creds.birthdateHex,
+      creds.completedAtInt.toString(),
+      creds.birthdateInt.toString(),
       creds.newSecret
     );
     // Once setProof is called, the proof is submtited
@@ -200,13 +200,13 @@ const Proofs = () => {
       }
       const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
       if (sortedCreds) {
-        const c = sortedCreds[serverAddress];
+        const c = sortedCreds[serverAddress["idgov"]];
         setCreds({
           ...c,
           subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
           // these aren't hex, may want to refactor naming in this and code that depends on it:
-          completedAtHex: getDateAsInt(c.completedAt),
-          birthdateHex: getDateAsInt(c.birthdate),
+          completedAtInt: getDateAsInt(c.completedAt),
+          birthdateInt: getDateAsInt(c.birthdate),
         });
       } else {
         setError(

@@ -40,6 +40,9 @@ async function waitForUserRegister() {
   }
 }
 
+// Comment:
+// LitJsSdk.disconnectWeb3()
+
 // Display success message, and retrieve user credentials to store in browser
 const Verified = (props) => {
   // const p = useParams();
@@ -188,7 +191,6 @@ const Verified = (props) => {
         }
         else {
           const credsTemp = props.prefilledCreds || (await loadCredentialsVouched());
-          console.log("creds temp", credsTemp);
           window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)
