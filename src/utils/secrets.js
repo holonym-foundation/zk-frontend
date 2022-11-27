@@ -155,6 +155,10 @@ export async function storeProofMetadata(tx, proofType, actionId, authSig, sigDi
     }
     const resp = await fetch(`${idServerUrl}/proof-metadata`, {
       method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(reqBody)
     })
     const data = await resp.json();

@@ -1389,13 +1389,13 @@ p.no-margin.small {
   margin-top: 10px;
   font-family: 'Clover Regular', sans-serif;
   color: #ff9190;
-  font-size: 90px;
+  font-size: 75px;
   line-height: 0.8;
   text-align: left;
 }
 
 .dash-display-text.small {
-  font-size: 60px;
+  font-size: 45px;
   line-height: 1;
 }
 
@@ -1782,6 +1782,12 @@ p.no-margin.small {
   padding-bottom: 2px;
 }
 
+@media screen and (min-width: 991px) {
+  .x-card.blue-yellow {
+    min-height: 180px;
+  }
+}
+
 @media screen and (max-width: 991px) {
   .nav-wallet {
     margin-right: auto;
@@ -1793,11 +1799,11 @@ p.no-margin.small {
   }
 
   .dash-display-text {
-    font-size: 75px;
+    font-size: 60px;
   }
 
   .dash-display-text.small {
-    font-size: 45px;
+    font-size: 30px;
   }
   
   .x-wrapper.grid.benefits {
