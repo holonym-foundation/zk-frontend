@@ -170,6 +170,7 @@ export default function Profile(props) {
           <PublicProfileField 
             header="US Resident" 
             fieldValue={proofMetadata?.['us-residency']?.fieldValue} 
+            proofSubmissionAddr={proofMetadata?.['us-residency']?.address}
             proveButtonCallback={proofMetadata?.['us-residency']?.address ? null :
               () => navigate('/prove/us-residency')
             }
