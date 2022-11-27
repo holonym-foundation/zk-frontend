@@ -222,6 +222,10 @@ export default function Profile(props) {
                 fieldValue={creds?.['Street Unit']}
               /> */}
               <PrivateProfileField 
+                header="City" 
+                fieldValue={creds?.['City']}
+              />
+              <PrivateProfileField 
                 header="State" 
                 fieldValue={creds?.['Subdivision']}
               />
