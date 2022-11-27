@@ -114,24 +114,25 @@ const Proofs = () => {
   };
 
   async function loadPoR() {
-    const salt =
-      "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
-    // console.log('creds.newSecret...', creds.newSecret)
+    const creds_ = creds[serverAddress["idgov"]]
+    if (!creds_) setError("To do this proof, your Holo must have a government ID. Please visit the mint page to add a government ID.");
+    const salt = "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
     const footprint = await poseidonTwoInputs([
       salt,
-      ethers.BigNumber.from(creds.newSecret).toString(),
+      ethers.BigNumber.from(creds_.newSecret).toString(),
     ]);
-    console.log("creds", creds)
+
+    const [issuer_, oldSecret_, countryCode_, subdivision_, completedAt_, birthdate_] = creds_.serializedCreds;
     const por = await proofOfResidency(
       account.address,
-      serverAddress["idgov"],
+      issuer_,
       salt,
       footprint,
-      creds.countryCode.toString(),
-      creds.subdivisionHex,
-      creds.completedAtInt.toString(),
-      creds.birthdateInt.toString(),
-      creds.newSecret
+      countryCode_,
+      subdivision_,
+      completedAt_,
+      birthdate_,
+      creds_.newSecret
     );
     // Once setProof is called, the proof is submtited
     setProof(por);
@@ -145,21 +146,28 @@ const Proofs = () => {
         `Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`
       );
     console.log("actionId", actionId);
+
+    const creds_ = creds[serverAddress["idgov"]]
+    if (!creds_) setError("To do this proof, your Holo must have a government ID. Please visit the mint page to add a government ID.");
+    
+    
     const footprint = await poseidonTwoInputs([
       actionId,
-      ethers.BigNumber.from(creds.newSecret).toString(),
+      ethers.BigNumber.from(creds_.newSecret).toString(),
     ]);
-    console.log("footprint", footprint);
+
+    const [issuer_, oldSecret_, countryCode_, subdivision_, completedAt_, birthdate_] = creds_.serializedCreds;
+
     const as = await antiSybil(
       account.address,
-      serverAddress["idgov"],
+      issuer_,
       actionId,
       footprint,
-      creds.countryCode.toString(),
-      creds.subdivisionHex,
-      creds.completedAtInt.toString(),
-      creds.birthdateInt.toString(),
-      creds.newSecret
+      countryCode_, 
+      subdivision_, 
+      completedAt_, 
+      birthdate_,
+      creds_.newSecret
     );
     // Once setProof is called, the proof is submtited
     setProof(as);
@@ -200,14 +208,16 @@ const Proofs = () => {
       }
       const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
       if (sortedCreds) {
-        const c = sortedCreds[serverAddress["idgov"]];
-        setCreds({
-          ...c,
-          subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
-          // these aren't hex, may want to refactor naming in this and code that depends on it:
-          completedAtInt: getDateAsInt(c.completedAt),
-          birthdateInt: getDateAsInt(c.birthdate),
-        });
+        setCreds(sortedCreds)
+        // const c = sortedCreds[serverAddress["idgov"]];
+        // if (!c) setError("To do this proof, your Holo must have a government ID. Please visit the mint page to add a government ID.");
+        // setCreds({
+        //   ...c,
+        //   subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
+        //   // these aren't hex, may want to refactor naming in this and code that depends on it:
+        //   completedAtInt: getDateAsInt(c.completedAt),
+        //   birthdateInt: getDateAsInt(c.birthdate || "1900-01-01"), //"1900-01-1" has integer representation 0 in our system (same as unix timestamp but starting 1900 insteaf of 1970)
+        // });
       } else {
         setError(
           "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
