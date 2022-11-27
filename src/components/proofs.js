@@ -83,6 +83,7 @@ const Proofs = () => {
   const [creds, setCreds] = useState();
   const [success, setSuccess] = useState();
   const [error, setError] = useState();
+  const [customError, setCustomError] = useState();
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
@@ -115,7 +116,10 @@ const Proofs = () => {
 
   async function loadPoR() {
     const creds_ = creds[serverAddress["idgov"]]
-    if (!creds_) setError("To do this proof, your Holo must have a government ID. Please visit the mint page to add a government ID.");
+    if (!creds_) {
+      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/mint/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
+      return;
+    }
     const salt = "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
     const footprint = await poseidonTwoInputs([
       salt,
@@ -148,9 +152,11 @@ const Proofs = () => {
     console.log("actionId", actionId);
 
     const creds_ = creds[serverAddress["idgov"]]
-    if (!creds_) setError("To do this proof, your Holo must have a government ID. Please visit the mint page to add a government ID.");
-    
-    
+    if (!creds_) {
+      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/mint/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
+      return;
+    }    
+  
     const footprint = await poseidonTwoInputs([
       actionId,
       ethers.BigNumber.from(creds_.newSecret).toString(),
@@ -299,6 +305,9 @@ const Proofs = () => {
           </ErrorScreen>
   }
 
+  if (customError) return <ErrorScreen>
+  {customError}
+  </ErrorScreen>
   return (
     // <Suspense fallback={<LoadingElement />}>
     <RoundedWindow>
