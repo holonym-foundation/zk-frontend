@@ -81,8 +81,6 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
  */
 export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
   const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-  console.log(litAuthSig, authSig, "abc")
-
   const acConditions = lit.getAccessControlConditions(authSig.address)
   try {
     const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, chainUsedForLit, acConditions, litAuthSig)
@@ -155,6 +153,10 @@ export async function storeProofMetadata(tx, proofType, actionId, authSig, sigDi
     }
     const resp = await fetch(`${idServerUrl}/proof-metadata`, {
       method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(reqBody)
     })
     const data = await resp.json();

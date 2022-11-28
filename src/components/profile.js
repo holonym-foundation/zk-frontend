@@ -170,6 +170,7 @@ export default function Profile(props) {
           <PublicProfileField 
             header="US Resident" 
             fieldValue={proofMetadata?.['us-residency']?.fieldValue} 
+            proofSubmissionAddr={proofMetadata?.['us-residency']?.address}
             proveButtonCallback={proofMetadata?.['us-residency']?.address ? null :
               () => navigate('/prove/us-residency')
             }
@@ -185,29 +186,71 @@ export default function Profile(props) {
           {creds?.['Country'] && creds?.['Subdivision'] && creds?.['Birthdate'] ? (
             <>
               <PrivateProfileField 
-                header="Country" 
-                fieldValue={creds?.['Country']} 
+                header="Name" 
+                fieldValue={creds?.['First Name'] + " " + creds?.['Middle Name'] + " " + creds?.['Last Name']}
+              />
+              {/* <PrivateProfileField 
+                header="First Name" 
+                fieldValue={creds?.['First Name']}
               />
               <PrivateProfileField 
-                header="Subdivision" 
-                fieldValue={creds?.['Subdivision']}
+                header="Middle Name" 
+                fieldValue={creds?.['Middle Name']}
               />
+              <PrivateProfileField 
+                header="Last Name" 
+                fieldValue={creds?.['Last Name']}
+              /> */}
               <PrivateProfileField 
                 header="Birthdate" 
                 fieldValue={creds?.['Birthdate']}
+              />
+              <PrivateProfileField 
+                header="Street Address" 
+                fieldValue={creds?.['Street Number'] + " " + creds?.['Street Name'] + " " + creds?.['Street Unit']}
+              />
+              {/* <PrivateProfileField 
+                header="Street Number" 
+                fieldValue={creds?.['Street Number']}
+              />
+              <PrivateProfileField 
+                header="Street Name" 
+                fieldValue={creds?.['Street Name']}
+              />
+              <PrivateProfileField 
+                header="Street Unit" 
+                fieldValue={creds?.['Street Unit']}
+              /> */}
+              <PrivateProfileField 
+                header="City" 
+                fieldValue={creds?.['City']}
+              />
+              <PrivateProfileField 
+                header="State" 
+                fieldValue={creds?.['Subdivision']}
+              />
+              <PrivateProfileField 
+                header="Zip Code" 
+                fieldValue={creds?.['Zip Code']}
+              />
+              <PrivateProfileField 
+                header="Country" 
+                fieldValue={creds?.['Country']} 
               />
             </>
           ) : (
             <PrivateProfileField 
               header="Government ID" 
               fieldValue={undefined}
-              verifyButtonCallback={() => navigate('/mint')}
+              verifyButtonCallback={() => navigate('/mint/idgov')}
             />
           )}
           <PrivateProfileField 
             header="Phone Number" 
-            fieldValue=""
-            // verifyButtonCallback={() => navigate('/mint')}
+            fieldValue={creds?.['Phone Number']}
+            verifyButtonCallback={creds?.['Phone Number'] ?
+              null : () => navigate('/mint/phone') 
+            }
           />
           </div>
       </div>

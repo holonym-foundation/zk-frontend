@@ -54,7 +54,7 @@ const StepIDV = ({phoneNumber}) => {
 }
 
 // Step 2B happens when user is using phone by itself, needing 2FA
-const Step2FA = ({phoneNumber, callback}) => {
+const Step2FA = ({phoneNumber, callback, errCallback}) => {
   const [code, setCode] = useState("");
   const onChange = (e) => {
     const newCode = e.target.value
@@ -64,7 +64,8 @@ const Step2FA = ({phoneNumber, callback}) => {
         phoneNumber, 
         newCode, 
         parsePhoneNumber(phoneNumber).country, 
-        callback
+        callback,
+        errCallback
       );
     }
   }
@@ -103,7 +104,7 @@ const allowedCredTypes = ["idgov", "phone"];
 
 const Mint = (props) => {
   const { credType, jobID } = useParams();
-  const [es, setES] = useState(); // TODO: this should not be isRegistered but rather hasCredentials!!!
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
   const [readyToMint , setReadyToMint] = useState();
@@ -138,11 +139,12 @@ const Mint = (props) => {
     <div style={{position: "relative", paddingTop: "100px", width:"100%", height: "90%",/*width:"60vw", height: "70vh",*/ display: "flex", alignItems: "center", justifyContent: "start", flexDirection: "column"}}>
       {(current === "0-enter-number") && <StepPhoneInput onSubmit={setPhoneNumber} />}
       {(current === "1-start-idv") && <StepIDV phoneNumber={phoneNumber} />}
-      {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} callback={setCreds} />}
+      {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} errCallback={setError} callback={setCreds} />}
       {(current === "2-get-verification-result") && <StepStoreCreds prefilledCreds={creds} onCredsStored={c=>{setCreds(c); setReadyToMint(true)}} credType={credType} />}
       {(current === "3-mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
       {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <StepSuccess />}
+      {error && <h3 style={{color:"red"}}>{error}</h3>}
     </div>
   </RoundedWindow>
 }
