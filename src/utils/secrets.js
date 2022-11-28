@@ -81,8 +81,6 @@ export async function setLocalUserCredentials(sigDigest, encryptedCredentials, e
  */
 export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
   const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-  console.log(litAuthSig, authSig, "abc")
-
   const acConditions = lit.getAccessControlConditions(authSig.address)
   try {
     const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, chainUsedForLit, acConditions, litAuthSig)
