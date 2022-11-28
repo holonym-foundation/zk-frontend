@@ -247,8 +247,10 @@ export default function Profile(props) {
           )}
           <PrivateProfileField 
             header="Phone Number" 
-            fieldValue=""
-            verifyButtonCallback={() => navigate('/mint/phone')}
+            fieldValue={creds?.['Phone Number']}
+            verifyButtonCallback={creds?.['Phone Number'] ?
+              null : () => navigate('/mint/phone') 
+            }
           />
           </div>
       </div>
