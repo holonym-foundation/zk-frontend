@@ -6,8 +6,8 @@ const ProofMenu = ()=>{
     const navigate = useNavigate();
     return <RoundedWindow>
             <div className="x-wrapper small-center" style={{width:"100%"}}>
-                <h1>Prove some stuff, anon</h1>
-                <h2>Here are proofs you can make</h2> 
+                <h2>Prove some stuff, anon</h2>
+                <h3>Here are proofs you can make</h3> 
                     {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                     <InfoButton
                         type="proofMenu"

@@ -31,7 +31,7 @@ const StepStoreCreds = (props) => {
 const StepPhoneInput = (props) => {
   const [phone, setPhone] = useState();
   return <>
-    <h1 style={{"marginBottom":"25px"}}>Verify your real number</h1>
+    <h2 style={{marginBottom:"25px", marginTop:"-25px"}}>Verify your real number</h2>
     <p style={{"marginBottom":"25px"}}>Please enter your personal phone (burner won't work)</p>
     <PhoneInput
       placeholder="Enter phone number"
@@ -48,7 +48,7 @@ const StepIDV = ({phoneNumber}) => {
   useEffect(()=>loadVouched(phoneNumber), []);
   if(!phoneNumber){return <p>No phone number specified</p>}
   return <>
-    <h1 style={{"marginBottom":"25px"}}>Verify your ID</h1>
+    <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
     <div id="vouched-element" style={{ height: "10vh"}}></div>
   </>
 }
@@ -69,7 +69,7 @@ const Step2FA = ({phoneNumber, callback}) => {
     }
   }
   return <>
-    <h1 style={{"marginBottom":"25px"}}>Enter the code texted to you</h1>
+    <h3 style={{"marginBottom":"25px"}}>Enter the code texted to you</h3>
     <input value={code} onChange={onChange} className="text-field"></input>
   </>
 }
@@ -88,11 +88,11 @@ const StepMint = (props) => <MintButton {...props} />
 const StepSuccess = () => {
   const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint Each mint makes on-chain privacy stronger ⛓🎭`;
 return <>
-  <WithCheckMark size={3}><h1>Success</h1></WithCheckMark>
-    <h4>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h4>
+  <WithCheckMark size={3}><h2>Success</h2></WithCheckMark>
+    <h5>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h5>
     <br />
-    <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn the underlying tech</a></p>
-    <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(toTweet)}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>bring more privacy to web3: tweet your privacy pool contribution!</a></p>
+    <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Learn about the privacy tech</a></p>
+    <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(toTweet)}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Bring more privacy to the web: Share your privacy pool contribution</a></p>
     {/* <button className="x-button outline">Learn More</button> */}
     {/* <p>Or <a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn more</a></p> */}
 </>
