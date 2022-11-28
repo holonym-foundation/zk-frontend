@@ -78,6 +78,7 @@ initialize().then(async (zokratesProvider) => {
 /* Gets on-chain leaves and creates Merkle proof */
 export async function getMerkleProofParams(leaf) {
   const leaves = await (await fetch(`https://relayer.holonym.id/getLeaves`)).json();
+  console.log("getMerkleProofParams: done fetching leaves")
   if (leaves.indexOf(leaf) == -1) {
     console.error(
       `Could not find leaf ${leaf} from querying on-chain list of leaves ${leaves}`
@@ -250,15 +251,7 @@ export async function proofOfResidency(
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
   }
-  console.log(sender,
-    issuer,
-    salt,
-    footprint,
-    countryCode,
-    subdivision,
-    completedAt,
-    birthdate,
-    secret, "arrrrrr")
+  console.log("PROOF starting");
   const leaf = await createLeaf(
     [
       issuer,
@@ -270,7 +263,10 @@ export async function proofOfResidency(
     ]
   );
 
+  console.log("PROOF leaf created");
+
   const mp = await getMerkleProofParams(leaf);
+  console.log("PROOF Merkle params done");
 
   const args = [
     mp.root,
@@ -288,20 +284,25 @@ export async function proofOfResidency(
     mp.indices,
   ];
     
-
+  console.log("PROOF loading artifacts");
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
+  console.log("PROOF loaded artifacts");
 
+  console.log("PROOF computing witness");
   const { witness, output } = zokProvider.computeWitness(
     artifacts.proofOfResidency,
     args
   );
+  console.log("PROOF computed witness");
 
+  console.log("PROOF generating proof");
   const proof = zokProvider.generateProof(
     artifacts.proofOfResidency.program,
     witness,
     provingKeys.proofOfResidency
   );
+  console.log("PROOF generated proof");
   return proof;
 }
 
