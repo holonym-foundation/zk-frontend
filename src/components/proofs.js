@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
-import { useAccount, useSignMessage } from "wagmi";
+import { useAccount, useNetwork } from "wagmi";
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import { 
   getLocalEncryptedUserCredentials,
@@ -90,6 +90,7 @@ const Proofs = () => {
   const [es, setES] = useState();
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
+  const { switchNetworkAsync } = useNetwork()
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,
@@ -255,22 +256,35 @@ const Proofs = () => {
 
   async function submitTx(addr, abi) {
     console.log("submitting");
-    await window.ethereum.request({
-      method: "wallet_addEthereumChain",
-      params: [
-        {
-          chainId: "0x1a4",
-          rpcUrls: ["https://goerli.optimism.io/"],
-          chainName: "Optimism Goerli Testnet",
-          nativeCurrency: {
-            name: "ETH",
-            symbol: "ETH",
-            decimals: 18,
+
+    // Try switching chains using wagmi. Fallback on window.ethereum.
+    try {
+      console.log('switching networks using wagmi...')
+      if (typeof switchNetworkAsync == 'function') { // this seems to address the unexpected "switchNetworkAsync isn't a function" error
+        await switchNetworkAsync(420)
+      } else {
+        throw new Error('Failed to switch chains using wagmi')
+      }
+    } catch (err) {
+      console.log(err)
+      console.log('failed to switch networks using wagmi')
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: "0x1a4",
+            rpcUrls: ["https://goerli.optimism.io/"],
+            chainName: "Optimism Goerli Testnet",
+            nativeCurrency: {
+              name: "ETH",
+              symbol: "ETH",
+              decimals: 18,
+            },
+            blockExplorerUrls: ["https://goerli-optimism.etherscan.io"],
           },
-          blockExplorerUrls: ["https://goerli-optimism.etherscan.io"],
-        },
-      ],
-    });
+        ],
+      });
+    }
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
