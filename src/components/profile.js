@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import LitJsSdk from "@lit-protocol/sdk-browser";
+import { formatPhoneNumberIntl } from "react-phone-number-input";
 import PublicProfileField from './atoms/PublicProfileField';
 import PrivateProfileField from './atoms/PrivateProfileField';
 import { useLitAuthSig } from "../context/LitAuthSig";
@@ -187,9 +188,11 @@ export default function Profile(props) {
             <>
               <PrivateProfileField 
                 header="Name" 
-                fieldValue={creds?.['First Name'] ? 
-                  (creds?.['First Name'] + " " + creds?.['Middle Name'] + " " + creds?.['Last Name']) 
-                  : undefined
+                fieldValue={
+                  ((creds?.['First Name'] ? creds['First Name'] + " " : "") +
+                  (creds?.['Middle Name'] ? creds['Middle Name'] + " " : "") +
+                  (creds?.['Last Name'] ? creds['Last Name'] : ""))
+                  || undefined
                 }
               />
               {/* <PrivateProfileField 
@@ -210,9 +213,11 @@ export default function Profile(props) {
               />
               <PrivateProfileField 
                 header="Street Address" 
-                fieldValue={creds?.['Street Number'] ? 
-                  (creds?.['Street Number'] + " " + creds?.['Street Name'] + " " + creds?.['Street Unit']) 
-                  : undefined
+                fieldValue={
+                  ((creds?.['Street Number'] ? creds['Street Number'] + " " : "") +
+                  (creds?.['Street Name'] ? creds['Street Name'] + " " : "") +
+                  (creds?.['Street Unit'] ? creds['Street Unit'] : ""))
+                  || undefined
                 }
               />
               {/* <PrivateProfileField 
