@@ -100,8 +100,8 @@ export default function Profile(props) {
       }
       if (!getHoloAuthSigDigest()) {
         await signHoloAuthMessage();
-        setReadyToLoadCredsAndProofs(true);
       }
+      setReadyToLoadCredsAndProofs(true);
     })()
   }, [])
 
