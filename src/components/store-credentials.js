@@ -62,11 +62,10 @@ const Verified = (props) => {
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const {
     signHoloAuthMessage,
-    holoAuthSig,
-    holoAuthSigDigest,
     holoAuthSigIsError,
     holoAuthSigIsLoading,
     holoAuthSigIsSuccess,
+    getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
   async function formatCredsAndCallCb(creds) {
@@ -117,7 +116,7 @@ const Verified = (props) => {
 
     // Store creds
     const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
-    const storageSuccess = setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
+    const storageSuccess = setLocalUserCredentials(getHoloAuthSigDigest(), encryptedString, encryptedSymmetricKey)
     if (!storageSuccess) {
       console.log('Failed to store user credentials in localStorage')
       setError("Error: There was a problem in storing your credentials");
@@ -166,15 +165,16 @@ const Verified = (props) => {
         const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
         setLitAuthSig(authSig);
       }
-      if (!holoAuthSigDigest) signHoloAuthMessage();
-      setReadyToLoadCreds(true);
+      if (!getHoloAuthSigDigest()) {
+        signHoloAuthMessage();
+        setReadyToLoadCreds(true);
+      }
     })()
   }, [])
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
     if (!litAuthSig) return;
-    if (!holoAuthSigDigest) return;
     (async () => {
       try {
         if (props.jobID === 'retryMint') {
@@ -200,7 +200,7 @@ const Verified = (props) => {
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
-  }, [readyToLoadCreds, litAuthSig, holoAuthSigDigest])
+  }, [readyToLoadCreds, litAuthSig])
 
 
   if (successScreen) {

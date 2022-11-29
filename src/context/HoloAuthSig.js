@@ -10,50 +10,37 @@ import { holonymAuthMessage } from "../constants/misc";
 const HoloAuthSigContext = createContext(null)
 
 function HoloAuthSigProvider({ children }) {
-  const [holoAuthSig, setHoloAuthSig] = useState()
-  const [holoAuthSigDigest, setHoloAuthSigDigest] = useState()
   const {
-    data: signedMessage,
+    data: signedAuthMessage,
     isError: holoAuthSigIsError,
     isLoading: holoAuthSigIsLoading,
     isSuccess: holoAuthSigIsSuccess, 
-    signMessage: signHoloAuthMessage
+    signMessageAsync
   } = useSignMessage({ message: holonymAuthMessage })
 
-  useEffect(() => {
-    const holoAuthSigFromLocalStorage = window.localStorage.getItem('holoAuthSig')
-    if (!holoAuthSig) setHoloAuthSig(holoAuthSigFromLocalStorage)
-    const holoAuthSigDigestFromLocalStorage = window.localStorage.getItem('holoSigDigest')
-    if (!holoAuthSigDigest) setHoloAuthSigDigest(holoAuthSigDigestFromLocalStorage)
-  }, [])
+  function getHoloAuthSig() {
+    return window.localStorage.getItem('holoAuthSig');
+  }
 
-  useEffect(() => {
-    (async () => {
-      if (!signedMessage) return;
-      setHoloAuthSig(signedMessage);
-      const digest = await sha256(signedMessage);
-      setHoloAuthSigDigest(digest);
-    })()
-  }, [signedMessage])
+  function getHoloAuthSigDigest() {
+    return window.localStorage.getItem('holoSigDigest');
+  }
 
-  useEffect(() => {
-    if (!holoAuthSig) return;
-    window.localStorage.setItem('holoAuthSig', holoAuthSig)
-  }, [holoAuthSig])
-  
-  useEffect(() => {
-    if (!holoAuthSigDigest) return;
-    window.localStorage.setItem('holoSigDigest', holoAuthSigDigest)
-  }, [holoAuthSigDigest])
+  async function signHoloAuthMessage() {
+    const signedMessage = await signMessageAsync();
+    window.localStorage.setItem('holoAuthSig', signedMessage)
+    const digest = await sha256(signedMessage);
+    window.localStorage.setItem('holoSigDigest', digest)
+  }
 
   return (
     <HoloAuthSigContext.Provider value={{
       signHoloAuthMessage,
-      holoAuthSig,
-      holoAuthSigDigest,
       holoAuthSigIsError,
       holoAuthSigIsLoading,
       holoAuthSigIsSuccess,
+      getHoloAuthSig,
+      getHoloAuthSigDigest,
     }}>
       {children}
     </HoloAuthSigContext.Provider>

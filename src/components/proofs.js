@@ -92,11 +92,10 @@ const Proofs = () => {
   const { data: account } = useAccount();
   const {
     signHoloAuthMessage,
-    holoAuthSig,
-    holoAuthSigDigest,
     holoAuthSigIsError,
     holoAuthSigIsLoading,
     holoAuthSigIsSuccess,
+    getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
   const proofs = {
@@ -187,12 +186,12 @@ const Proofs = () => {
   // 5. Submit proof tx
 
   useEffect(() => {
-    if (account?.address && !holoAuthSigDigest) {
+    if (account?.address && !getHoloAuthSigDigest()) {
       console.log('Requesting signature for holoAuthSigDigest')
-      signHoloAuthMessage()
+      signHoloAuthMessage().then(() => setReadyToLoadCreds(true))
     }
-    if (account?.address && holoAuthSigDigest) setReadyToLoadCreds(true);
-  }, [account, holoAuthSigDigest]);
+    if (account?.address && getHoloAuthSigDigest()) setReadyToLoadCreds(true);
+  }, [account]);
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
@@ -204,7 +203,7 @@ const Proofs = () => {
         encryptedCredentials = localEncryptedCreds.encryptedCredentials
         encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
       } else {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
         const data = await resp.json();
         if (!data) {
           setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
@@ -284,7 +283,7 @@ const Proofs = () => {
       // TODO: At this point, display message to user that they are now signing to store their proof metadata
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
-      await storeProofMetadata(result, params.proofType, params.actionId, authSig, holoAuthSigDigest)
+      await storeProofMetadata(result, params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
       setSuccess(true);
     } catch (e) {
       setError(e.reason);

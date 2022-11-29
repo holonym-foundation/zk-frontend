@@ -86,11 +86,10 @@ export default function Profile(props) {
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const {
     signHoloAuthMessage,
-    holoAuthSig,
-    holoAuthSigDigest,
     holoAuthSigIsError,
     holoAuthSigIsLoading,
     holoAuthSigIsSuccess,
+    getHoloAuthSigDigest
   } = useHoloAuthSig();
 
   useEffect(() => {
@@ -99,8 +98,10 @@ export default function Profile(props) {
         const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
         setLitAuthSig(authSig);
       }
-      if (!holoAuthSigDigest) signHoloAuthMessage()
-      setReadyToLoadCredsAndProofs(true);
+      if (!getHoloAuthSigDigest()) {
+        await signHoloAuthMessage();
+        setReadyToLoadCredsAndProofs(true);
+      }
     })()
   }, [])
 
@@ -109,7 +110,7 @@ export default function Profile(props) {
       try {
         let encryptedCredsObj = getLocalEncryptedUserCredentials()
         if (!encryptedCredsObj) {
-          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
+          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
           encryptedCredsObj = await resp.json();
         }
         if (encryptedCredsObj) {
@@ -129,7 +130,7 @@ export default function Profile(props) {
       try {
         let encryptedProofMetadata = getLocalProofMetadata()
         if (!encryptedProofMetadata) {
-          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
+          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${getHoloAuthSigDigest()}`)
           encryptedProofMetadata = await resp.json();
         }
         if (encryptedProofMetadata) {
@@ -147,7 +148,7 @@ export default function Profile(props) {
     }
     getAndSetCreds()
     getAndSetProofMetadata()
-  }, [litAuthSig, holoAuthSigDigest, readyToLoadCredsAndProofs])
+  }, [readyToLoadCredsAndProofs])
 
   return (
     <>
