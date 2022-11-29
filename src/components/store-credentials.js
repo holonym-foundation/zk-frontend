@@ -166,9 +166,9 @@ const Verified = (props) => {
         setLitAuthSig(authSig);
       }
       if (!getHoloAuthSigDigest()) {
-        signHoloAuthMessage();
-        setReadyToLoadCreds(true);
+        await signHoloAuthMessage();
       }
+      setReadyToLoadCreds(true);
     })()
   }, [])
 
