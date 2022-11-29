@@ -187,7 +187,10 @@ export default function Profile(props) {
             <>
               <PrivateProfileField 
                 header="Name" 
-                fieldValue={creds?.['First Name'] + " " + creds?.['Middle Name'] + " " + creds?.['Last Name']}
+                fieldValue={creds?.['First Name'] ? 
+                  (creds?.['First Name'] + " " + creds?.['Middle Name'] + " " + creds?.['Last Name']) 
+                  : undefined
+                }
               />
               {/* <PrivateProfileField 
                 header="First Name" 
@@ -207,7 +210,10 @@ export default function Profile(props) {
               />
               <PrivateProfileField 
                 header="Street Address" 
-                fieldValue={creds?.['Street Number'] + " " + creds?.['Street Name'] + " " + creds?.['Street Unit']}
+                fieldValue={creds?.['Street Number'] ? 
+                  (creds?.['Street Number'] + " " + creds?.['Street Name'] + " " + creds?.['Street Unit']) 
+                  : undefined
+                }
               />
               {/* <PrivateProfileField 
                 header="Street Number" 
