@@ -75,19 +75,21 @@ initialize().then(async (zokratesProvider) => {
   return (new Date(date)).getTime() / 1000 + 2208988800 // 2208988800000 is 70 year offset; Unix timestamps below 1970 are negative and we want to allow from approximately 1900. 
 }
 
-/* Gets on-chain leaves and creates Merkle proof */
+/* Gets Merkle tree and creates Merkle proof */
 export async function getMerkleProofParams(leaf) {
-  const leaves = await (await fetch(`https://relayer.holonym.id/getLeaves`)).json();
-  console.log("getMerkleProofParams: done fetching leaves")
-  if (leaves.indexOf(leaf) == -1) {
+  const treeData = await (await fetch('https://relayer.holonym.id/getTree')).json();
+  const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
+  // NOTE: _nodes and _zeroes are private readonly variables in the `incremental-merkle-tree.d` file,
+  // but the JavaScript implementation doesn't seem to enforce these constraints.
+  tree._root = treeData._root;
+  tree._nodes = treeData._nodes;
+  tree._zeroes = treeData._zeroes;
+
+  const leaves = tree._nodes[0];
+  if (leaves.indexOf(leaf) === -1) {
     console.error(
       `Could not find leaf ${leaf} from querying on-chain list of leaves ${leaves}`
     );
-  }
-
-  const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
-  for (const item of leaves) {
-    tree.insert(item);
   }
 
   const index = tree.indexOf(leaf);
