@@ -30,16 +30,6 @@ import MintButton from "./atoms/mint-button";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-async function waitForUserRegister() {
-  let isRegistered = await getIsHoloRegistered();
-  while (!isRegistered) {
-    await sleep(100);
-    isRegistered = await getIsHoloRegistered();
-  }
-}
-
 // Comment:
 // LitJsSdk.disconnectWeb3()
 
@@ -115,8 +105,13 @@ const Verified = (props) => {
       setSortedCreds(sortedCreds_);
 
     // Store creds
+    const holoAuthSigDigest = getHoloAuthSigDigest();
+    if (!holoAuthSigDigest) {
+      setError("Error: Could not get user signature");
+      return;
+    }
     const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
-    const storageSuccess = setLocalUserCredentials(getHoloAuthSigDigest(), encryptedString, encryptedSymmetricKey)
+    const storageSuccess = setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     if (!storageSuccess) {
       console.log('Failed to store user credentials in localStorage')
       setError("Error: There was a problem in storing your credentials");
