@@ -24,16 +24,17 @@ import {
 } from "../constants/misc";
 // import ConnectWallet from "./atoms/ConnectWallet";
 import proofContractAddresses from "../constants/proofContractAddresses.json";
-import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
-import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
+// import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
+// import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 
 import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
-import { getExtensionState } from "../utils/extension-helpers";
+// import { getExtensionState } from "../utils/extension-helpers";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
+import Relayer from "../utils/relayer";
 
 const ConnectWalletScreen = () => (
   <>
@@ -102,15 +103,17 @@ const Proofs = () => {
   const proofs = {
     "us-residency": {
       name: "US Residency",
+      contractName: "IsUSResident",
       loadProof: loadPoR,
-      contractAddress: proofContractAddresses["optimistic-goerli"]["ResidencyStore"],
-      contractABI: residencyStoreABI,
+      // contractAddress: proofContractAddresses["optimistic-goerli"]["ResidencyStore"],
+      // contractABI: residencyStoreABI,
     },
     uniqueness: {
       name: "Uniqueness",
+      contractName: "SybilResistance",
       loadProof: loadAntiSybil,
-      contractAddress: proofContractAddresses["optimistic-goerli"]["AntiSybilStore"],
-      contractABI: antiSybilStoreABI,
+      // contractAddress: proofContractAddresses["optimistic-goerli"]["AntiSybilStore"],
+      // contractABI: antiSybilStoreABI,
     },
   };
 
@@ -243,9 +246,9 @@ const Proofs = () => {
 
   useEffect(() => {
     if (!(submissionConsent && creds && proof)) return;
-    submitTx(
-      proofs[params.proofType].contractAddress,
-      proofs[params.proofType].contractABI
+    submitProofThenStoreMetadata(
+      proof,
+      proofs[params.proofType].contractName
     );
   }, [proof, submissionConsent]);
 
@@ -254,46 +257,10 @@ const Proofs = () => {
     return;
   }
 
-  async function submitTx(addr, abi) {
-    console.log("submitting");
-
-    // Try switching chains using wagmi. Fallback on window.ethereum.
+  async function submitProofThenStoreMetadata(proof,contractName) {
     try {
-      console.log('switching networks using wagmi...')
-      if (typeof switchNetworkAsync == 'function') { // this seems to address the unexpected "switchNetworkAsync isn't a function" error
-        await switchNetworkAsync(420)
-      } else {
-        throw new Error('Failed to switch chains using wagmi')
-      }
-    } catch (err) {
-      console.log(err)
-      console.log('failed to switch networks using wagmi')
-      await window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [
-          {
-            chainId: "0x1a4",
-            rpcUrls: ["https://goerli.optimism.io/"],
-            chainName: "Optimism Goerli Testnet",
-            nativeCurrency: {
-              name: "ETH",
-              symbol: "ETH",
-              decimals: 18,
-            },
-            blockExplorerUrls: ["https://goerli-optimism.etherscan.io"],
-          },
-        ],
-      });
-    }
-
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const proofContract = new ethers.Contract(addr, abi, signer);
-    try {
-      const result = await proofContract.prove(
-        Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
-        proof.inputs
-      );
+      const result = await Relayer.prove(proof, contractName, "optimism-goerli");
+    
       // TODO: At this point, display message to user that they are now signing to store their proof metadata
       const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
       setLitAuthSig(authSig);
@@ -319,7 +286,7 @@ const Proofs = () => {
   }
 
   if (customError) return <ErrorScreen>
-  {customError}
+        {customError}
   </ErrorScreen>
   return (
     // <Suspense fallback={<LoadingElement />}>

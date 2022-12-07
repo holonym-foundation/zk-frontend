@@ -34,9 +34,23 @@ const Relayer = {
         }
         return res || error;
     },
-    prove : function() {
-        
-    }
+
+    
+    prove : async function(proof, contractName, network, onSuccess, onError) {
+        let res;
+        let error;
+        try {
+          res = await axios.post(`${relayerUrl}/writeProof/${contractName}/${network}`, { writeProofArgs: proof })
+          if (res.status == 200) {
+            onSuccess(res);
+          }
+        } catch (e) {
+            (onError && onError(e))
+            error = e;
+          
+        }
+        return res || error;
+        }
 }
 
 export default Relayer;
