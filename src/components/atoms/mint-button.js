@@ -3,8 +3,8 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
 import { onAddLeafProof } from "../../utils/proofs";
-import { getLocalEncryptedUserCredentials } from '../../utils/secrets'
-
+import { getLocalEncryptedUserCredentials } from "../../utils/secrets";
+import Relayer from "../../utils/relayer";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
 
@@ -15,7 +15,6 @@ const MintButton = (props) => {
     const creds = props.creds;
     async function addLeaf() {
         setMinting(true);
-        const oldSecret = creds.secret;
         const newSecret = creds.newSecret;
         const oalProof = await onAddLeafProof(
           creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
@@ -23,11 +22,9 @@ const MintButton = (props) => {
         );
         console.log("oalProof", oalProof);
         const { v, r, s } = ethers.utils.splitSignature(creds.signature);
-        const RELAYER_URL = "https://relayer.holonym.id";
-        let res;
-        const encryptedCredsObj = await getLocalEncryptedUserCredentials()
-        try {
-          res = await axios.post(`${RELAYER_URL}/addLeaf`, {
+        const encryptedCredsObj = await getLocalEncryptedUserCredentials();
+        const result = await Relayer.mint(
+          {
             addLeafArgs: {
               issuer: creds.issuer,
               v: v,
@@ -41,22 +38,10 @@ const MintButton = (props) => {
               encryptedCredentials: encryptedCredsObj.encryptedCredentials,
               encryptedSymmetricKey: encryptedCredsObj.encryptedSymmetricKey
             }
-          });
-          if (res.status == 200) {
-
-            // These are the same; latter is a better name but keeping former for backwards compatibility:
-            props.successCallback && props.successCallback();
-            props.onSuccess && props.onSuccess();
-            
-          }
-        } catch (e) {
-          console.log("There was an error:", e);
-          setError(
-            "There was an error in submitting your transaction...perhaps you have already minted a Holo?"
-          );
-        }
-        console.log("result");
-        console.log(res);
+          },
+          props.onSuccess,
+          () => setError("There was an error in submitting your transaction...perhaps you have already minted a Holo?")
+        );
       }
 
     return <div style={{ textAlign: "center" }}>
