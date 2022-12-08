@@ -10,6 +10,15 @@ let artifacts = {};
 let provingKeys = {};
 let verifyingKeys = {};
 
+const knowPreimageSrc = `import "hashes/poseidon/poseidon" as poseidon;
+def main(field leaf, field address, private field countryCode, private field nameCitySubdivisionZipStreetHash, private field completedAt, private field birthdate, private field secret) {
+    field[6] preimage = [address, secret, countryCode, nameCitySubdivisionZipStreetHash, completedAt, birthdate];
+    assert(poseidon(preimage) == leaf);
+    return;
+}`;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function loadArtifacts(circuitName) {
   if (circuitName in artifacts) {
     console.log(
@@ -381,149 +390,36 @@ export async function antiSybil(
   return proof;
 }
 
-/**
- * ---------------------------------------------------------------------------------
- * BEGIN test functions
- * ---------------------------------------------------------------------------------
- */
-
-// async function testCreateLeaf() {
-//   const issuer = "0x0000000000000000000000000000000000000000";
-//   const secret = "0x00000000000000000000000000000000";
-//   const countryCode = 2;
-//   const subdivision = "NY";
-//   const completedAt = "0x123456";
-//   const birthdate = "0x123456";
-//   const leaf = await createLeaf(
-//     issuer,
-//     secret,
-//     countryCode,
-//     subdivision,
-//     completedAt,
-//     birthdate
-//   );
-//   console.log("leaf...");
-//   console.log(leaf);
-// }
-
-// async function testPoseidonHashQuinary() {
-//   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-//   await sleep(3000);
-//   const input = ["0", "0", "0", "0", "0"];
-//   const hash = poseidonHashQuinary(input);
-//   console.log(hash);
-// }
-
-// async function testPoseidonHashQuinaryWithMerkleTree() {
-//   console.log("testPoseidonHashQuinaryWithMerkleTree");
-//   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-//   await sleep(5000);
-//   const leavesFromContract = []; // TODO: Get leaves from merkle tree smart contract
-//   const leaves = [...leavesFromContract, "1"];
-//   const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
-//   for (const leaf of leaves) {
-//     tree.insert(leaf);
-//   }
-//   const index = tree.indexOf("1");
-//   const merkleProof = tree.createProof(index);
-//   console.log("merkleProof...");
-//   console.log(merkleProof);
-//   const serializedMerkleProof = serializeProof(merkleProof, poseidonHashQuinary);
-//   console.log("serializedMerkleProof");
-//   console.log(serializedMerkleProof);
-// }
-
-// async function testOnAddLeafProof() {
-//   const issuer = "0x0000000000000000000000000000000000000000";
-//   const countryCode = 2;
-//   const subdivision = "NY";
-//   const completedAt = "0x123456";
-//   const birthdate = "0x123456";
-
-//   // get signedLeaf
-//   const oldSecret = "0x00000000000000000000000000000000";
-//   const signedLeaf = await createLeaf(
-//     issuer,
-//     oldSecret,
-//     countryCode,
-//     subdivision,
-//     completedAt,
-//     birthdate
-//   );
-//   // get newLeaf
-//   const newSecret = "0x10000000000000000000000000000000";
-//   const newLeaf = await createLeaf(
-//     issuer,
-//     newSecret,
-//     countryCode,
-//     subdivision,
-//     completedAt,
-//     birthdate
-//   );
-
-//   console.log("generating proof...");
-//   const proof = await onAddLeafProof(
-//     signedLeaf,
-//     newLeaf,
-//     issuer,
-//     countryCode,
-//     subdivision,
-//     completedAt,
-//     birthdate,
-//     oldSecret,
-//     newSecret
-//   );
-//   console.log("proof...");
-//   console.log(proof);
-//   return proof;
-// }
-
-// async function testproofOfResidency() {
-//   console.log("testproofOfResidency");
-//   const issuer = "0x0000000000000000000000000000000000000000";
-//   const countryCode = 2;
-//   const subdivision = "NY";
-//   const completedAt = "0x123456";
-//   const birthdate = "0x123456";
-
-//   const secret = "0x00000000000000000000000000000000";
-//   const leaf = await createLeaf(
-//     issuer,
-//     secret,
-//     countryCode,
-//     subdivision,
-//     completedAt,
-//     birthdate
-//   );
-
-//   const leavesFromContract = []; // TODO: Get leaves from merkle tree smart contract
-//   const leaves = [...leavesFromContract, leaf];
-//   const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
-//   for (const item of leaves) {
-//     tree.insert(item);
-//   }
-//   const index = tree.indexOf(leaf);
-//   const merkleProof = tree.createProof(index);
-//   const serializedMerkleProof = serializeProof(merkleProof, poseidonHashQuinary);
-
-//   console.log("generating proofOfResidency...");
-//   const proof = await proofOfResidency(
-//     issuer,
-//     countryCode,
-//     subdivision,
-//     completedAt,
-//     birthdate,
-//     secret,
-//     // root,
-//     serializedMerkleProof[0],
-//     // leaf,
-//     serializedMerkleProof[1],
-//     // path,
-//     serializedMerkleProof[2],
-//     // indices
-//     serializedMerkleProof[3]
-//   );
-//   console.log("proofOfResidency...");
-//   console.log(proof);
-//   return proof;
-// }
+export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
+  console.log("proveKnowledgeOfLeafPreimage called")
+  if (!zokProvider) {
+    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
+    await sleep(5000);
+  }
+  const leafArgs = [
+    serializedCreds[0], // issuer
+    newSecret,
+    serializedCreds[2], // countryCode
+    serializedCreds[3], // nameCitySubdivisionZipStreetHash
+    serializedCreds[4], // completedAt
+    serializedCreds[5], // birthdate
+  ].map((x) => ethers.BigNumber.from(x).toString())
+  const leaf = ethers.BigNumber.from(await createLeaf(leafArgs)).toString();
+  const knowPreimageArtifacts = zokProvider.compile(knowPreimageSrc);
+  const proofArgs = [
+    leaf,
+    serializedCreds[0], // issuer
+    serializedCreds[2], // countryCode
+    serializedCreds[3], // nameCitySubdivisionZipStreetHash
+    serializedCreds[4], // completedAt
+    serializedCreds[5], // birthdate
+    newSecret,
+  ]
+  const { witness, output } = zokProvider.computeWitness(knowPreimageArtifacts, proofArgs);
+  const provingKeyFile = await fetch(`${preprocEndpoint}/knowPreimage.proving.key`);
+  const provingKeyBuffer = await provingKeyFile.arrayBuffer();
+  const provingKey = new Uint8Array(provingKeyBuffer);
+  const proof = zokProvider.generateProof(knowPreimageArtifacts.program, witness, provingKey);
+  console.log('proveKnowledgeOfLeafPreimage proof', proof);
+  return proof;
+}

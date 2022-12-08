@@ -2,7 +2,8 @@ import axios from "axios";
 import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
-import { onAddLeafProof } from "../../utils/proofs";
+import { idServerUrl } from "../../constants/misc";
+import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getLocalEncryptedUserCredentials } from '../../utils/secrets'
 
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
@@ -13,6 +14,26 @@ const MintButton = (props) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
     const creds = props.creds;
+
+    async function sendCredsToServer() {
+      const proof = await proveKnowledgeOfLeafPreimage(
+        creds.serializedCreds.map(item => ethers.BigNumber.from(item || "0").toString()),
+        creds.newSecret
+      );
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = getLocalEncryptedUserCredentials()
+      const reqBody = {
+        sigDigest: sigDigest,
+        proof: proof,
+        encryptedCredentials: encryptedCredentials,
+        encryptedSymmetricKey: encryptedSymmetricKey,
+      }
+      await fetch(`${idServerUrl}/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody)
+      })
+    }
+
     async function addLeaf() {
         setMinting(true);
         const oldSecret = creds.secret;
@@ -25,7 +46,7 @@ const MintButton = (props) => {
         const { v, r, s } = ethers.utils.splitSignature(creds.signature);
         const RELAYER_URL = "https://relayer.holonym.id";
         let res;
-        const encryptedCredsObj = await getLocalEncryptedUserCredentials()
+        const encryptedCredsObj = getLocalEncryptedUserCredentials()
         try {
           res = await axios.post(`${RELAYER_URL}/addLeaf`, {
             addLeafArgs: {
@@ -43,7 +64,7 @@ const MintButton = (props) => {
             }
           });
           if (res.status == 200) {
-
+            await sendCredsToServer();
             // These are the same; latter is a better name but keeping former for backwards compatibility:
             props.successCallback && props.successCallback();
             props.onSuccess && props.onSuccess();

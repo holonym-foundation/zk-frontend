@@ -94,7 +94,7 @@ const Verified = (props) => {
       // Merge new creds with old creds
       // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
       // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
-      const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
+      const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
       let sortedCreds_ = {};
       if (encryptedCurrentCredsResp) {
         const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
@@ -111,11 +111,7 @@ const Verified = (props) => {
       return;
     }
     const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
-    const storageSuccess = setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
-    if (!storageSuccess) {
-      console.log('Failed to store user credentials in localStorage')
-      setError("Error: There was a problem in storing your credentials");
-    }
+    setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     window.localStorage.removeItem('holoPlaintextVouchedCreds')
     formatCredsAndCallCb(sortedCreds_[credsTemp.issuer]);
   }
@@ -174,7 +170,7 @@ const Verified = (props) => {
       try {
         if (props.jobID === 'retryMint') {
           console.log('retrying mint')
-          const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+          const localEncryptedCreds = getLocalEncryptedUserCredentials()
           if (!localEncryptedCreds) {
             throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
           }
