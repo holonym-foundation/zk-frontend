@@ -57,6 +57,7 @@ const MintButton = (props) => {
               zkp: oalProof.proof,
               zkpInputs: oalProof.inputs,
             },
+            // TODO: Remove credsToStore once relayer no longer forwards creds to server
             credsToStore: {
               sigDigest: encryptedCredsObj.sigDigest,
               encryptedCredentials: encryptedCredsObj.encryptedCredentials,
