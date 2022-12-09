@@ -4,6 +4,7 @@ import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { preprocEndpoint } from "../constants/misc";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
+import Relayer from "./relayer";
 
 let zokProvider;
 let artifacts = {};
@@ -77,7 +78,8 @@ initialize().then(async (zokratesProvider) => {
 
 /* Gets Merkle tree and creates Merkle proof */
 export async function getMerkleProofParams(leaf) {
-  const treeData = await (await fetch('https://relayer.holonym.id/getTree')).json();
+  const treeData = await Relayer.getTree("optimism-goerli");
+  console.log(treeData, "treeData")
   const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
   // NOTE: _nodes and _zeroes are private readonly variables in the `incremental-merkle-tree.d` file,
   // but the JavaScript implementation doesn't seem to enforce these constraints.

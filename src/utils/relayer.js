@@ -50,7 +50,23 @@ const Relayer = {
           
         }
         return res || error;
+    },
+
+
+    getTree : async function(network, onError) {
+        let res;
+        let error;
+        try {
+          const response = await axios.get(`${relayerUrl}/getTree/${network}`)
+          res = response.data;
+
+        } catch (e) {
+            (onError && onError(e))
+            error = e;
+          
         }
+        return res || error;
+    }
 }
 
 export default Relayer;
