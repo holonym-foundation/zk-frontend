@@ -32,7 +32,7 @@ const Relayer = {
             error = e;
           
         }
-        return res || error;
+        return res || {error:error};
     },
 
     
@@ -49,7 +49,7 @@ const Relayer = {
             error = e;
           
         }
-        return res || error;
+        return res || {error:error};
     },
 
 

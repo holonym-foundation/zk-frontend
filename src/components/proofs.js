@@ -258,18 +258,18 @@ const Proofs = () => {
   }
 
   async function submitProofThenStoreMetadata(proof,contractName) {
-    try {
       const result = await Relayer.prove(proof, contractName, "optimism-goerli");
-    
-      // TODO: At this point, display message to user that they are now signing to store their proof metadata
-      const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-      setLitAuthSig(authSig);
-      await storeProofMetadata(result, params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
-      setSuccess(true);
-    } catch (e) {
-      console.log(e)
-      setError(e.reason);
-    }
+      console.log("result", result)
+      if(!result.error) {
+        // TODO: At this point, display message to user that they are now signing to store their proof metadata
+        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
+        setLitAuthSig(authSig);
+        await storeProofMetadata(result, params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
+        setSuccess(true);
+      }
+      else {
+        setError(result.error.message)
+      }
   }
 
   if (success) {
