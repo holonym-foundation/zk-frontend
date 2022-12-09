@@ -268,7 +268,8 @@ const Proofs = () => {
         setSuccess(true);
       }
       else {
-        setError(result.error.message)
+        console.log("error", result)
+        setError(result?.error?.response?.data?.error?.reason || result?.error?.message)
       }
   }
 
