@@ -30,16 +30,6 @@ import MintButton from "./atoms/mint-button";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-async function waitForUserRegister() {
-  let isRegistered = await getIsHoloRegistered();
-  while (!isRegistered) {
-    await sleep(100);
-    isRegistered = await getIsHoloRegistered();
-  }
-}
-
 // Comment:
 // LitJsSdk.disconnectWeb3()
 
@@ -104,7 +94,7 @@ const Verified = (props) => {
       // Merge new creds with old creds
       // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
       // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
-      const encryptedCurrentCredsResp = await getLocalEncryptedUserCredentials()
+      const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
       let sortedCreds_ = {};
       if (encryptedCurrentCredsResp) {
         const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
@@ -115,12 +105,13 @@ const Verified = (props) => {
       setSortedCreds(sortedCreds_);
 
     // Store creds
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
-    const storageSuccess = setLocalUserCredentials(getHoloAuthSigDigest(), encryptedString, encryptedSymmetricKey)
-    if (!storageSuccess) {
-      console.log('Failed to store user credentials in localStorage')
-      setError("Error: There was a problem in storing your credentials");
+    const holoAuthSigDigest = getHoloAuthSigDigest();
+    if (!holoAuthSigDigest) {
+      setError("Error: Could not get user signature");
+      return;
     }
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
+    setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     window.localStorage.removeItem('holoPlaintextVouchedCreds')
     formatCredsAndCallCb(sortedCreds_[credsTemp.issuer]);
   }
@@ -179,7 +170,7 @@ const Verified = (props) => {
       try {
         if (props.jobID === 'retryMint') {
           console.log('retrying mint')
-          const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+          const localEncryptedCreds = getLocalEncryptedUserCredentials()
           if (!localEncryptedCreds) {
             throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
           }

@@ -202,7 +202,7 @@ const Proofs = () => {
     async function loadCreds() {
       console.log('Loading creds')
       let encryptedCredentials, encryptedSymmetricKey;
-      const localEncryptedCreds = await getLocalEncryptedUserCredentials()
+      const localEncryptedCreds = getLocalEncryptedUserCredentials()
       if (localEncryptedCreds) {
         encryptedCredentials = localEncryptedCreds.encryptedCredentials
         encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
@@ -267,6 +267,7 @@ const Proofs = () => {
       await storeProofMetadata(result, params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
       setSuccess(true);
     } catch (e) {
+      console.log(e)
       setError(e.reason);
     }
   }

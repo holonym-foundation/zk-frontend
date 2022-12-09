@@ -2,7 +2,8 @@ import axios from "axios";
 import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
-import { onAddLeafProof } from "../../utils/proofs";
+import { idServerUrl } from "../../constants/misc";
+import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getLocalEncryptedUserCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
@@ -13,6 +14,26 @@ const MintButton = (props) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
     const creds = props.creds;
+
+    async function sendCredsToServer() {
+      const proof = await proveKnowledgeOfLeafPreimage(
+        creds.serializedCreds.map(item => ethers.BigNumber.from(item || "0").toString()),
+        creds.newSecret
+      );
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = getLocalEncryptedUserCredentials()
+      const reqBody = {
+        sigDigest: sigDigest,
+        proof: proof,
+        encryptedCredentials: encryptedCredentials,
+        encryptedSymmetricKey: encryptedSymmetricKey,
+      }
+      await fetch(`${idServerUrl}/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody)
+      })
+    }
+
     async function addLeaf() {
         setMinting(true);
         const newSecret = creds.newSecret;
@@ -21,28 +42,16 @@ const MintButton = (props) => {
           newSecret
         );
         console.log("oalProof", oalProof);
-        const { v, r, s } = ethers.utils.splitSignature(creds.signature);
         const encryptedCredsObj = await getLocalEncryptedUserCredentials();
-        const result = await Relayer.mint(
-          {
-            addLeafArgs: {
+        const result = await Relayer.mint({
               issuer: creds.issuer,
-              v: v,
-              r: r,
-              s: s,
-              zkp: oalProof.proof,
-              zkpInputs: oalProof.inputs,
-            },
-            credsToStore: {
-              sigDigest: encryptedCredsObj.sigDigest,
-              encryptedCredentials: encryptedCredsObj.encryptedCredentials,
-              encryptedSymmetricKey: encryptedCredsObj.encryptedSymmetricKey
-            }
+              signature: ethers.utils.splitSignature(creds.signature),
+              proof: oalProof
           },
-          props.onSuccess,
-          () => setError("There was an error in submitting your transaction...perhaps you have already minted a Holo?")
+          props.onSuccess
         );
-      }
+        await sendCredsToServer();
+    }
 
     return <div style={{ textAlign: "center" }}>
       <button className="mint-button" onClick={addLeaf}>

@@ -61,16 +61,10 @@ export async function sha256(input) {
  * @param {string} encryptedSymmetricKey 
  * @returns {Promise<boolean>} True if successful, false if error occurs
  */
-export async function setLocalUserCredentials(sigDigest, encryptedCredentials, encryptedSymmetricKey) {
-  try {
-    window.localStorage.setItem('holoSigDigest', sigDigest)
-    window.localStorage.setItem('holoEncryptedCredentials', encryptedCredentials)
-    window.localStorage.setItem('holoEncryptedCredentialsSymmetricKey', encryptedSymmetricKey)
-    return true;
-  } catch (err) {
-    console.error(err);
-    return false;
-  }
+export function setLocalUserCredentials(sigDigest, encryptedCredentials, encryptedSymmetricKey) {
+  window.localStorage.setItem('holoSigDigest', sigDigest)
+  window.localStorage.setItem('holoEncryptedCredentials', encryptedCredentials)
+  window.localStorage.setItem('holoEncryptedCredentialsSymmetricKey', encryptedSymmetricKey)
 }
 
 /**
