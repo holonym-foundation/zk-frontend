@@ -41,13 +41,18 @@ const MintButton = (props) => {
           creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
           newSecret
         );
-        console.log("oalProof", oalProof);
-        const encryptedCredsObj = await getLocalEncryptedUserCredentials();
-        const result = await Relayer.mint({
-              issuer: creds.issuer,
-              signature: ethers.utils.splitSignature(creds.signature),
-              proof: oalProof
-          },
+        // let abc = [...creds.serializedCreds]
+        // abc[2] = newSecret;
+        // console.log("creds2", creds.serializedCreds[2])
+        // console.log("serialzed creds with secret: ", JSON.stringify(abc.map(x=>ethers.BigNumber.from(x).toString())));
+        // console.log("oalProof", JSON.stringify(oalProof));
+        const mintingArgs = {
+          issuer: creds.issuer,
+          signature: ethers.utils.splitSignature(creds.signature),
+          proof: oalProof
+      }
+      // console.log("minting args", JSON.stringify(mintingArgs))
+        const result = await Relayer.mint(mintingArgs,
           props.onSuccess
         );
         await sendCredsToServer();
