@@ -4,7 +4,7 @@ console.log("NODE_ENV", process.env.NODE_ENV)
 export const relayerUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:6969"
-    : "https://relayer.hololym.id";
+    : "https://relayer.holonym.id";
 
 export const idServerUrl =
   process.env.NODE_ENV === "development"
