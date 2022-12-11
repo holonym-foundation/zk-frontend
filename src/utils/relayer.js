@@ -1,6 +1,6 @@
 import axios from "axios";
 import { relayerUrl } from "../constants/misc";
-
+console.log("relayer url is ", relayerUrl)
 const Relayer = {
     /* mint() argument 'args' is an object with format 
      {
