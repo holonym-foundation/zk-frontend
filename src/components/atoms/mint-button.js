@@ -27,11 +27,16 @@ const MintButton = (props) => {
         encryptedCredentials: encryptedCredentials,
         encryptedSymmetricKey: encryptedSymmetricKey,
       }
-      await fetch(`${idServerUrl}/credentials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqBody)
-      })
+      try {
+        await fetch(`${idServerUrl}/credentials`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reqBody)
+        })
+      } catch (err) {
+        console.error(err)
+        setError('Error: Could not send credentials to server.')
+      }
     }
 
     async function addLeaf() {
