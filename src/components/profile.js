@@ -17,15 +17,6 @@ import {
 } from "../constants/misc";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 
-// birthdate
-// completedAt
-// countryCode
-// issuer
-// newSecret
-// secret
-// signature
-// subdivision
-
 const credsFieldsToIgnore = [
   'completedAt',
   'issuer',
@@ -39,7 +30,11 @@ function formatCreds(creds) {
   // For example, we will never use BOTH Vouched and Persona to retrieve "countryCode"
   const flattenedCreds = {}
   for (const issuer of Object.keys(creds)) {
-    Object.assign(flattenedCreds, { ...flattenedCreds, ...creds[issuer] })
+    const credsToFlatten = creds[issuer].rawCreds ?? creds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12
+    Object.assign(flattenedCreds, { 
+      ...flattenedCreds,
+      ...credsToFlatten,
+    })
   }
   const filteredCreds = Object.fromEntries(
     Object.entries(flattenedCreds).filter(([fieldName, value]) => {

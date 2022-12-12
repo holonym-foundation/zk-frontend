@@ -61,9 +61,9 @@ const Verified = (props) => {
   async function formatCredsAndCallCb(creds) {
     const formattedCreds = {
       ...creds,
-      subdivisionHex: "0x" + Buffer.from(creds.subdivision || "0").toString("hex"),
-      completedAtInt: getDateAsInt(creds.completedAt),
-      birthdateInt: getDateAsInt(creds.birthdate || "1900-01-01"), //getDateAsInt("1900-01-01") is 0 because the earliest date it accepts is 1900-01-01
+      subdivisionHex: "0x" + Buffer.from(creds.rawCreds.subdivision || "0").toString("hex"),
+      completedAtInt: getDateAsInt(creds.rawCreds.completedAt),
+      birthdateInt: getDateAsInt(creds.rawCreds.birthdate || "1900-01-01"), //getDateAsInt("1900-01-01") is 0 because the earliest date it accepts is 1900-01-01
     }
     props.onCredsStored && props.onCredsStored(formattedCreds);
   }
@@ -75,14 +75,13 @@ const Verified = (props) => {
       const resp = await fetch(
         `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
       );
-      // Shape of data == { user: completeUser }
       const data = await resp.json();
       if (!data || data.error) {
         console.error(`Could not retrieve credentials. Details: ${data.error}`);
         return;
       } else {
         setLoading(false);
-        return data.user;
+        return data;
       }
     } catch (err) {
       console.error(`Could not retrieve credentials. Details: ${err}`);
@@ -181,13 +180,13 @@ const Verified = (props) => {
           return;
         }
         else {
-          const credsTemp = props.prefilledCreds || (await loadCredentialsVouched());
+          const credsTemp = props.prefilledCreds ?? (await loadCredentialsVouched());
           window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)
         }
       } catch (err) {
-        console.log(err);
+        console.error(err);
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
