@@ -3,13 +3,20 @@ import { useAccount } from "wagmi";
 import HolonymLogo from '../../img/Holonym-Logo-W.png';
 import UserImage from '../../img/User.svg';
 import HoloBurgerIcon from '../../img/Holo-Burger-Icon.svg';
-import { truncateAddress } from "../../utils/ui-helpers";
+import { truncateAddress, udReverseResolution } from "../../utils/ui-helpers";
 import WalletModal from "./WalletModal";
 import ConnectWallet from "./ConnectWallet";
 
 export default function Navbar(props) {
   const { data: account } = useAccount();
+  const [udDomain, setUdDomain] = useState();
   const [walletModalShowing, setWalletModalShowing] = useState(false);
+
+  useEffect(() => {
+    if (account?.address) {
+      udReverseResolution(account.address).then((domain) => setUdDomain(domain));
+    }
+  }, [account])
 
   return (
     <>
@@ -56,7 +63,7 @@ export default function Navbar(props) {
               <img src={UserImage} loading="lazy" alt="" className="nav-wallet-img" />
               {account?.address && account?.connector ? (
                 <div className="nav-wallet-text">
-                  {truncateAddress(account?.address)}
+                  {udDomain ?? truncateAddress(account?.address)}
                 </div>
                 ) : (
                 <div className="nav-wallet-text nav-link w-nav-link" onClick={() => setWalletModalShowing(true)}>
