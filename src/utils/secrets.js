@@ -112,7 +112,7 @@ export async function storeProofMetadata(tx, proofType, actionId, authSig, sigDi
       address: tx.from, 
       chainId: tx.chainId, 
       blockNumber: tx.blockNumber,
-      txHash: tx.hash,
+      txHash: tx.transactionHash,
     }
     if (proofType === 'uniqueness') {
       thisProofMetadata.actionId = actionId || defaultActionId;
