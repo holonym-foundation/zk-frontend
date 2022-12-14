@@ -218,15 +218,6 @@ const Proofs = () => {
       const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
       if (sortedCreds) {
         setCreds(sortedCreds)
-        // const c = sortedCreds[serverAddress["idgov"]];
-        // if (!c) setError("To do this proof, your Holo must have a government ID. Please visit the mint page to add a government ID.");
-        // setCreds({
-        //   ...c,
-        //   subdivisionHex: "0x" + Buffer.from(c.subdivision).toString("hex"),
-        //   // these aren't hex, may want to refactor naming in this and code that depends on it:
-        //   completedAtInt: getDateAsInt(c.completedAt),
-        //   birthdateInt: getDateAsInt(c.birthdate || "1900-01-01"), //"1900-01-1" has integer representation 0 in our system (same as unix timestamp but starting 1900 insteaf of 1970)
-        // });
       } else {
         setError(
           "Could not retrieve credentials for proof. Please make sure you have minted your Holo."

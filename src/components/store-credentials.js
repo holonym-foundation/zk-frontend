@@ -58,16 +58,6 @@ const Verified = (props) => {
     getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
-  async function formatCredsAndCallCb(creds) {
-    const formattedCreds = {
-      ...creds,
-      subdivisionHex: "0x" + Buffer.from(creds.rawCreds.subdivision || "0").toString("hex"),
-      completedAtInt: getDateAsInt(creds.rawCreds.completedAt),
-      birthdateInt: getDateAsInt(creds.rawCreds.birthdate || "1900-01-01"), //getDateAsInt("1900-01-01") is 0 because the earliest date it accepts is 1900-01-01
-    }
-    props.onCredsStored && props.onCredsStored(formattedCreds);
-  }
-
   async function loadCredentialsVouched() {
     setError(undefined);
     setLoading(true);
@@ -112,7 +102,7 @@ const Verified = (props) => {
     const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
     setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     window.localStorage.removeItem('holoPlaintextVouchedCreds')
-    formatCredsAndCallCb(sortedCreds_[credsTemp.issuer]);
+    if (props.onCredsStored) props.onCredsStored(sortedCreds_[credsTemp.issuer])
   }
   // async function loadCredentials2FA() {
   //   setError(undefined);
@@ -176,7 +166,7 @@ const Verified = (props) => {
           const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
           const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
           window.localStorage.removeItem('holoPlaintextVouchedCreds')
-          formatCredsAndCallCb(currentSortedCreds[props.issuer])
+          if (props.onCredsStored) props.onCredsStored(currentSortedCreds[props.issuer])
           return;
         }
         else {
