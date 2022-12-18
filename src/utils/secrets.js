@@ -13,7 +13,6 @@ import lit from './lit';
  * @property {number} chainId 
  * @property {number} blockNumber 
  * @property {string} txHash 
- * @property {string|Array<string>} credentials
  */
 
 /**

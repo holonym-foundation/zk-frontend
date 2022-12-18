@@ -20,8 +20,6 @@ import Navbar from "./components/atoms/Navbar";
 import Mint from "./components/mint.js";
 import Profile from './components/profile';
 import LoadingElement from "./components/loading-element";
-// import { useConnect, useAccount, useNetwork } from "wagmi";
-// import { desiredChain } from "./constants/desiredChain";
 // import {
 //   ChainSwitcher,
 //   ChainSwitcherModal,

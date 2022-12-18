@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useConnect, useAccount, useNetwork } from "wagmi";
+import React from "react";
+import { useConnect } from "wagmi";
 import { Modal } from "./Modal.js";
 import metamaskLogo from "../../img/metamask.svg";
 import coinbaseLogo from "../../img/coinbaseWallet.svg";
