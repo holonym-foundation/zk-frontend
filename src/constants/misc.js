@@ -1,6 +1,8 @@
-export const preprocEndpoint = "https://preproc-zkp.s3.us-east-2.amazonaws.com";
+export const preprocEndpoint = 
+  process.env.PREPROC_CACHED_LOCALLY === "true" 
+  ? "http://localhost:8000"
+  : "https://preproc-zkp.s3.us-east-2.amazonaws.com";
 
-console.log("NODE_ENV", process.env.NODE_ENV)
 export const relayerUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:6969"
