@@ -21,9 +21,9 @@ import {
   holonymAuthMessage, 
   defaultActionId,
   chainUsedForLit,
+  defaultChainToProveOn
 } from "../constants/misc";
 // import ConnectWallet from "./atoms/ConnectWallet";
-import proofContractAddresses from "../constants/proofContractAddresses.json";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 
@@ -105,15 +105,11 @@ const Proofs = () => {
       name: "US Residency",
       contractName: "IsUSResident",
       loadProof: loadPoR,
-      // contractAddress: proofContractAddresses["optimistic-goerli"]["ResidencyStore"],
-      // contractABI: residencyStoreABI,
     },
     uniqueness: {
       name: "Uniqueness",
       contractName: "SybilResistance",
       loadProof: loadAntiSybil,
-      // contractAddress: proofContractAddresses["optimistic-goerli"]["AntiSybilStore"],
-      // contractABI: antiSybilStoreABI,
     },
   };
 
@@ -249,7 +245,7 @@ const Proofs = () => {
   }
 
   async function submitProofThenStoreMetadata(proof,contractName) {
-      const result = await Relayer.prove(proof, contractName, "optimism-goerli");
+      const result = await Relayer.prove(proof, contractName, defaultChainToProveOn);
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata

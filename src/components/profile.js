@@ -57,6 +57,7 @@ function formatCreds(creds) {
 }
 
 function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
+  // TODO: Once we submit proofs to multiple chains, we should sort by chain too
   const proofMetadataObj = {}
   for (const metadataItem of proofMetadata) {
     if (metadataItem.proofType === 'uniqueness') {

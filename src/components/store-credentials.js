@@ -42,12 +42,7 @@ const Verified = (props) => {
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
-  const [credsAreStored, setCredsAreStored] = useState(false);
-  const [registered, setRegistered] = useState(false);
   const [successScreen, setSuccessScreen] = useState(false);
-  const [minting, setMinting] = useState(false);
-  // TODO: Check whether user is logged in too
-  const [creds, setCreds] = useState();
 
   const { litAuthSig, setLitAuthSig } = useLitAuthSig();
   const {
@@ -104,29 +99,6 @@ const Verified = (props) => {
     window.localStorage.removeItem('holoPlaintextVouchedCreds')
     if (props.onCredsStored) props.onCredsStored(sortedCreds_[credsTemp.issuer])
   }
-  // async function loadCredentials2FA() {
-  //   setError(undefined);
-  //   setLoading(true);
-  //   try {
-  //     const resp = await fetch(
-  //       `${zkPhoneVerifyEndpoint}/getCredentials/${jobID}`
-  //     );
-  //     // Shape of data == { user: completeUser }
-  //     const data = await resp.json();
-  //     if (!data || data.error) {
-  //       console.error(`Could not retrieve credentials. Details: ${data.error}`);
-  //       return;
-  //     } else {
-  //       setLoading(false);
-  //       const credsTemp = data.user;
-  //       setCreds(credsTemp);
-  //       return credsTemp;
-  //     }
-  //   } catch (err) {
-  //     console.error(`Could not retrieve credentials. Details: ${err}`);
-  //   }
-  // }
-
   
   // Steps:
   // Branch a: User is retrying mint
@@ -207,22 +179,6 @@ const Verified = (props) => {
 
       </div>
       <p>Please sign the new messages in your wallet</p>
-      {/* // : (
-      //   <div>
-      //     <div style={{ maxWidth: "600px", fontSize: "16px" }}>
-      //         <ol>
-      //           <li>
-      //             <p>Sign the messages in the wallet popups. This allows you to encrypt and store your credentials</p>
-      //           </li>
-      //           {/* <li>
-      //             <p>Mint your Holo:</p>
-      //           </li>*-/}
-      //         </ol>
-      //       {/* {creds && credsAreStored && <MintButton creds={creds} successCallback={()=>setSuccessScreen(true)} />} *-/}
-      //     </div>
-      //   </div>
-      // ) */}
-
       <p>{error}</p>
       {error && (
         <p>
