@@ -34,7 +34,7 @@ import MintButton from "./atoms/mint-button";
 // LitJsSdk.disconnectWeb3()
 
 // Display success message, and retrieve user credentials to store in browser
-const Verified = (props) => {
+const StoreCredentials = (props) => {
   // const p = useParams();
   // const jobID = p.jobID || props.jobID;
   const { jobID } = useParams();
@@ -53,12 +53,12 @@ const Verified = (props) => {
     getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
-  async function loadCredentialsVouched() {
+  async function loadCredentialsVeriff() {
     setError(undefined);
     setLoading(true);
     try {
       const resp = await fetch(
-        `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
+        `${idServerUrl}/veriff/credentials?sessionId=${jobID}`
       );
       const data = await resp.json();
       if (!data || data.error) {
@@ -142,7 +142,7 @@ const Verified = (props) => {
           return;
         }
         else {
-          const credsTemp = props.prefilledCreds ?? (await loadCredentialsVouched());
+          const credsTemp = props.prefilledCreds ?? (await loadCredentialsVeriff());
           window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)
@@ -191,4 +191,4 @@ const Verified = (props) => {
   );
 };
 
-export default Verified;
+export default StoreCredentials;

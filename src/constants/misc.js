@@ -30,6 +30,9 @@ export const chainIdUsedForLit = 1;
 
 export const defaultChainToProveOn = process.env.NODE_ENV === 'development' ? 'optimism-goerli' : 'optimism';
 
+// For the Veriff test integration called "redirect"
+export const VERIFF_PUBLIC_API_KEY = "374cd822-c529-4c50-a4ea-e142119a36c8";
+
 export const stateAbbreviations = {
   ALABAMA: "AL",
   ALASKA: "AK",

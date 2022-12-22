@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import loadVouched from "../load-vouched";
 import { useAccount } from "wagmi";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
+import { useQuery } from '@tanstack/react-query'
 import StoreCredentials from "./store-credentials";
 import MintButton from "./atoms/mint-button";
 import Progress from "./atoms/progress-bar";
@@ -11,6 +13,7 @@ import RoundedWindow from "./RoundedWindow";
 import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
+import { createVeriffSession } from "../utils/veriff";
 
 // import { Success } from "./components/success";
 
@@ -45,11 +48,31 @@ const StepPhoneInput = (props) => {
 
 // Step 2A happens when user is using phone with crosscheck for government ID
 const StepIDV = ({phoneNumber}) => {
-  useEffect(()=>loadVouched(phoneNumber), []);
+  const navigate = useNavigate();
+  const veriffSessionQuery = useQuery({ 
+    queryKey: ['veriffSession'],
+    queryFn: createVeriffSession 
+  });
+
+  useEffect(() => {
+    if (!phoneNumber || !veriffSessionQuery.data?.verification) return;
+    
+    const verification = veriffSessionQuery.data.verification;
+    const handleVeriffEvent = (msg) => {
+      if (msg === MESSAGES.FINISHED) {
+        navigate(`/mint/idgov/${verification.id}`)
+      }
+      // TODO: Handle MESSAGES.RELOAD_REQUEST
+    }
+    createVeriffFrame({
+      url: verification.url,
+      onEvent: handleVeriffEvent
+    });
+  }, [veriffSessionQuery])
+
   if(!phoneNumber){return <p>No phone number specified</p>}
   return <>
     <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
-    <div id="vouched-element" style={{ height: "10vh"}}></div>
   </>
 }
 

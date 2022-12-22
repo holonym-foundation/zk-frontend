@@ -16,6 +16,7 @@ import WebFont from "webfontloader";
 // import Address from "./components/atoms/Address.js";
 // import WalletModal from "./components/atoms/WalletModal";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from "./components/atoms/Navbar";
 import Mint from "./components/mint.js";
 import Profile from './components/profile';
@@ -35,6 +36,8 @@ const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop co
 
 const Proofs = React.lazy(() => import("./components/proofs"));
 
+const queryClient = new QueryClient()
+
 function App() {
   // const { desiredChain, setDesiredChain } = useDesiredChain();
   // const { data: account } = useAccount();
@@ -53,114 +56,116 @@ function App() {
 
   if(isMobile) return <NotDesktop />
   return (
-    <LitAuthSigProvider>
-      <HoloAuthSigProvider>
-        <div className="x-section bg-img">
-          <div className="x-container nav">
-            <Navbar />
-          </div>
-          <Suspense fallback={<LoadingElement />}>
-          <div className="App x-section wf-section">
-            <div className="x-container nav w-container">
-              {/* <WalletModal
-                visible={walletModalShowing}
-                setVisible={setWalletModalShowing}
-                blur={true}
-              />
-              <HomeLogo />
+    <QueryClientProvider client={queryClient}>
+      <LitAuthSigProvider>
+        <HoloAuthSigProvider>
+          <div className="x-section bg-img">
+            <div className="x-container nav">
+              <Navbar />
+            </div>
+            <Suspense fallback={<LoadingElement />}>
+            <div className="App x-section wf-section">
+              <div className="x-container nav w-container">
+                {/* <WalletModal
+                  visible={walletModalShowing}
+                  setVisible={setWalletModalShowing}
+                  blur={true}
+                />
+                <HomeLogo />
 
-              {account?.address && account?.connector ? (
-                <Address address={account.address} />
-              ) : (
-                <div className="nav-btn">
-                  <div
-                    className="wallet-connected nav-button"
-                    // disabled={!connectors[0].ready}
-                    // key={connectors[0].id}
-                    onClick={() => setWalletModalShowing(true)}
-                  >
-                    <div style={{ opacity: 0.5 }}>Connect Wallet</div>
+                {account?.address && account?.connector ? (
+                  <Address address={account.address} />
+                ) : (
+                  <div className="nav-btn">
+                    <div
+                      className="wallet-connected nav-button"
+                      // disabled={!connectors[0].ready}
+                      // key={connectors[0].id}
+                      onClick={() => setWalletModalShowing(true)}
+                    >
+                      <div style={{ opacity: 0.5 }}>Connect Wallet</div>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div> */}
-            <Router>
-              <Routes>
-                {/*<Route
-                  path="/orcid/token/*"
-                  element={
-                    <AuthenticationFlow
-                      token={
-                        window.location.href.split(
-                          "/token/#"
-                        )[1] /*It is safe to assume that the 1st item of the split is the token -- if not, nothing bad happens; the token will be rejected. 
-                                                                                                          You may also be asking why we can't just get the token from the URL params. React router doesn't allow # in the URL params, so we have to do it manually* /
-                      }
-                      credentialClaim={"sub"}
-                      web2service={"ORCID"}
-                    />
-                  }
-                />
-                {/*Google has a different syntax and redirect pattern than ORCID* /}
-                <Route
-                  path="/google/token/:token"
-                  element={
-                    <AuthenticationFlow credentialClaim={"email"} web2service={"Google"} />
-                  }
-                />
+                )}
+              </div> */}
+              <Router>
+                <Routes>
+                  {/*<Route
+                    path="/orcid/token/*"
+                    element={
+                      <AuthenticationFlow
+                        token={
+                          window.location.href.split(
+                            "/token/#"
+                          )[1] /*It is safe to assume that the 1st item of the split is the token -- if not, nothing bad happens; the token will be rejected. 
+                                                                                                            You may also be asking why we can't just get the token from the URL params. React router doesn't allow # in the URL params, so we have to do it manually* /
+                        }
+                        credentialClaim={"sub"}
+                        web2service={"ORCID"}
+                      />
+                    }
+                  />
+                  {/*Google has a different syntax and redirect pattern than ORCID* /}
+                  <Route
+                    path="/google/token/:token"
+                    element={
+                      <AuthenticationFlow credentialClaim={"email"} web2service={"Google"} />
+                    }
+                  />
 
-                <Route
-                  path="/twitter/token/:token"
-                  element={
-                    <AuthenticationFlow credentialClaim={"creds"} web2service={"Twitter"} />
-                  }
-                />
-                <Route
-                  path="/GitHub/token/:token"
-                  element={
-                    <AuthenticationFlow credentialClaim={"creds"} web2service={"Github"} />
-                  }
-                />
-                <Route
-                  path="/discord/token/:token"
-                  element={
-                    <AuthenticationFlow credentialClaim={"creds"} web2service={"Discord"} />
-                  }
-                /> */}
+                  <Route
+                    path="/twitter/token/:token"
+                    element={
+                      <AuthenticationFlow credentialClaim={"creds"} web2service={"Twitter"} />
+                    }
+                  />
+                  <Route
+                    path="/GitHub/token/:token"
+                    element={
+                      <AuthenticationFlow credentialClaim={"creds"} web2service={"Github"} />
+                    }
+                  />
+                  <Route
+                    path="/discord/token/:token"
+                    element={
+                      <AuthenticationFlow credentialClaim={"creds"} web2service={"Discord"} />
+                    }
+                  /> */}
 
-          {/* <Route path="/lookup/:web2service/:credentials" element={<Lookup />} /> */}
-          {/* <Route path="/l/:web2service/:credentials" element={<Lookup />} /> */}
-          {/* <Route path="/lookup" element={<Lookup />} /> */}
-          {/* <Route path="/registry" element={<Registry />} /> */}
-          {/* <Route path='/private' element={<LitCeramic stringToEncrypt={JWTObject.header.raw + '.' + JWTObject.payload.raw}/>} /> */}
-          {/* <Route path={"/"} element={myHoloPage} /> */}
-          {/* <Route path={"/myholo"} element={myHoloPage} /> */}
-          {/* <Route path={"/zk-id/verify"} element={<Verify />} /> */}
-          {/* <Route exact path={"/"} element={<Welcome />} /> */}
-          <Route exact path={"/"} element={<MintOptions />} />
-          <Route exact path={"/mint"} element={<MintOptions />} />
-          <Route exact path={"/mint/:credType/:jobID"} element={<Mint />} />
-          <Route exact path={"/mint/:credType"} element={<Mint />} />
-          <Route exact path={"/retry"} element={<Mint retry={true} />} />
-          {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}
-          <Route exact path={"/prove"} element={<ProofMenu />} />
-          {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
-          <Route exact path={"/prove/:proofType/:actionId/:callback"} element={<Proofs />} />
-          <Route exact path={"/prove/:proofType/:actionId"} element={<Proofs />} />
-          <Route exact path={"/prove/:proofType"} element={<Proofs />} />
-          <Route exact path={"/profile"} element={<Profile />} />
-          {/* Backwards compatability path: */}
-          {/* <Route path={"/zk-id/proofs/:proofType"} element={<Proofs />} /> */}
-          {/* <Route path={"/chainswitchertest"} element={<ChainSwitcher />} /> */}
-          {/* <Route path={"/chainswitchermodaltest"} element={<ChainSwitcherModal />} /> */}
-        </Routes>
-      </Router>
+            {/* <Route path="/lookup/:web2service/:credentials" element={<Lookup />} /> */}
+            {/* <Route path="/l/:web2service/:credentials" element={<Lookup />} /> */}
+            {/* <Route path="/lookup" element={<Lookup />} /> */}
+            {/* <Route path="/registry" element={<Registry />} /> */}
+            {/* <Route path='/private' element={<LitCeramic stringToEncrypt={JWTObject.header.raw + '.' + JWTObject.payload.raw}/>} /> */}
+            {/* <Route path={"/"} element={myHoloPage} /> */}
+            {/* <Route path={"/myholo"} element={myHoloPage} /> */}
+            {/* <Route path={"/zk-id/verify"} element={<Verify />} /> */}
+            {/* <Route exact path={"/"} element={<Welcome />} /> */}
+            <Route exact path={"/"} element={<MintOptions />} />
+            <Route exact path={"/mint"} element={<MintOptions />} />
+            <Route exact path={"/mint/:credType/:jobID"} element={<Mint />} />
+            <Route exact path={"/mint/:credType"} element={<Mint />} />
+            <Route exact path={"/retry"} element={<Mint retry={true} />} />
+            {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}
+            <Route exact path={"/prove"} element={<ProofMenu />} />
+            {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
+            <Route exact path={"/prove/:proofType/:actionId/:callback"} element={<Proofs />} />
+            <Route exact path={"/prove/:proofType/:actionId"} element={<Proofs />} />
+            <Route exact path={"/prove/:proofType"} element={<Proofs />} />
+            <Route exact path={"/profile"} element={<Profile />} />
+            {/* Backwards compatability path: */}
+            {/* <Route path={"/zk-id/proofs/:proofType"} element={<Proofs />} /> */}
+            {/* <Route path={"/chainswitchertest"} element={<ChainSwitcher />} /> */}
+            {/* <Route path={"/chainswitchermodaltest"} element={<ChainSwitcherModal />} /> */}
+          </Routes>
+        </Router>
+      </div>
     </div>
-  </div>
-  </Suspense>
-  </div>
-  </HoloAuthSigProvider>
-  </LitAuthSigProvider>
+    </Suspense>
+    </div>
+    </HoloAuthSigProvider>
+    </LitAuthSigProvider>
+  </QueryClientProvider>
   );
 }
 
