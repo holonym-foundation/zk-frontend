@@ -160,6 +160,7 @@ export default function Profile(props) {
           {/* <PublicProfileField header="Age" fieldValue="24" /> */}
           <PublicProfileField 
             header="Unique Person" 
+            description={`This shows whether you have publicly claimed a "Unique person" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
             fieldValue={proofMetadata?.['uniqueness']?.fieldValue}
             proofSubmissionAddr={proofMetadata?.['uniqueness']?.address}
             proveButtonCallback={proofMetadata?.['uniqueness']?.address ? null :
@@ -168,6 +169,7 @@ export default function Profile(props) {
           />
           <PublicProfileField 
             header="US Resident" 
+            description="This shows whether you've publicly claimed a US residency SBT at a certain address"
             fieldValue={proofMetadata?.['us-residency']?.fieldValue} 
             proofSubmissionAddr={proofMetadata?.['us-residency']?.address}
             proveButtonCallback={proofMetadata?.['us-residency']?.address ? null :
