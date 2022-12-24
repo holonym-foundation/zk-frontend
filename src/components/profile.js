@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import LitJsSdk from "@lit-protocol/sdk-browser";
 import { formatPhoneNumberIntl } from "react-phone-number-input";
+import { InfoButton } from "./info-button";
 import PublicProfileField from './atoms/PublicProfileField';
 import PrivateProfileField from './atoms/PrivateProfileField';
 import { useLitAuthSig } from "../context/LitAuthSig";
@@ -177,6 +178,15 @@ export default function Profile(props) {
         <div className="spacer-large"></div>
         <div className="x-dash-div">
           <h1 className="h1">Private Info</h1>
+        </div>
+        <div className="x-dash-div">
+          <p>This is kept locally and privately. Only you can see it.</p>
+          <div style={{marginBottom: "12px"}}>
+            <InfoButton
+                          type="inPlace"
+                          text={`Data is stored locally and a backup is encrypted, split up, and stored in multiple locations access-gated by your wallet signature. Part of it is stored in the Lit protocol, and part of it is stored on a server that cannot read any of your data, since all your data is encrypted. This server may be replaced with decentralized storage. Essentially, nobody can see your data except you, even in the backups.`}
+                      />
+          </div>
           <div className="spacer-small"></div>
         </div>
         <div className="spacer-small"></div>

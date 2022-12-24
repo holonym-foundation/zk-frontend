@@ -3,7 +3,7 @@ import arrow from "../img/Card-Arrow.svg";
 
 const InfoText = (props) => {
   switch(props.type){
-    case "proofMenu":
+    case "inPlace":
       return (
         <>
           <div className="card-popup-inplace" style={
