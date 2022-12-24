@@ -290,33 +290,20 @@ const Proofs = () => {
                 <br />
                 {error ? (
                   <p>Error: {error}</p>
-                ) : (
-                  <>
-                  {creds ? (
-                    <p>
-                      {creds ? (
-                        <>
-                          This will give you, 
-                          <code> {truncateAddress(account.address)} </code>, 
-                          a soul-bound token (SBT)
-                          showing only this one attribute of you: <code>{proofs[params.proofType].name}</code>. It
-                          may take 5-15 seconds to load.
-                        </>
-                      ) : (
-                        `Please confirm the popup so your proof can be generated`
-                      )}
-                    </p>
-                    ) : (
-                    <>
-                      <p>
-                        Please sign the messages in the wallet popup so your proof can be generated.
+                ) : (creds ? <p>
+                        This will give you, 
+                        <code> {truncateAddress(account.address)} </code>, 
+                        a <a target="_blank" href="https://cointelegraph.com/news/what-are-soulbound-tokens-sbts-and-how-do-they-work" style={{ color: '#fdc094'}}>soul-bound token</a> (SBT)
+                        showing only this one attribute of you: <code>{proofs[params.proofType].name}</code>. It
+                        may take 5-15 seconds to load.
                       </p>
+                    :
                       <p>
                         &nbsp;Note: You cannot generate proofs before minting a holo. If you have not
                         already, please <a href="/mint" style={{ color: '#fdc094'}}>mint your holo</a>.
                       </p>
-                    </>
-                    )}
+                    )
+                  }
                     <div className="spacer-med" />
                     <br />
                     {creds ? (
@@ -334,8 +321,6 @@ const Proofs = () => {
                       ""
                     )}
                   </>
-                )}
-          </>
         )}
     </div>
     </RoundedWindow>
