@@ -42,8 +42,7 @@
   },
   "scripts": {
     "start": "PORT=3002 craco start",
-    "start:nanak": "REACT_APP_EXTENSION_ID=lgmhnpjmdlgddnjchckodphblmacnhdo PORT=3002 craco start",
-    "start:caleb": "REACT_APP_EXTENSION_ID=cilbidmppfndfhjafdlngkaabddoofea PORT=3002 craco start",
+    "start:cached-preproc": "PORT=3002 PREPROC_CACHED_LOCALLY=true craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject"

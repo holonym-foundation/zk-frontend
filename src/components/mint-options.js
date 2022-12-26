@@ -8,7 +8,7 @@ import { chainIdUsedForLit } from '../constants/misc';
 const opts = [
     {name : "Phone Number", url : "/mint/phone", disabled : false},
     {name : "ID + Phone Number", url : "/mint/idgov", disabled : false},
-    {name : "Accredited Investor Status", url : "/mint/idgov", disabled : true}
+    {name : "Accredited Investor Status", url : "/", disabled : true}
 ];
 const MintOptions = () => {
     const navigate = useNavigate();

@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import CircleWavy from '../../img/CircleWavy.svg';
 import CircleWavyCheck from '../../img/CircleWavyCheck.svg';
+import { InfoButton } from '../info-button';
 
 
 export default function PublicProfileField({ 
@@ -8,6 +9,7 @@ export default function PublicProfileField({
   fieldValue, 
   proofSubmissionAddr,
   proveButtonCallback,
+  description
 }) {
 
   const fieldValueClasses = classNames({
@@ -26,11 +28,17 @@ export default function PublicProfileField({
             ) : (
               <img src={CircleWavy} loading="lazy" alt="" className="card-status"/>
           )}
+          <div style={{position: "relative", left: fieldValue ? "19px" : "10px", bottom: "23px"}}>
+          <InfoButton
+            type="inPlace"
+            text={description}
+          />
+          </div>
         </div>
         {proveButtonCallback ? (
           <>
             <div onClick={proveButtonCallback}>
-              <h3 onClick={proveButtonCallback} className="h3 no-margin dash">Prove</h3>
+              <h3 onClick={proveButtonCallback} className="h3 no-margin dash" style={{marginLeft: "6px"}}>Prove</h3>
             </div>
           </>
         ) : null}

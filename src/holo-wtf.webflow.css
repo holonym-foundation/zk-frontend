@@ -1,3 +1,6 @@
+.vouched canvas{
+  border: 2px solid white;
+}
 .fireworks-1 {
   /* Allow elements underneath to be hovered still */
   pointer-events: none; 
