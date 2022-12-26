@@ -11,6 +11,7 @@ import RoundedWindow from "./RoundedWindow";
 import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
+import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 
 // import { Success } from "./components/success";
 
@@ -131,6 +132,7 @@ const Mint = (props) => {
   useEffect(()=>{if (phoneNumber && (current === "1-2fa")) {console.log("sending code to ", phoneNumber); sendCode(phoneNumber)}}, [phoneNumber])
 
   if (!(allowedCredTypes.includes(credType))) { return }
+  if(!account) return <RoundedWindow><ConnectWalletScreen /></RoundedWindow>
 
   return <RoundedWindow>
     {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}

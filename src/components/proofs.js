@@ -35,15 +35,7 @@ import RoundedWindow from "./RoundedWindow";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import Relayer from "../utils/relayer";
-
-const ConnectWalletScreen = () => (
-  <>
-    {/* <ConnectWallet /> */}
-    <div className="x-container w-container">
-        <h1>Please Connect Your Wallet First</h1>
-    </div>
-  </>
-);
+import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 
 const ErrorScreen = ({children}) => (
   <div className="x-container w-container">
