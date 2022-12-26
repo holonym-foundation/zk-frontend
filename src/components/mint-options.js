@@ -23,7 +23,7 @@ const MintOptions = () => {
 
     return <RoundedWindow>
             <div className="x-wrapper small-center" style={{width:"100%"}}>
-                <h1 className="h1">Verify yourself, with privacy</h1>
+                <h1>Verify yourself, with privacy</h1>
                 <h5 className="h5">If you don't have a Holo, you can mint one with the following credentials. If you already have one, you can add one of the following credentials to it</h5> 
                     {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                     <InfoButton
@@ -32,7 +32,7 @@ const MintOptions = () => {
                     /> */}
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "space-around", flexDirection: "column"}}>
                         {opts.map(opt=><>
-                            <button onClick={()=>navigate(opt.url)} className={"x-card blue" + (opt.disabled ? " disable" : "")} style={{marginTop: "16px", marginLeft : "100px", marginRight : "100px"}}>
+                            <button onClick={()=>navigate(opt.url)} className={"x-card blue" + (opt.disabled ? " disable" : "")} style={{marginTop: "16px", marginLeft : "100px", marginRight : "100px", fontSize: "x-large"}}>
                                 {opt.name}
                                 </button>
                         </>
