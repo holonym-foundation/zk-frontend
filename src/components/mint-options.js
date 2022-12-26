@@ -30,6 +30,17 @@ const opts = [
     }
 ];
 
+
+// Groups an array into m sets of up to n elements. m = ceil(arr.length/n). From https://stackoverflow.com/a/50748585
+const groupArray = (n, arr) => {
+    let result = [];
+    for (let i = 0; i < arr.length; i += n) result.push(arr.slice(i, i + n));
+    return result;
+};
+
+const Row = (props) => <div style={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}>{props.children}</div>
+const Col = (props) => <div style={{flexBasis: "100%"}}>{props.children}</div>
+
 const MintOption = (props) => {
     const navigate = useNavigate();
     return <button onClick={()=>navigate(props.url)} className={"x-card blue" + (props.disabled ? " disable" : "")} style={{marginTop: "16px", marginLeft : "100px", marginRight : "100px", fontSize: "x-large"}}>
@@ -42,6 +53,16 @@ const MintOption = (props) => {
                     <p>{props.description}</p>
                 </div>
             </button>
+}
+const MintOptionRow = (props) => {
+    return <Row>
+        <Col>
+            <MintOption {...props.opts[0]} />
+        </Col>
+        <Col>
+            <MintOption {...props.opts[1]} />
+        </Col>
+    </Row>
 }
 
 const MintOptions = () => {
@@ -63,7 +84,7 @@ const MintOptions = () => {
                         text={`Anonymity is provided by the anonymity set, a.k.a. Privacy Pool. If we wanted to spy and you only waited a minute, we could see you verified at a certain time and that some wallet submitted a proof a minute later. We could then guess you were that wallet. But if you waited a whole week, a lot of people have also will have registered, so we can't tell it's you. Everyone's verification would be pooled together, so we would only know the prover was one person in the whole pool. Whether you wait a second, a day, or year depends on how much you want to stay anonymous to Holonym Foundation. If you trust us not to track you, you can prove now...`}
                     /> */}
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "space-around", flexDirection: "column"}}>
-                        {opts.map(opt=><MintOption {...opt} />)}
+                        {groupArray(2, opts).map(twoOpts=><MintOptionRow opts={twoOpts} />)}
                 </div>
                 {/* TODO: add buttons for future credential types such as accredited investor status */}
                 {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
