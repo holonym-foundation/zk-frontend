@@ -277,7 +277,7 @@ const Proofs = () => {
           <ConnectWalletScreen />
         ) : (
           <>
-            <h3>Prove {proofs[params.proofType].name}</h3>
+            <h2>Prove {proofs[params.proofType].name}</h2>
                 <div className="spacer-med" />
                 <br />
                 {error ? (

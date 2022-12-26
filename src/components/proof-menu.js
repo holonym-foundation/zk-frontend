@@ -1,13 +1,16 @@
 import { useNavigate } from "react-router-dom";
+import { useAccount } from "wagmi";
+import { truncateAddress } from "../utils/ui-helpers";
 // import { InfoButton } from "./info-button";
 import RoundedWindow from "./RoundedWindow";
 
 const ProofMenu = ()=>{
+    const { data: account } = useAccount();
     const navigate = useNavigate();
     return <RoundedWindow>
             <div className="x-wrapper small-center" style={{width:"100%"}}>
-                <h2>Prove some stuff, anon</h2>
-                <h3>Here are proofs you can make</h3> 
+                <h1>Get your SBTs</h1>
+                <p>These will give you (<code> {truncateAddress(account.address)} </code>) soulbound tokens for these attribuets about yourself. E.g., if you are a us resident, you can get a US Resident SBT</p> 
                     {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                     <InfoButton
                         type="proofMenu"
