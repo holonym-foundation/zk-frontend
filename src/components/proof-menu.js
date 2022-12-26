@@ -10,7 +10,7 @@ const ProofMenu = ()=>{
     return <RoundedWindow>
             <div className="x-wrapper small-center" style={{width:"100%"}}>
                 <h1>Get your SBTs</h1>
-                <p>These will give you (<code> {truncateAddress(account.address)} </code>) soulbound tokens for these attribuets about yourself. E.g., if you are a us resident, you can get a US Resident SBT</p> 
+                <p>These will give you (<code> {truncateAddress(account.address)} </code>) soulbound tokens for these attributes about yourself. E.g., if you are a us resident, you can get a US Resident SBT</p> 
                     {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                     <InfoButton
                         type="proofMenu"
