@@ -44,6 +44,17 @@
   padding-bottom: 56.25%;
 }
 
+.mint-options {
+      padding-top: 40px;
+      display: grid;
+      /* // width: 100%; */
+      /* max-width: 750px; */
+      /* // margin: 0 auto; */
+      grid-template-columns: repeat(2, 1fr);
+      /* grid-template-rows: repeat(2, 1fr); */
+      grid-gap: 10px;
+  }
+
 body {
   background-color: #02070c;
   font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
@@ -971,8 +982,9 @@ p.no-margin.small {
 }
 
 .x-card.blue.disable {
-  border-color: #707070;
   background-image: linear-gradient(135deg, #707070, #01010c 40%);
+  border-color: #707070;
+  color:grey;
 }
 
 .x-card.profile {

@@ -7,6 +7,7 @@ import { chainIdUsedForLit } from "../constants/misc";
 import phoneImg from "../img/phone.png";
 import idImg from "../img/id.png";
 import moneyImg from "../img/money.png";
+import questionImg from "../img/question.png";
 
 const opts = [
     { 
@@ -27,23 +28,18 @@ const opts = [
         url: "/", image: moneyImg, 
         description: "This allows you to prove you are an accredited investor. It currently is not implemented", 
         disabled: true 
+    },
+    { 
+        name: "Custom", 
+        url: "mailto:hello@holonym.id", image: questionImg, 
+        description: "Contact us if there is any type of credential you'd like to see supported that aren't yet listed.", 
+        disabled: true 
     }
 ];
 
-
-// Groups an array into m sets of up to n elements. m = ceil(arr.length/n). From https://stackoverflow.com/a/50748585
-const groupArray = (n, arr) => {
-    let result = [];
-    for (let i = 0; i < arr.length; i += n) result.push(arr.slice(i, i + n));
-    return result;
-};
-
-const Row = (props) => <div style={{display: "flex", flexDirection: "row", flexWrap: "wrap"}}>{props.children}</div>
-const Col = (props) => <div style={{flexBasis: "100%"}}>{props.children}</div>
-
 const MintOption = (props) => {
     const navigate = useNavigate();
-    return <button onClick={()=>navigate(props.url)} className={"x-card blue" + (props.disabled ? " disable" : "")} style={{marginTop: "16px", marginLeft : "100px", marginRight : "100px", fontSize: "x-large"}}>
+    return <button onClick={()=>navigate(props.url)} className={"x-card blue" + (props.disabled ? " disable" : "")} style={{width:"100%", /*marginTop: "16px", marginLeft : "100px", marginRight : "100px", */fontSize: "x-large"}}>
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row"}}>
                     <img src={props.image} style={{height:"50px", marginRight: "20px"}}></img>
                     <h5>{props.name}</h5>
@@ -53,16 +49,6 @@ const MintOption = (props) => {
                     <p>{props.description}</p>
                 </div>
             </button>
-}
-const MintOptionRow = (props) => {
-    return <Row>
-        <Col>
-            <MintOption {...props.opts[0]} />
-        </Col>
-        <Col>
-            <MintOption {...props.opts[1]} />
-        </Col>
-    </Row>
 }
 
 const MintOptions = () => {
@@ -75,7 +61,8 @@ const MintOptions = () => {
         switchNetwork(chainIdUsedForLit)
     }, [account, switchNetwork])
 
-    return /*<RoundedWindow>*/<div className="x-wrapper small-center" style={{height: "95%", width:"100%"}}>
+    return <RoundedWindow>
+                <div className="x-wrapper small-center" style={{height: "95%", width:"80%"}}>
                 <h1>Choose your private credentials</h1>
                 <h5 className="h5">to add to your Holo. If you don't have a Holo, this will mint it for you.</h5> 
                     {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
@@ -83,12 +70,14 @@ const MintOptions = () => {
                         type="proofMenu"
                         text={`Anonymity is provided by the anonymity set, a.k.a. Privacy Pool. If we wanted to spy and you only waited a minute, we could see you verified at a certain time and that some wallet submitted a proof a minute later. We could then guess you were that wallet. But if you waited a whole week, a lot of people have also will have registered, so we can't tell it's you. Everyone's verification would be pooled together, so we would only know the prover was one person in the whole pool. Whether you wait a second, a day, or year depends on how much you want to stay anonymous to Holonym Foundation. If you trust us not to track you, you can prove now...`}
                     /> */}
-                <div style={{display:"flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "space-around", flexDirection: "column"}}>
-                        {groupArray(2, opts).map(twoOpts=><MintOptionRow opts={twoOpts} />)}
+                <div className="mint-options" style={{
+                    // display:"flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "space-around", flexDirection: "column"
+                    }}>
+                        {opts.map(opt=><MintOption {...opt} />)}
                 </div>
                 {/* TODO: add buttons for future credential types such as accredited investor status */}
                 {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
             </div>
-    /*</RoundedWindow>*/
+    </RoundedWindow>
 }
 export default MintOptions;
