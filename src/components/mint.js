@@ -71,7 +71,7 @@ const Step2FA = ({phoneNumber, callback, errCallback}) => {
     }
   }
   return <>
-    <h3 style={{"marginBottom":"25px"}}>Enter the code texted to you</h3>
+    <h2 style={{"marginBottom":"25px"}}>Enter the code texted to you</h2>
     <input value={code} onChange={onChange} className="text-field"></input>
   </>
 }
