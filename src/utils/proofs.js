@@ -12,8 +12,8 @@ let provingKeys = {};
 let verifyingKeys = {};
 
 const knowPreimageSrc = `import "hashes/poseidon/poseidon" as poseidon;
-def main(field leaf, field address, private field countryCode, private field nameCitySubdivisionZipStreetHash, private field completedAt, private field birthdate, private field secret) {
-    field[6] preimage = [address, secret, countryCode, nameCitySubdivisionZipStreetHash, completedAt, birthdate];
+def main(field leaf, field address, private field countryCode, private field nameCitySubdivisionZipStreetHash, private field completedAt, private field scope, private field secret) {
+    field[6] preimage = [address, secret, countryCode, nameCitySubdivisionZipStreetHash, completedAt, scope];
     assert(poseidon(preimage) == leaf);
     return;
 }`;
@@ -244,7 +244,7 @@ export async function onAddLeafProof(serializedCreds, newSecret) {
  * @param {number} countryCode
  * @param {string} subdivision UTF-8
  * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} birthdate Hex string representing 3 bytes
+ * @param {string} scope Hex string representing 3 bytes
  * @param {Array<Array<string>>} path Numbers represented as strings
  * @param {Array<string>} indices Numbers represented as strings
  */
@@ -256,7 +256,7 @@ export async function proofOfResidency(
   countryCode,
   subdivision,
   completedAt,
-  birthdate,
+  scope,
   secret
 ) {
   if (!zokProvider) {
@@ -272,7 +272,7 @@ export async function proofOfResidency(
       countryCode,
       subdivision,
       completedAt,
-      birthdate
+      scope
     ]
   );
 
@@ -290,7 +290,7 @@ export async function proofOfResidency(
     ethers.BigNumber.from(countryCode).toString(),
     ethers.BigNumber.from(subdivision).toString(), //ethers.BigNumber.from(new TextEncoder("utf-8").encode(subdivision)).toString(),
     ethers.BigNumber.from(completedAt).toString(),
-    ethers.BigNumber.from(birthdate).toString(),
+    ethers.BigNumber.from(scope).toString(),
     ethers.BigNumber.from(secret).toString(),
     leaf,
     mp.path,
@@ -327,7 +327,7 @@ export async function proofOfResidency(
  * @param {number} countryCode
  * @param {string} subdivision UTF-8
  * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} birthdate Hex string representing 3 bytes
+ * @param {string} scope Hex string representing 3 bytes
  * @param {Array<Array<string>>} path Numbers represented as strings
  * @param {Array<string>} indices Numbers represented as strings
  */
@@ -339,7 +339,7 @@ export async function antiSybil(
   countryCode,
   subdivision,
   completedAt,
-  birthdate,
+  scope,
   secret
 ) {
   console.log("antiSybil called")
@@ -356,7 +356,7 @@ export async function antiSybil(
       countryCode,
       subdivision,
       completedAt,
-      birthdate
+      scope
     ]
   );
 
@@ -371,7 +371,7 @@ export async function antiSybil(
     ethers.BigNumber.from(countryCode).toString(),
     ethers.BigNumber.from(subdivision).toString(), //ethers.BigNumber.from(new TextEncoder("utf-8").encode(subdivision)).toString(),
     ethers.BigNumber.from(completedAt).toString(),
-    ethers.BigNumber.from(birthdate).toString(),
+    ethers.BigNumber.from(scope).toString(),
     ethers.BigNumber.from(secret).toString(),
     leaf,
     mp.path,
@@ -404,7 +404,7 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     serializedCreds[2], // countryCode
     serializedCreds[3], // nameCitySubdivisionZipStreetHash
     serializedCreds[4], // completedAt
-    serializedCreds[5], // birthdate
+    serializedCreds[5], // scope
   ].map((x) => ethers.BigNumber.from(x).toString())
   const leaf = ethers.BigNumber.from(await createLeaf(leafArgs)).toString();
   const knowPreimageArtifacts = zokProvider.compile(knowPreimageSrc);
@@ -414,7 +414,7 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     serializedCreds[2], // countryCode
     serializedCreds[3], // nameCitySubdivisionZipStreetHash
     serializedCreds[4], // completedAt
-    serializedCreds[5], // birthdate
+    serializedCreds[5], // scope
     newSecret,
   ]
   const { witness, output } = zokProvider.computeWitness(knowPreimageArtifacts, proofArgs);

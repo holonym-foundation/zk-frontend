@@ -132,7 +132,7 @@ export async function storeProofMetadata(tx, proofType, actionId, authSig, sigDi
     ) : [];
     // Merge old proof metadata with new proof metadata
     const newProofMetadataArr = Array.from(
-      oldProofMetadataArr.length > 0 ? [...oldProofMetadataArr, thisProofMetadata] : [thisProofMetadata]
+      oldProofMetadataArr?.length > 0 ? [...oldProofMetadataArr, thisProofMetadata] : [thisProofMetadata]
     )
 
     const { encryptedString, encryptedSymmetricKey } = await encryptObject(newProofMetadataArr, authSig)

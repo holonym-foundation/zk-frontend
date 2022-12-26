@@ -125,7 +125,7 @@ const Proofs = () => {
       ethers.BigNumber.from(creds_.newSecret).toString(),
     ]);
 
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, birthdate_] = creds_.serializedCreds;
+    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.serializedCreds;
     const por = await proofOfResidency(
       account.address,
       issuer_,
@@ -134,7 +134,7 @@ const Proofs = () => {
       countryCode_,
       nameCitySubdivisionZipStreetHash_,
       completedAt_,
-      birthdate_,
+      scope,
       creds_.newSecret
     );
     // Once setProof is called, the proof is submtited
@@ -161,7 +161,7 @@ const Proofs = () => {
       ethers.BigNumber.from(creds_.newSecret).toString(),
     ]);
 
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, birthdate_] = creds_.serializedCreds;
+    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.serializedCreds;
 
     const as = await antiSybil(
       account.address,
@@ -171,7 +171,7 @@ const Proofs = () => {
       countryCode_, 
       nameCitySubdivisionZipStreetHash_, 
       completedAt_, 
-      birthdate_,
+      scope,
       creds_.newSecret
     );
     // Once setProof is called, the proof is submtited
