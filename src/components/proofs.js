@@ -244,14 +244,14 @@ const Proofs = () => {
     return;
   }
 
-  async function submitProofThenStoreMetadata(proof,contractName) {
+  async function submitProofThenStoreMetadata(proof, contractName) {
       const result = await Relayer.prove(proof, contractName, defaultChainToProveOn);
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata
         const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
         setLitAuthSig(authSig);
-        await storeProofMetadata(result.data, params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
+        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
         setSuccess(true);
       }
       else {

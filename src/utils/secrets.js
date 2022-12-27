@@ -104,11 +104,19 @@ export function getLocalEncryptedUserCredentials() {
   console.log('Did not find creds in localStorage')
 }
 
-export async function storeProofMetadata(tx, proofType, actionId, authSig, sigDigest) {
+export async function storeProofMetadata(tx, senderAddress, proofType, actionId, authSig, sigDigest) {
   try {
+    const senderAddrHex = ethers.BigNumber.from(
+      senderAddress ?? '0x00'
+    ).toHexString();
+    const missingLeadingZeros = 42 - senderAddrHex.length;
+    const senderAddr = 
+      missingLeadingZeros === 0 
+        ? senderAddrHex 
+        : '0x' + '0'.repeat(missingLeadingZeros) + senderAddrHex.slice(2);
     const thisProofMetadata = {
       proofType: proofType,
-      address: tx.from, 
+      address: senderAddr, 
       chainId: tx.chainId, 
       blockNumber: tx.blockNumber,
       txHash: tx.transactionHash,
