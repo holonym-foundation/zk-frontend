@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useNetwork } from "wagmi";
-import LitJsSdk from "@lit-protocol/sdk-browser";
 import { 
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   storeProofMetadata,
-  sha256
 } from "../utils/secrets";
 import {
   getDateAsInt,
@@ -89,7 +87,7 @@ const Proofs = () => {
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
-  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
+  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
   const {
@@ -249,8 +247,7 @@ const Proofs = () => {
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata
-        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-        setLitAuthSig(authSig);
+        const authSig = getLitAuthSig() ?? await signLitAuthMessage();
         await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
         setSuccess(true);
       }

@@ -40,7 +40,7 @@ const WalletModal = (props) => {
                 <p className="p-2 white">Connect to the site below with one of our available wallet providers.</p>
                 {connectors.map((connector) => {
                   if(!connector.ready){return null}
-                  console.log(connector.id)
+                  // console.log(connector.id)
                   return <div key={connector.id} >
                   <div
                     onClick={() => {connect(connector); props.setVisible(false)}}
