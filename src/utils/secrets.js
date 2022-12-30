@@ -1,6 +1,5 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
-import LitJsSdk from "@lit-protocol/sdk-browser";
 import { idServerUrl, defaultActionId, chainUsedForLit } from "../constants/misc";
 import lit from './lit';
 
@@ -44,12 +43,11 @@ export async function sha256(input) {
  */
  export async function encryptObject(data, litAuthSig) {
   const stringifiedCreds = JSON.stringify(data)
-  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-  const acConditions = lit.getAccessControlConditions(authSig.address)
+  const acConditions = lit.getAccessControlConditions(litAuthSig.address)
   const { 
     encryptedString, 
     encryptedSymmetricKey 
-  } = await lit.encrypt(stringifiedCreds, chainUsedForLit, acConditions, authSig)
+  } = await lit.encrypt(stringifiedCreds, chainUsedForLit, acConditions, litAuthSig)
   return { encryptedString, encryptedSymmetricKey };
 }
 
@@ -73,8 +71,7 @@ export function setLocalUserCredentials(sigDigest, encryptedCredentials, encrypt
  * @returns {object}
  */
 export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
-  const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-  const acConditions = lit.getAccessControlConditions(authSig.address)
+  const acConditions = lit.getAccessControlConditions(litAuthSig.address)
   try {
     const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, chainUsedForLit, acConditions, litAuthSig)
     return JSON.parse(stringifiedCreds);

@@ -178,17 +178,22 @@ const Proofs = () => {
 
   // Steps:
   // 1. Ensure user's wallet is connected (i.e., get account)
-  // 2. Get & set holoAuthSigDigest
+  // 2. Get & set holoAuthSigDigest and litAuthSig
   // 3. Get & set creds
   // 4. Get & set proof
   // 5. Submit proof tx
 
   useEffect(() => {
-    if (account?.address && !getHoloAuthSigDigest()) {
-      console.log('Requesting signature for holoAuthSigDigest')
-      signHoloAuthMessage().then(() => setReadyToLoadCreds(true))
-    }
-    if (account?.address && getHoloAuthSigDigest()) setReadyToLoadCreds(true);
+    if (!account?.address) return;
+    (async () => {
+      if (!getLitAuthSig()) {
+        await signLitAuthMessage();
+      }
+      if (!getHoloAuthSigDigest()) {
+        await signHoloAuthMessage();
+      }
+      setReadyToLoadCreds(true);
+    })()
   }, [account]);
 
   useEffect(() => {
@@ -209,7 +214,7 @@ const Proofs = () => {
         encryptedCredentials = data.encryptedCredentials
         encryptedSymmetricKey = data.encryptedSymmetricKey
       }
-      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {
