@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useAccount } from "wagmi";
 
 import {
   encryptObject,
@@ -35,6 +36,7 @@ const Verified = (props) => {
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
+  const { data: account } = useAccount();
 
   const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
@@ -105,6 +107,7 @@ const Verified = (props) => {
   // Branch b: 3. Merge new creds with current creds
   // Branch b: 4. Call callback with merged creds
   useEffect(() => {
+    if (!account.address) return;
     (async () => {
       if (!getLitAuthSig()) {
         await signLitAuthMessage();
@@ -114,7 +117,7 @@ const Verified = (props) => {
       }
       setReadyToLoadCreds(true);
     })()
-  }, [])
+  }, [account])
 
   useEffect(() => {
     if (!readyToLoadCreds) return;

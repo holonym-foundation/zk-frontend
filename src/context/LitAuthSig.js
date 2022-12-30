@@ -25,7 +25,7 @@ function LitAuthSigProvider({ children }) {
   }
 
   async function signLitAuthMessage() {
-    if (!account?.address) throw new Error('No address found');
+    if (!account?.address) return;
     const message = createSiweMessage(account.address, "", chainIdUsedForLit.toString())
     const signature = await signMessageAsync({ message: message });
     const authSigTemp = {

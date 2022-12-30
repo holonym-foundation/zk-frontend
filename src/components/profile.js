@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatPhoneNumberIntl } from "react-phone-number-input";
+import { useAccount } from 'wagmi';
 import { InfoButton } from "./info-button";
 import PublicProfileField from './atoms/PublicProfileField';
 import PrivateProfileField from './atoms/PrivateProfileField';
@@ -79,6 +80,7 @@ export default function Profile(props) {
   const [creds, setCreds] = useState();
   const [proofMetadata, setProofMetadata] = useState();
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
+  const { data: account } = useAccount();
   const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
     signHoloAuthMessage,
@@ -89,6 +91,7 @@ export default function Profile(props) {
   } = useHoloAuthSig();
 
   useEffect(() => {
+    if (!account?.address) return;
     (async () => {
       if (!getLitAuthSig()) {
         await signLitAuthMessage();
@@ -98,7 +101,7 @@ export default function Profile(props) {
       }
       setReadyToLoadCredsAndProofs(true);
     })()
-  }, [])
+  }, [account])
 
   useEffect(() => {
     async function getAndSetCreds() {
