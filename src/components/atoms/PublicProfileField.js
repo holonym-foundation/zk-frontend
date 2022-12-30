@@ -47,7 +47,7 @@ export default function PublicProfileField({
         {fieldValue ? fieldValue : 'N/A'}
       </h1>
       <p className="no-margin small" style={{ lineHeight: '0.8' }}>
-        {`Proven from:`}
+        {`SBT owned by:`}
       </p>
       <p className="no-margin small" style={{ lineHeight: '0.8' }}>
         {`${proofSubmissionAddr ? proofSubmissionAddr : 'N/A'}`}

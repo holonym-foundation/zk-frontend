@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import LitJsSdk from "@lit-protocol/sdk-browser";
+import { useAccount } from "wagmi";
 
 import {
   encryptObject,
@@ -8,20 +8,13 @@ import {
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   generateSecret,
-  sha256,
   storeCredentials,
   getIsHoloRegistered,
   requestCredentials,
 } from "../utils/secrets";
 import { 
   idServerUrl,
-  chainUsedForLit,
-  zkIdVerifyEndpoint, 
-  zkPhoneEndpoint
 } from "../constants/misc";
-import {
-  getDateAsInt,
-} from "../utils/proofs";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
 import { useLitAuthSig } from '../context/LitAuthSig';
@@ -43,8 +36,9 @@ const StoreCredentials = (props) => {
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
+  const { data: account } = useAccount();
 
-  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
+  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,
@@ -74,19 +68,20 @@ const StoreCredentials = (props) => {
   }
 
   async function mergeAndSetCreds(credsTemp) {
-      credsTemp.newSecret = generateSecret();
-      // Merge new creds with old creds
-      // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
-      // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
-      const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
-      let sortedCreds_ = {};
-      if (encryptedCurrentCredsResp) {
-        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
-        const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-        sortedCreds_ = {...currentSortedCreds};
-      }
-      sortedCreds_[credsTemp.issuer] = credsTemp;
-      setSortedCreds(sortedCreds_);
+    credsTemp.newSecret = generateSecret();
+    const litAuthSig = getLitAuthSig();
+    // Merge new creds with old creds
+    // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
+    // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
+    const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
+    let sortedCreds_ = {};
+    if (encryptedCurrentCredsResp) {
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
+      sortedCreds_ = {...currentSortedCreds};
+    }
+    sortedCreds_[credsTemp.issuer] = credsTemp;
+    setSortedCreds(sortedCreds_);
 
     // Store creds
     const holoAuthSigDigest = getHoloAuthSigDigest();
@@ -112,21 +107,20 @@ const StoreCredentials = (props) => {
   // Branch b: 3. Merge new creds with current creds
   // Branch b: 4. Call callback with merged creds
   useEffect(() => {
+    if (!account.address) return;
     (async () => {
-      if (!litAuthSig) {
-        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-        setLitAuthSig(authSig);
+      if (!getLitAuthSig()) {
+        await signLitAuthMessage();
       }
       if (!getHoloAuthSigDigest()) {
         await signHoloAuthMessage();
       }
       setReadyToLoadCreds(true);
     })()
-  }, [])
+  }, [account])
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
-    if (!litAuthSig) return;
     (async () => {
       try {
         if (props.jobID === 'retryMint') {
@@ -136,7 +130,7 @@ const StoreCredentials = (props) => {
             throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
           }
           const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
           window.localStorage.removeItem('holoPlaintextVouchedCreds')
           if (props.onCredsStored) props.onCredsStored(currentSortedCreds[props.issuer])
           return;
@@ -152,7 +146,7 @@ const StoreCredentials = (props) => {
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
-  }, [readyToLoadCreds, litAuthSig])
+  }, [readyToLoadCreds])
 
 
   if (successScreen) {
