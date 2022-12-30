@@ -32,8 +32,13 @@ export const chainIdUsedForLit = 1;
 
 export const defaultChainToProveOn = process.env.NODE_ENV === 'development' ? 'optimism-goerli' : 'optimism';
 
-// For the Veriff test integration called "redirect"
-export const VERIFF_PUBLIC_API_KEY = "374cd822-c529-4c50-a4ea-e142119a36c8";
+// development key is for the test integration called "redirect"
+// production key is for the live integration called "Live 1"
+export const VERIFF_PUBLIC_API_KEY = 
+  process.env.NODE_ENV === "development" 
+    ? "374cd822-c529-4c50-a4ea-e142119a36c8"
+    : "f429838c-4777-4b82-adf4-79e669a5427d";
+// export const VERIFF_PUBLIC_API_KEY = "f429838c-4777-4b82-adf4-79e669a5427d";
 
 export const stateAbbreviations = {
   ALABAMA: "AL",
