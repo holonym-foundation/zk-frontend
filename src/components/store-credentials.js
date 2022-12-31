@@ -30,7 +30,6 @@ import MintButton from "./atoms/mint-button";
 const Verified = (props) => {
   // const { jobID } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sortedCreds, setSortedCreds] = useState();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
@@ -74,14 +73,13 @@ const Verified = (props) => {
     // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
     // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
     const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
-    let sortedCreds_ = {};
+    let sortedCreds = {};
     if (encryptedCurrentCredsResp) {
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
       const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-      sortedCreds_ = {...currentSortedCreds};
+      sortedCreds = {...currentSortedCreds};
     }
-    sortedCreds_[credsTemp.issuer] = credsTemp;
-    setSortedCreds(sortedCreds_);
+    sortedCreds[credsTemp.issuer] = credsTemp;
 
     // Store creds
     const holoAuthSigDigest = getHoloAuthSigDigest();
@@ -89,23 +87,17 @@ const Verified = (props) => {
       setError("Error: Could not get user signature");
       return;
     }
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
     setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     window.localStorage.removeItem('holoPlaintextVouchedCreds')
-    if (props.onCredsStored) props.onCredsStored(sortedCreds_[credsTemp.issuer])
+    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer])
   }
   
   // Steps:
-  // Branch a: User is retrying mint
-  // Branch a: 1. Get & set litAuthSig and holoAuthSigDigest
-  // Branch a: 2. Get and set creds from localStorage
-  // Branch a: 3. Call callback with new creds
-  // 
-  // Branch b: User is not retrying mint
-  // Branch b: 1. Get & set litAuthSig and holoAuthSigDigest
-  // Branch b: 2. Get creds from server
-  // Branch b: 3. Merge new creds with current creds
-  // Branch b: 4. Call callback with merged creds
+  // 1. Get & set litAuthSig and holoAuthSigDigest
+  // 2. Get creds from server
+  // 3. Merge new creds with current creds
+  // 4. Call callback with merged creds
   useEffect(() => {
     if (!account.address) return;
     (async () => {
@@ -123,24 +115,10 @@ const Verified = (props) => {
     if (!readyToLoadCreds) return;
     (async () => {
       try {
-        if (props.jobID === 'retryMint') {
-          console.log('retrying mint')
-          const localEncryptedCreds = getLocalEncryptedUserCredentials()
-          if (!localEncryptedCreds) {
-            throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
-          }
-          const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
-          window.localStorage.removeItem('holoPlaintextVouchedCreds')
-          if (props.onCredsStored) props.onCredsStored(currentSortedCreds[props.issuer])
-          return;
-        }
-        else {
-          const credsTemp = props.prefilledCreds ?? (await loadCredentials());
-          window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
-          if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
-          await mergeAndSetCreds(credsTemp)
-        }
+        const credsTemp = props.prefilledCreds ?? (await loadCredentials());
+        window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
+        if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
+        await mergeAndSetCreds(credsTemp)
       } catch (err) {
         console.error(err);
         setError(`Error loading credentials: ${err.message}`);
