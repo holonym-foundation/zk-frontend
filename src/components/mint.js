@@ -103,7 +103,7 @@ const allowedCredTypes = ["idgov", "phone"];
 
 
 const Mint = (props) => {
-  const { credType, jobID } = useParams();
+  const { credType, storing } = useParams();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
@@ -123,7 +123,7 @@ const Mint = (props) => {
   } 
   let current = "0-enter-number";
   if(phoneNumber) current = step1Name;
-  if((!creds && jobID) || (creds && !jobID)) current = "2-get-verification-result";
+  if((!creds && storing) || (creds && !storing)) current = "2-get-verification-result";
   if(readyToMint) current = "3-mint";
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   if(success) current = null;
@@ -142,7 +142,6 @@ const Mint = (props) => {
       {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} errCallback={setError} callback={setCreds} />}
       {(current === "2-get-verification-result") && <StepStoreCreds prefilledCreds={creds} onCredsStored={c=>{setCreds(c); setReadyToMint(true)}} credType={credType} />}
       {(current === "3-mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
-      {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <StepSuccess />}
       {error && <h3 style={{color:"red"}}>{error}</h3>}
     </div>

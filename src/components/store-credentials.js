@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 
 import {
@@ -28,9 +28,8 @@ import MintButton from "./atoms/mint-button";
 
 // Display success message, and retrieve user credentials to store in browser
 const Verified = (props) => {
-  // const p = useParams();
-  // const jobID = p.jobID || props.jobID;
-  const { jobID } = useParams();
+  // const { jobID } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sortedCreds, setSortedCreds] = useState();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
@@ -47,16 +46,17 @@ const Verified = (props) => {
     getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
-  async function loadCredentialsVouched() {
+  async function loadCredentials() {
     setError(undefined);
     setLoading(true);
     try {
-      const resp = await fetch(
-        `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
-      );
+      // const resp = await fetch(
+      //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
+      // );
+      const resp = await fetch(searchParams.get('retrievalEndpoint'))
       const data = await resp.json();
-      if (!data || data.error) {
-        console.error(`Could not retrieve credentials. Details: ${data.error}`);
+      if (!data) {
+        console.error(`Could not retrieve credentials.`);
         return;
       } else {
         setLoading(false);
@@ -136,7 +136,7 @@ const Verified = (props) => {
           return;
         }
         else {
-          const credsTemp = props.prefilledCreds ?? (await loadCredentialsVouched());
+          const credsTemp = props.prefilledCreds ?? (await loadCredentials());
           window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)

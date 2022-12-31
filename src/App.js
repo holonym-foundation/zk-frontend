@@ -137,7 +137,7 @@ function App() {
           {/* <Route exact path={"/"} element={<Welcome />} /> */}
           <Route exact path={"/"} element={<MintOptions />} />
           <Route exact path={"/mint"} element={<MintOptions />} />
-          <Route exact path={"/mint/:credType/:jobID"} element={<Mint />} />
+          <Route exact path={"/mint/:credType/:storing"} element={<Mint />} />
           <Route exact path={"/mint/:credType"} element={<Mint />} />
           <Route exact path={"/retry"} element={<Mint retry={true} />} />
           {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}
