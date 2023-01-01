@@ -1,5 +1,6 @@
 :root {
   --holo-light-blue: #6093e5;
+  --dark-card-background: #060612;
 }
 
 .App {
@@ -145,7 +146,7 @@
 }
 
 .profile-info-card {
-  background-color: #060612;
+  background-color: var(--dark-card-background);
   border: 2px solid #0a0a16;
   border-radius: 10px;
   /* box-shadow: 0px 0px 3px #fdc094; */

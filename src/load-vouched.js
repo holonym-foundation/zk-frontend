@@ -65,7 +65,7 @@ const loadVouched = (phoneNumber) => {
       theme: {
         name: 'avant',
         // iconLabelColor : '#89b3e5',
-        bgColor : '#02070c',
+        bgColor : '#060612',
         // logo : { src: 'https://holonym.id/images/Holo-Logo.png', style: { 'max-width': 150, 'margin-bottom': 30 }},
         // navigationActiveText : '#89b3e5',
         // iconColor : '#ff9190',
