@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useNetwork } from "wagmi";
-import LitJsSdk from "@lit-protocol/sdk-browser";
 import { 
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   storeProofMetadata,
-  sha256
 } from "../utils/secrets";
 import {
   getDateAsInt,
@@ -81,7 +79,7 @@ const Proofs = () => {
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
-  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
+  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
   const {
@@ -117,7 +115,7 @@ const Proofs = () => {
       ethers.BigNumber.from(creds_.newSecret).toString(),
     ]);
 
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, birthdate_] = creds_.serializedCreds;
+    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.serializedCreds;
     const por = await proofOfResidency(
       account.address,
       issuer_,
@@ -126,7 +124,7 @@ const Proofs = () => {
       countryCode_,
       nameCitySubdivisionZipStreetHash_,
       completedAt_,
-      birthdate_,
+      scope,
       creds_.newSecret
     );
     // Once setProof is called, the proof is submtited
@@ -153,7 +151,7 @@ const Proofs = () => {
       ethers.BigNumber.from(creds_.newSecret).toString(),
     ]);
 
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, birthdate_] = creds_.serializedCreds;
+    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.serializedCreds;
 
     const as = await antiSybil(
       account.address,
@@ -163,7 +161,7 @@ const Proofs = () => {
       countryCode_, 
       nameCitySubdivisionZipStreetHash_, 
       completedAt_, 
-      birthdate_,
+      scope,
       creds_.newSecret
     );
     // Once setProof is called, the proof is submtited
@@ -172,17 +170,22 @@ const Proofs = () => {
 
   // Steps:
   // 1. Ensure user's wallet is connected (i.e., get account)
-  // 2. Get & set holoAuthSigDigest
+  // 2. Get & set holoAuthSigDigest and litAuthSig
   // 3. Get & set creds
   // 4. Get & set proof
   // 5. Submit proof tx
 
   useEffect(() => {
-    if (account?.address && !getHoloAuthSigDigest()) {
-      console.log('Requesting signature for holoAuthSigDigest')
-      signHoloAuthMessage().then(() => setReadyToLoadCreds(true))
-    }
-    if (account?.address && getHoloAuthSigDigest()) setReadyToLoadCreds(true);
+    if (!account?.address) return;
+    (async () => {
+      if (!getLitAuthSig()) {
+        await signLitAuthMessage();
+      }
+      if (!getHoloAuthSigDigest()) {
+        await signHoloAuthMessage();
+      }
+      setReadyToLoadCreds(true);
+    })()
   }, [account]);
 
   useEffect(() => {
@@ -203,7 +206,7 @@ const Proofs = () => {
         encryptedCredentials = data.encryptedCredentials
         encryptedSymmetricKey = data.encryptedSymmetricKey
       }
-      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey)
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {
@@ -236,14 +239,13 @@ const Proofs = () => {
     return;
   }
 
-  async function submitProofThenStoreMetadata(proof,contractName) {
+  async function submitProofThenStoreMetadata(proof, contractName) {
       const result = await Relayer.prove(proof, contractName, defaultChainToProveOn);
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata
-        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-        setLitAuthSig(authSig);
-        await storeProofMetadata(result.data, params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
+        const authSig = getLitAuthSig() ?? await signLitAuthMessage();
+        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
         setSuccess(true);
       }
       else {

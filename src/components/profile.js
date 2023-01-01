@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import LitJsSdk from "@lit-protocol/sdk-browser";
 import { formatPhoneNumberIntl } from "react-phone-number-input";
+import { useAccount } from 'wagmi';
 import { InfoButton } from "./info-button";
 import PublicProfileField from './atoms/PublicProfileField';
 import PrivateProfileField from './atoms/PrivateProfileField';
@@ -80,7 +80,8 @@ export default function Profile(props) {
   const [creds, setCreds] = useState();
   const [proofMetadata, setProofMetadata] = useState();
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
-  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
+  const { data: account } = useAccount();
+  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,
@@ -90,17 +91,17 @@ export default function Profile(props) {
   } = useHoloAuthSig();
 
   useEffect(() => {
+    if (!account?.address) return;
     (async () => {
-      if (!litAuthSig) {
-        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-        setLitAuthSig(authSig);
+      if (!getLitAuthSig()) {
+        await signLitAuthMessage();
       }
       if (!getHoloAuthSigDigest()) {
         await signHoloAuthMessage();
       }
       setReadyToLoadCredsAndProofs(true);
     })()
-  }, [])
+  }, [account])
 
   useEffect(() => {
     async function getAndSetCreds() {
@@ -114,7 +115,7 @@ export default function Profile(props) {
           const plaintextCreds = await decryptObjectWithLit(
             encryptedCredsObj.encryptedCredentials, 
             encryptedCredsObj.encryptedSymmetricKey, 
-            litAuthSig
+            getLitAuthSig()
           )
           const formattedCreds = formatCreds(plaintextCreds);
           setCreds(formattedCreds);
@@ -134,7 +135,7 @@ export default function Profile(props) {
           const decryptedProofMetadata = await decryptObjectWithLit(
             encryptedProofMetadata.encryptedProofMetadata,
             encryptedProofMetadata.encryptedSymmetricKey,
-            litAuthSig
+            getLitAuthSig()
           )
           const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
           setProofMetadata(populatedData)

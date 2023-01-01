@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import LitJsSdk from "@lit-protocol/sdk-browser";
+import { useParams, useSearchParams } from "react-router-dom";
+import { useAccount } from "wagmi";
 
 import {
   encryptObject,
@@ -8,20 +8,13 @@ import {
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   generateSecret,
-  sha256,
   storeCredentials,
   getIsHoloRegistered,
   requestCredentials,
 } from "../utils/secrets";
 import { 
   idServerUrl,
-  chainUsedForLit,
-  zkIdVerifyEndpoint, 
-  zkPhoneEndpoint
 } from "../constants/misc";
-import {
-  getDateAsInt,
-} from "../utils/proofs";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
 import { useLitAuthSig } from '../context/LitAuthSig';
@@ -35,16 +28,16 @@ import MintButton from "./atoms/mint-button";
 
 // Display success message, and retrieve user credentials to store in browser
 const Verified = (props) => {
-  // const p = useParams();
-  // const jobID = p.jobID || props.jobID;
-  const { jobID } = useParams();
+  // const { jobID } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sortedCreds, setSortedCreds] = useState();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
+  const { data: account } = useAccount();
 
-  const { litAuthSig, setLitAuthSig } = useLitAuthSig();
+  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,
@@ -53,16 +46,17 @@ const Verified = (props) => {
     getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
-  async function loadCredentialsVouched() {
+  async function loadCredentials() {
     setError(undefined);
     setLoading(true);
     try {
-      const resp = await fetch(
-        `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
-      );
+      // const resp = await fetch(
+      //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
+      // );
+      const resp = await fetch(searchParams.get('retrievalEndpoint'))
       const data = await resp.json();
-      if (!data || data.error) {
-        console.error(`Could not retrieve credentials. Details: ${data.error}`);
+      if (!data) {
+        console.error(`Could not retrieve credentials.`);
         return;
       } else {
         setLoading(false);
@@ -74,19 +68,20 @@ const Verified = (props) => {
   }
 
   async function mergeAndSetCreds(credsTemp) {
-      credsTemp.newSecret = generateSecret();
-      // Merge new creds with old creds
-      // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
-      // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
-      const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
-      let sortedCreds_ = {};
-      if (encryptedCurrentCredsResp) {
-        const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
-        const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-        sortedCreds_ = {...currentSortedCreds};
-      }
-      sortedCreds_[credsTemp.issuer] = credsTemp;
-      setSortedCreds(sortedCreds_);
+    credsTemp.newSecret = generateSecret();
+    const litAuthSig = getLitAuthSig();
+    // Merge new creds with old creds
+    // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
+    // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
+    const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
+    let sortedCreds_ = {};
+    if (encryptedCurrentCredsResp) {
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
+      sortedCreds_ = {...currentSortedCreds};
+    }
+    sortedCreds_[credsTemp.issuer] = credsTemp;
+    setSortedCreds(sortedCreds_);
 
     // Store creds
     const holoAuthSigDigest = getHoloAuthSigDigest();
@@ -112,21 +107,20 @@ const Verified = (props) => {
   // Branch b: 3. Merge new creds with current creds
   // Branch b: 4. Call callback with merged creds
   useEffect(() => {
+    if (!account.address) return;
     (async () => {
-      if (!litAuthSig) {
-        const authSig = litAuthSig ? litAuthSig : await LitJsSdk.checkAndSignAuthMessage({ chain: chainUsedForLit })
-        setLitAuthSig(authSig);
+      if (!getLitAuthSig()) {
+        await signLitAuthMessage();
       }
       if (!getHoloAuthSigDigest()) {
         await signHoloAuthMessage();
       }
       setReadyToLoadCreds(true);
     })()
-  }, [])
+  }, [account])
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
-    if (!litAuthSig) return;
     (async () => {
       try {
         if (props.jobID === 'retryMint') {
@@ -136,13 +130,13 @@ const Verified = (props) => {
             throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
           }
           const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
           window.localStorage.removeItem('holoPlaintextVouchedCreds')
           if (props.onCredsStored) props.onCredsStored(currentSortedCreds[props.issuer])
           return;
         }
         else {
-          const credsTemp = props.prefilledCreds ?? (await loadCredentialsVouched());
+          const credsTemp = props.prefilledCreds ?? (await loadCredentials());
           window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
           if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
           await mergeAndSetCreds(credsTemp)
@@ -152,7 +146,7 @@ const Verified = (props) => {
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
-  }, [readyToLoadCreds, litAuthSig])
+  }, [readyToLoadCreds])
 
 
   if (successScreen) {

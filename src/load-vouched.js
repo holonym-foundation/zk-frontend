@@ -1,3 +1,5 @@
+import { idServerUrl } from "./constants/misc";
+
 const loadVouched = (phoneNumber) => {
   const config = {
     // Optional verification properties.
@@ -41,11 +43,12 @@ const loadVouched = (phoneNumber) => {
 
         // Redirect to the next page based on the job success
         if( job.result.success){
+          const retrievalEndpoint = `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${job.id}`
           console.log('jobID is', job.id)
-          window.location.href=(`/mint/idgov/${job.id}`);
-      } else{
+          window.location.href=(`/mint/idgov/storing?retrievalEndpoint=${retrievalEndpoint}`);
+        } else {
           alert('Verification failed')
-      //   window.location.href=("");
+          // window.location.href=("");
         }
       },
 
