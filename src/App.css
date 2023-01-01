@@ -224,3 +224,32 @@
   margin-top: auto;
   margin-bottom: auto;
 }
+
+.profile-verify-button {
+  grid-column: span 3;
+  text-align: center;
+  padding: 5px;
+  background-color: #5e72eb;
+  border: 1px solid #5e72eb;
+  border-radius: 10px;
+  transition-duration: 100ms;
+}
+.profile-verify-button:hover {
+  background-color: #4e62db;
+  color: #efefef;
+  cursor: pointer;
+}
+
+.profile-prove-button {
+  text-align: center;
+  padding: 5px;
+  background-color: #5e72eb;
+  border: 1px solid #5e72eb;
+  border-radius: 10px;
+  transition-duration: 100ms;
+}
+.profile-prove-button:hover {
+  background-color: #4e62db;
+  color: #efefef;
+  cursor: pointer;
+}

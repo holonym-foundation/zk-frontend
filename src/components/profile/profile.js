@@ -2,25 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatPhoneNumberIntl } from "react-phone-number-input";
 import { useAccount } from 'wagmi';
-import { InfoButton } from "./info-button";
-import PublicProfileField from './atoms/PublicProfileField';
-import CircleWavy from '../img/CircleWavy.svg';
-import CircleWavyCheck from '../img/CircleWavyCheck.svg';
-import PrivateProfileField from './atoms/PrivateProfileField';
-import PrivateInfoCard from "./atoms/PrivateInfoCard";
-import PublicInfoCard from "./atoms/PublicInfoCard";
-import { useLitAuthSig } from "../context/LitAuthSig";
+import { InfoButton } from "../info-button";
+import PrivateInfoCard from "./PrivateInfoCard";
+import PublicInfoCard from "./PublicInfoCard";
+import { useLitAuthSig } from "../../context/LitAuthSig";
 import { 
   getLocalEncryptedUserCredentials,
   getLocalProofMetadata,
   decryptObjectWithLit,
-} from '../utils/secrets';
+} from '../../utils/secrets';
 import { 
   idServerUrl,
   primeToCountryCode,
   chainUsedForLit,
-} from "../constants/misc";
-import { useHoloAuthSig } from "../context/HoloAuthSig";
+} from "../../constants/misc";
+import { useHoloAuthSig } from "../../context/HoloAuthSig";
 
 const credsFieldsToIgnore = [
   'completedAt',
@@ -35,9 +31,7 @@ const credsFieldsToIgnore = [
  */
 function formatCreds(sortedCreds) {
   // Note: This flattening approach assumes two issuers will never provide the same field.
-  // For example, we will never use BOTH Vouched and Persona to retrieve "countryCode"
-
-
+  // For example, only one issuer will ever provide a 'firstName' field.
   const reshapedCreds = {}
   Object.entries(sortedCreds).reduce((acc, [issuer, cred]) => {
     const rawCreds = sortedCreds[issuer].rawCreds ?? sortedCreds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12    
@@ -170,11 +164,9 @@ export default function Profile(props) {
     <>
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
-
         <PublicInfoCard proofMetadata={proofMetadata} />
         <div className="spacer-large"></div>
         <PrivateInfoCard creds={creds} />
-
       </div>
     </div>
   </>
