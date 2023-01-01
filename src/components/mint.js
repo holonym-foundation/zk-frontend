@@ -11,6 +11,7 @@ import RoundedWindow from "./RoundedWindow";
 import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
+import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 
 // import { Success } from "./components/success";
 
@@ -70,7 +71,7 @@ const Step2FA = ({phoneNumber, callback, errCallback}) => {
     }
   }
   return <>
-    <h3 style={{"marginBottom":"25px"}}>Enter the code texted to you</h3>
+    <h2 style={{"marginBottom":"25px"}}>Enter the code texted to you</h2>
     <input value={code} onChange={onChange} className="text-field"></input>
   </>
 }
@@ -92,7 +93,7 @@ return <>
   <WithCheckMark size={3}><h2>Success</h2></WithCheckMark>
     <h5>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h5>
     <br />
-    <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Learn about the privacy tech</a></p>
+    <p><a href="https://docs.holonym.id" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Learn about the privacy tech</a></p>
     <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(toTweet)}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Bring more privacy to the web: Share your privacy pool contribution</a></p>
     {/* <button className="x-button outline">Learn More</button> */}
     {/* <p>Or <a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn more</a></p> */}
@@ -129,8 +130,10 @@ const Mint = (props) => {
   if(success) current = null;
     
   useEffect(()=>{if (phoneNumber && (current === "1-2fa")) {console.log("sending code to ", phoneNumber); sendCode(phoneNumber)}}, [phoneNumber])
-
+  // Clear the error after every step change, so any errors are cleared successful completion of a step
+  useEffect(()=>setError(""), [current])
   if (!(allowedCredTypes.includes(credType))) { return }
+  if(!account) return <RoundedWindow><ConnectWalletScreen /></RoundedWindow>
 
   return <RoundedWindow>
     {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
