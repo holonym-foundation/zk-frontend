@@ -130,7 +130,8 @@ const Mint = (props) => {
   if(success) current = null;
     
   useEffect(()=>{if (phoneNumber && (current === "1-2fa")) {console.log("sending code to ", phoneNumber); sendCode(phoneNumber)}}, [phoneNumber])
-
+  // Clear the error after every step change, so any errors are cleared successful completion of a step
+  useEffect(()=>setError(""), [current])
   if (!(allowedCredTypes.includes(credType))) { return }
   if(!account) return <RoundedWindow><ConnectWalletScreen /></RoundedWindow>
 
