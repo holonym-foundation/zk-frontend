@@ -143,3 +143,84 @@
   color: #fff;
   text-decoration: underline;
 }
+
+.profile-info-card {
+  background-color: #060612;
+  border: 2px solid #0a0a16;
+  border-radius: 10px;
+  /* box-shadow: 0px 0px 3px #fdc094; */
+  box-shadow: 0 0px 3px #5e72eb;
+  overflow: hidden;
+}
+
+.profile-info-card.public-info {
+  /* box-shadow: 0 0px 3px #ff9190; */
+  /* box-shadow: 0px 0px 3px #fdc094; */
+  /* box-shadow: 0 0px 3px #5e72eb; */
+}
+
+.card-header {
+  padding: 20px 20px 0px 20px;
+}
+
+.card-header-title {
+  color: #fff;
+  font-size: 24px;
+  margin: 0;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.private-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px 30px;
+  font-size: 16px;
+  color: #fff;
+}
+
+.private-info-attribute-name {
+  grid-column: 1 / 2;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.private-info-attribute-value {
+  grid-column: 2 / 3;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.private-info-attribute-date-issued {
+  grid-column: 3 / 4;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.private-info-attribute-issuer {
+  grid-column: 4 / 5;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.public-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 10px 30px;
+  font-size: 16px;
+  color: #fff;
+}
+
+.public-info-proof-name {
+  grid-column: 1;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.public-info-sbt-owner {
+  grid-column: 2;
+  margin-top: auto;
+  margin-bottom: auto;
+}

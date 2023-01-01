@@ -4,7 +4,11 @@ import { formatPhoneNumberIntl } from "react-phone-number-input";
 import { useAccount } from 'wagmi';
 import { InfoButton } from "./info-button";
 import PublicProfileField from './atoms/PublicProfileField';
+import CircleWavy from '../img/CircleWavy.svg';
+import CircleWavyCheck from '../img/CircleWavyCheck.svg';
 import PrivateProfileField from './atoms/PrivateProfileField';
+import PrivateInfoCard from "./atoms/PrivateInfoCard";
+import PublicInfoCard from "./atoms/PublicInfoCard";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { 
   getLocalEncryptedUserCredentials,
@@ -26,26 +30,40 @@ const credsFieldsToIgnore = [
   'signature'
 ]
 
-function formatCreds(creds) {
+/**
+ * Convert sortedCreds into object with shape { [credName]: { issuer: string, cred: string, completedAt: string } }
+ */
+function formatCreds(sortedCreds) {
   // Note: This flattening approach assumes two issuers will never provide the same field.
   // For example, we will never use BOTH Vouched and Persona to retrieve "countryCode"
-  const flattenedCreds = {}
-  for (const issuer of Object.keys(creds)) {
-    const credsToFlatten = creds[issuer].rawCreds ?? creds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12
-    Object.assign(flattenedCreds, { 
-      ...flattenedCreds,
-      ...credsToFlatten,
+
+
+  const reshapedCreds = {}
+  Object.entries(sortedCreds).reduce((acc, [issuer, cred]) => {
+    const rawCreds = sortedCreds[issuer].rawCreds ?? sortedCreds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12    
+    const newCreds = Object.entries(rawCreds).filter(([credName, credValue]) => credName !== 'completedAt').map(([credName, credValue]) => {
+      return {
+        [credName]: {
+          issuer,
+          cred: credValue,
+          completedAt: rawCreds.completedAt,
+        }
+      }
     })
-  }
+    return [...acc, ...newCreds];
+  }, []).forEach(cred => {
+    const [credName, credValue] = Object.entries(cred)[0];
+    reshapedCreds[credName] = credValue;
+  })
   const filteredCreds = Object.fromEntries(
-    Object.entries(flattenedCreds).filter(([fieldName, value]) => {
+    Object.entries(reshapedCreds).filter(([fieldName, value]) => {
       return !credsFieldsToIgnore.includes(fieldName);
     })
   );
   const formattedCreds = Object.fromEntries(
     Object.entries(filteredCreds).map(([fieldName, value]) => {
       if (fieldName === "countryCode") {
-        return ['Country', primeToCountryCode[value]]
+        return ['Country', { ...value, cred: primeToCountryCode[value.cred] }]
       } else {
         let formattedFieldName = fieldName.replace(/([A-Z])/g, " $1");
         formattedFieldName =
@@ -152,128 +170,11 @@ export default function Profile(props) {
     <>
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
-        <div className="x-dash-div">
-          <h1 className="h1">Public Info</h1>
-          <div className="spacer-small"></div>
-        </div>
-        <div className="spacer-small"></div>
-        <div className="x-wrapper dash">
-          {/* <PublicProfileField header="Age" fieldValue="24" /> */}
-          <PublicProfileField 
-            header="Unique Person" 
-            description={`This shows whether you have publicly claimed a "Unique person" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
-            fieldValue={proofMetadata?.['uniqueness']?.fieldValue}
-            proofSubmissionAddr={proofMetadata?.['uniqueness']?.address}
-            proveButtonCallback={proofMetadata?.['uniqueness']?.address ? null :
-              () => navigate('/prove/uniqueness')
-            }
-          />
-          <PublicProfileField 
-            header="US Resident" 
-            description="This shows whether you've publicly claimed a US residency SBT at a certain address"
-            fieldValue={proofMetadata?.['us-residency']?.fieldValue} 
-            proofSubmissionAddr={proofMetadata?.['us-residency']?.address}
-            proveButtonCallback={proofMetadata?.['us-residency']?.address ? null :
-              () => navigate('/prove/us-residency')
-            }
-          />
-        </div>
+
+        <PublicInfoCard proofMetadata={proofMetadata} />
         <div className="spacer-large"></div>
-        <div className="x-dash-div">
-          <h1 className="h1">Private Info</h1>
-        </div>
-        <div className="x-dash-div">
-          <p>This is kept locally and privately. Only you can see it.</p>
-          <div style={{marginBottom: "12px"}}>
-            <InfoButton
-                          type="inPlace"
-                          text={`Data is stored locally and a backup is encrypted, split up, and stored in multiple locations access-gated by your wallet signature. Part of it is stored in the Lit protocol, and part of it is stored on a server that cannot read any of your data, since all your data is encrypted. This server may be replaced with decentralized storage. Essentially, nobody can see your data except you, even in the backups.`}
-                      />
-          </div>
-          <div className="spacer-small"></div>
-        </div>
-        <div className="spacer-small"></div>
-        <div className="x-wrapper dash">
-          {creds?.['Country'] && creds?.['Subdivision'] && creds?.['Birthdate'] ? (
-            <>
-              <PrivateProfileField 
-                header="Name" 
-                fieldValue={
-                  ((creds?.['First Name'] ? creds['First Name'] + " " : "") +
-                  (creds?.['Middle Name'] ? creds['Middle Name'] + " " : "") +
-                  (creds?.['Last Name'] ? creds['Last Name'] : ""))
-                  || undefined
-                }
-              />
-              {/* <PrivateProfileField 
-                header="First Name" 
-                fieldValue={creds?.['First Name']}
-              />
-              <PrivateProfileField 
-                header="Middle Name" 
-                fieldValue={creds?.['Middle Name']}
-              />
-              <PrivateProfileField 
-                header="Last Name" 
-                fieldValue={creds?.['Last Name']}
-              /> */}
-              <PrivateProfileField 
-                header="Birthdate" 
-                fieldValue={creds?.['Birthdate']}
-              />
-              <PrivateProfileField 
-                header="Street Address" 
-                fieldValue={
-                  ((creds?.['Street Number'] ? creds['Street Number'] + " " : "") +
-                  (creds?.['Street Name'] ? creds['Street Name'] + " " : "") +
-                  (creds?.['Street Unit'] ? creds['Street Unit'] : ""))
-                  || undefined
-                }
-              />
-              {/* <PrivateProfileField 
-                header="Street Number" 
-                fieldValue={creds?.['Street Number']}
-              />
-              <PrivateProfileField 
-                header="Street Name" 
-                fieldValue={creds?.['Street Name']}
-              />
-              <PrivateProfileField 
-                header="Street Unit" 
-                fieldValue={creds?.['Street Unit']}
-              /> */}
-              <PrivateProfileField 
-                header="City" 
-                fieldValue={creds?.['City']}
-              />
-              <PrivateProfileField 
-                header="State" 
-                fieldValue={creds?.['Subdivision']}
-              />
-              <PrivateProfileField 
-                header="Zip Code" 
-                fieldValue={creds?.['Zip Code']}
-              />
-              <PrivateProfileField 
-                header="Country" 
-                fieldValue={creds?.['Country']} 
-              />
-            </>
-          ) : (
-            <PrivateProfileField 
-              header="Government ID" 
-              fieldValue={undefined}
-              verifyButtonCallback={() => navigate('/mint/idgov')}
-            />
-          )}
-          <PrivateProfileField 
-            header="Phone Number" 
-            fieldValue={creds?.['Phone Number']}
-            verifyButtonCallback={creds?.['Phone Number'] ?
-              null : () => navigate('/mint/phone') 
-            }
-          />
-          </div>
+        <PrivateInfoCard creds={creds} />
+
       </div>
     </div>
   </>
