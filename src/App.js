@@ -17,7 +17,7 @@ import WebFont from "webfontloader";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/atoms/Navbar";
 import Mint from "./components/mint.js";
-import Profile from './components/profile';
+import Profile from './components/profile/profile';
 import LoadingElement from "./components/loading-element";
 // import {
 //   ChainSwitcher,
