@@ -12,6 +12,7 @@ import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
+import { idServerUrl, maxVouchedJobCount } from '../constants/misc';
 
 // import { Success } from "./components/success";
 
@@ -46,7 +47,17 @@ const StepPhoneInput = (props) => {
 
 // Step 2A happens when user is using phone with crosscheck for government ID
 const StepIDV = ({phoneNumber}) => {
-  useEffect(()=>loadVouched(phoneNumber), []);
+  useEffect(() => {
+    (async () => {
+      const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+      const data = await resp.json();
+      if (data.jobCount >= maxVouchedJobCount) {
+        alert("Sorry, we cannot verify any more IDs at this time");
+        return;
+      }
+      loadVouched(phoneNumber);
+    })();
+  }, []);
   if(!phoneNumber){return <p>No phone number specified</p>}
   return <>
     <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>

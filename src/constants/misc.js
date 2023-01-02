@@ -32,6 +32,8 @@ export const chainIdUsedForLit = 1;
 
 export const defaultChainToProveOn = process.env.NODE_ENV === 'development' ? 'optimism-goerli' : 'optimism';
 
+export const maxVouchedJobCount = 100000;
+
 export const stateAbbreviations = {
   ALABAMA: "AL",
   ALASKA: "AK",
