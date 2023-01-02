@@ -33,7 +33,6 @@ export default function PrivateInfoCard({ creds }) {
 
   return (
     <>
-      {/* TODO: On small screens, just display attribute value (and have an accordian-style dropdown that displays the other columns) */}
       <div className="profile-info-card">
         <div className="card-header">
           <h2 className="card-header-title">Private Info</h2>
@@ -84,7 +83,6 @@ export default function PrivateInfoCard({ creds }) {
             ) : (
               <>
                 <div className="private-info-attribute-name">Phone Number</div>
-                {/* TODO: Is there a better place for this button?  */}
                 <VerifyButton onClick={() => navigate('/mint/phone')} text="Verify Phone Number" />
               </>
             )}

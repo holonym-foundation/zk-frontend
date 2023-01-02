@@ -33,7 +33,6 @@ export default function PublicInfoCard({ proofMetadata }) {
 
   return (
     <>
-      {/* TODO: On small screens, just display attribute value (and have an accordian-style dropdown that displays the other columns) */}
       <div className="profile-info-card public-info">
         <div className="card-header">
           <h2 className="card-header-title">Soulbound Tokens</h2>
@@ -44,7 +43,6 @@ export default function PublicInfoCard({ proofMetadata }) {
           <div className="public-info-grid">
             <div style={{ fontWeight: 'bold' }} className="public-info-proof-name">Proof Type</div>
             <div style={{ fontWeight: 'bold' }} className="public-info-sbt-owner">SBT belongs to</div>
-
             <ProofRow
               proofTitle="Unique Person"
               infoText={`This shows whether you have publicly claimed a "Unique person" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
@@ -52,7 +50,6 @@ export default function PublicInfoCard({ proofMetadata }) {
               onClickProve={() => navigate('/prove/uniqueness')}
               buttonText="Prove uniqueness"
             />
-
             <ProofRow
               proofTitle="US Resident"
               infoText={`This shows whether you've publicly claimed a US residency SBT at a certain address`}
@@ -60,7 +57,6 @@ export default function PublicInfoCard({ proofMetadata }) {
               onClickProve={() => navigate('/prove/us-residency')}
               buttonText="Prove US residency"
             />
-
           </div>
         </div>
       </div>
