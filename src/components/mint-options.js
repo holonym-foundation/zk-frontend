@@ -39,7 +39,14 @@ const opts = [
 
 const MintOption = (props) => {
     const navigate = useNavigate();
-    return <button onClick={()=>navigate(props.url)} className={"x-card blue" + (props.disabled ? " disable" : "")} style={{width:"100%", /*marginTop: "16px", marginLeft : "100px", marginRight : "100px", */fontSize: "x-large"}}>
+
+    return <button onClick={() => {
+                if (props.url.startsWith("mailto")) {
+                    window.location.href = props.url;
+                } else {
+                    navigate(props.url)
+                }
+            }} className={"x-card blue" + (props.disabled ? " disable" : "")} style={{width:"100%", /*marginTop: "16px", marginLeft : "100px", marginRight : "100px", */fontSize: "x-large"}}>
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row"}}>
                     <img src={props.image} style={{height:"50px", marginRight: "20px"}}></img>
                     <h5>{props.name}</h5>
