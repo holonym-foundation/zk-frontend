@@ -62,7 +62,8 @@ const StepIDV = ({phoneNumber}) => {
     const verification = veriffSessionQuery.data.verification;
     const handleVeriffEvent = (msg) => {
       if (msg === MESSAGES.FINISHED) {
-        navigate(`/mint/idgov/${verification.id}`)
+        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
+        navigate(`/mint/idgov/storing?retrievalEndpoint=${retrievalEndpoint}`)
       }
       // TODO: Handle MESSAGES.RELOAD_REQUEST
     }
