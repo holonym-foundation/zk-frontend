@@ -14,6 +14,8 @@ import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
 import { createVeriffSession } from "../utils/veriff";
+import ConnectWalletScreen from "./atoms/connect-wallet-screen";
+import { idServerUrl, maxVouchedJobCount } from '../constants/misc';
 
 // import { Success } from "./components/success";
 
@@ -70,6 +72,18 @@ const StepIDV = ({phoneNumber}) => {
     });
   }, [veriffSessionQuery])
 
+  // Old code for vouched. Should probably implement similar "maxJobCount" check for Veriff
+  // useEffect(() => {
+  //   (async () => {
+  //     const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+  //     const data = await resp.json();
+  //     if (data.jobCount >= maxVouchedJobCount) {
+  //       alert("Sorry, we cannot verify any more IDs at this time");
+  //       return;
+  //     }
+  //     loadVouched(phoneNumber);
+  //   })();
+  // }, []);
   if(!phoneNumber){return <p>No phone number specified</p>}
   return <>
     <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
@@ -93,7 +107,7 @@ const Step2FA = ({phoneNumber, callback, errCallback}) => {
     }
   }
   return <>
-    <h3 style={{"marginBottom":"25px"}}>Enter the code texted to you</h3>
+    <h2 style={{"marginBottom":"25px"}}>Enter the code texted to you</h2>
     <input value={code} onChange={onChange} className="text-field"></input>
   </>
 }
@@ -115,7 +129,7 @@ return <>
   <WithCheckMark size={3}><h2>Success</h2></WithCheckMark>
     <h5>By minting a Holo, you not only created an identity but also made the Privacy Pool (anonymity set) larger</h5>
     <br />
-    <p><a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Learn about the privacy tech</a></p>
+    <p><a href="https://docs.holonym.id" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Learn about the privacy tech</a></p>
     <p><a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(toTweet)}`} target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>Bring more privacy to the web: Share your privacy pool contribution</a></p>
     {/* <button className="x-button outline">Learn More</button> */}
     {/* <p>Or <a href="https://holonym.id/whitepaper.pdf" target="_blank" style={{color: "#2fd87a", textDecoration: "underline #2fd87a"}}>learn more</a></p> */}
@@ -126,7 +140,7 @@ const allowedCredTypes = ["idgov", "phone"];
 
 
 const Mint = (props) => {
-  const { credType, jobID } = useParams();
+  const { credType, storing } = useParams();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
@@ -146,14 +160,16 @@ const Mint = (props) => {
   } 
   let current = "0-enter-number";
   if(phoneNumber) current = step1Name;
-  if((!creds && jobID) || (creds && !jobID)) current = "2-get-verification-result";
+  if((!creds && storing) || (creds && !storing)) current = "2-get-verification-result";
   if(readyToMint) current = "3-mint";
   if(props.retry) current = "retry"; // If there was an issue submitting the minting tx and the user wants to retry
   if(success) current = null;
     
   useEffect(()=>{if (phoneNumber && (current === "1-2fa")) {console.log("sending code to ", phoneNumber); sendCode(phoneNumber)}}, [phoneNumber])
-
+  // Clear the error after every step change, so any errors are cleared successful completion of a step
+  useEffect(()=>setError(""), [current])
   if (!(allowedCredTypes.includes(credType))) { return }
+  if(!account) return <RoundedWindow><ConnectWalletScreen /></RoundedWindow>
 
   return <RoundedWindow>
     {/* <div style={{display: "flex", alignItems : "center", justifyContent : "center"}}><h2>Mint a Holo</h2></div> */}
@@ -165,7 +181,6 @@ const Mint = (props) => {
       {(current === "1-2fa") && <Step2FA phoneNumber={phoneNumber} errCallback={setError} callback={setCreds} />}
       {(current === "2-get-verification-result") && <StepStoreCreds prefilledCreds={creds} onCredsStored={c=>{setCreds(c); setReadyToMint(true)}} credType={credType} />}
       {(current === "3-mint") && <StepMint onSuccess={()=>setSuccess(true)} creds={creds} />}
-      {/* {(current === "retry") && <Step3 onCredsStored={setCreds} jobID="loadFromExtension" />} */}
       {success && <StepSuccess />}
       {error && <h3 style={{color:"red"}}>{error}</h3>}
     </div>

@@ -6,7 +6,6 @@ import "./holo-wtf.webflow.css";
 // import Registry from "./components/registry.js";
 // import { HomeLogo } from "./components/logo.js";
 // import { Lookup } from "./components/lookup.js";
-// import Verify from "./components/verify";
 // import Proofs from "./components/proofs"
 import ProofMenu from "./components/proof-menu";
 import React, { Suspense, useEffect } from "react";
@@ -19,7 +18,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from "./components/atoms/Navbar";
 import Mint from "./components/mint.js";
-import Profile from './components/profile';
+import Profile from './components/profile/profile';
 import LoadingElement from "./components/loading-element";
 // import {
 //   ChainSwitcher,
@@ -139,11 +138,10 @@ function App() {
             {/* <Route path='/private' element={<LitCeramic stringToEncrypt={JWTObject.header.raw + '.' + JWTObject.payload.raw}/>} /> */}
             {/* <Route path={"/"} element={myHoloPage} /> */}
             {/* <Route path={"/myholo"} element={myHoloPage} /> */}
-            {/* <Route path={"/zk-id/verify"} element={<Verify />} /> */}
             {/* <Route exact path={"/"} element={<Welcome />} /> */}
             <Route exact path={"/"} element={<MintOptions />} />
             <Route exact path={"/mint"} element={<MintOptions />} />
-            <Route exact path={"/mint/:credType/:jobID"} element={<Mint />} />
+            <Route exact path={"/mint/:credType/:storing"} element={<Mint />} />
             <Route exact path={"/mint/:credType"} element={<Mint />} />
             <Route exact path={"/retry"} element={<Mint retry={true} />} />
             {/* <Route path={"/zk-id/verified"} element={<Verified />} /> */}

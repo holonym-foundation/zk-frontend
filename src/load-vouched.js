@@ -1,3 +1,5 @@
+import { idServerUrl } from "./constants/misc";
+
 const loadVouched = (phoneNumber) => {
   const config = {
     // Optional verification properties.
@@ -41,11 +43,12 @@ const loadVouched = (phoneNumber) => {
 
         // Redirect to the next page based on the job success
         if( job.result.success){
+          const retrievalEndpoint = `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${job.id}`
           console.log('jobID is', job.id)
-          window.location.href=(`/mint/idgov/${job.id}`);
-      } else{
+          window.location.href=(`/mint/idgov/storing?retrievalEndpoint=${retrievalEndpoint}`);
+        } else {
           alert('Verification failed')
-      //   window.location.href=("");
+          // window.location.href=("");
         }
       },
 
@@ -62,7 +65,7 @@ const loadVouched = (phoneNumber) => {
       theme: {
         name: 'avant',
         // iconLabelColor : '#89b3e5',
-        bgColor : '#02070c',
+        bgColor : '#060612',
         // logo : { src: 'https://holonym.id/images/Holo-Logo.png', style: { 'max-width': 150, 'margin-bottom': 30 }},
         // navigationActiveText : '#89b3e5',
         // iconColor : '#ff9190',

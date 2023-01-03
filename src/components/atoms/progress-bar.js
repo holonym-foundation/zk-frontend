@@ -7,7 +7,7 @@ const Container = ({idx, text}) =>
     <span style={{position:"relative"}} className="progress-bar-item">
         <a style={{"fontFamily" : "Montserrat"}}>{idx+1}</a>
     </span>
-    <h4 style={{position:"absolute", top:"5vh"}}>{text}</h4>
+    <h5 style={{position:"absolute", bottom:"-40px"}}>{text}</h5>
 </div>
 
 const Progress = ({steps, currentIdx}) => {

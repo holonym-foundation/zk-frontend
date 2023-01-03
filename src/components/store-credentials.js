@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 
 import {
@@ -14,6 +14,7 @@ import {
 } from "../utils/secrets";
 import { 
   idServerUrl,
+  serverAddress,
 } from "../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
@@ -28,12 +29,11 @@ import MintButton from "./atoms/mint-button";
 
 // Display success message, and retrieve user credentials to store in browser
 const StoreCredentials = (props) => {
-  // const p = useParams();
-  // const jobID = p.jobID || props.jobID;
-  const { jobID } = useParams();
-  const [sortedCreds, setSortedCreds] = useState();
+  // const { jobID } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
+  const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
   const { data: account } = useAccount();
@@ -47,16 +47,17 @@ const StoreCredentials = (props) => {
     getHoloAuthSigDigest,
   } = useHoloAuthSig();
 
-  async function loadCredentialsVeriff() {
+  async function loadCredentials() {
     setError(undefined);
     setLoading(true);
     try {
-      const resp = await fetch(
-        `${idServerUrl}/veriff/credentials?sessionId=${jobID}`
-      );
+      // const resp = await fetch(
+      //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
+      // );
+      const resp = await fetch(searchParams.get('retrievalEndpoint'))
       const data = await resp.json();
-      if (!data || data.error) {
-        console.error(`Could not retrieve credentials. Details: ${data.error}`);
+      if (!data) {
+        console.error(`Could not retrieve credentials.`);
         return;
       } else {
         setLoading(false);
@@ -67,21 +68,60 @@ const StoreCredentials = (props) => {
     }
   }
 
+  function getCredsConfirmation(sortedCreds, credsTemp) {
+    // Ask user for confirmation if they already have credentials from this issuer
+    if (sortedCreds[credsTemp.issuer]) {
+      console.log('Issuer already in sortedCreds')
+      const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
+      let extraMessage = '';
+      if (Object.values(serverAddress).includes(credsTemp.issuer))
+        extraMessage = "You will not be able to undo this action. "
+      const confirmation = window.confirm(
+        `You already have credentials from this issuer. Would you like to overwrite them? ` +
+        extraMessage +
+        `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
+      )
+      if (confirmation) {
+        console.log(`User is overwriting creds from ${credsTemp.issuer}`)
+        return true
+      } else {
+        console.log(`User is not overwriting creds from ${credsTemp.issuer}`)
+        return false;
+      }
+    }
+    return true;
+  }
+
+  async function getAndDecryptCurrentCreds() {
+    let encryptedCurrentCreds = getLocalEncryptedUserCredentials()
+    if (!encryptedCurrentCreds) {
+      try {
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
+        const data = await resp.json();
+        if (!data.error) encryptedCurrentCreds = data;
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    let sortedCreds = {};
+    if (encryptedCurrentCreds) {
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCreds;
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig());
+      sortedCreds = {...currentSortedCreds};
+    }
+    return sortedCreds
+  }
+
   async function mergeAndSetCreds(credsTemp) {
     credsTemp.newSecret = generateSecret();
-    const litAuthSig = getLitAuthSig();
     // Merge new creds with old creds
-    // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
-    // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
-    const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
-    let sortedCreds_ = {};
-    if (encryptedCurrentCredsResp) {
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
-      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-      sortedCreds_ = {...currentSortedCreds};
+    const sortedCreds = await getAndDecryptCurrentCreds();
+    const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
+    if (!confirmed) {
+      setDeclinedToStoreCreds(true);
+      return;
     }
-    sortedCreds_[credsTemp.issuer] = credsTemp;
-    setSortedCreds(sortedCreds_);
+    sortedCreds[credsTemp.issuer] = credsTemp;
 
     // Store creds
     const holoAuthSigDigest = getHoloAuthSigDigest();
@@ -89,23 +129,17 @@ const StoreCredentials = (props) => {
       setError("Error: Could not get user signature");
       return;
     }
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds_, litAuthSig);
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, getLitAuthSig());
     setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
-    window.localStorage.removeItem('holoPlaintextVouchedCreds')
-    if (props.onCredsStored) props.onCredsStored(sortedCreds_[credsTemp.issuer])
+    window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
+    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer])
   }
   
   // Steps:
-  // Branch a: User is retrying mint
-  // Branch a: 1. Get & set litAuthSig and holoAuthSigDigest
-  // Branch a: 2. Get and set creds from localStorage
-  // Branch a: 3. Call callback with new creds
-  // 
-  // Branch b: User is not retrying mint
-  // Branch b: 1. Get & set litAuthSig and holoAuthSigDigest
-  // Branch b: 2. Get creds from server
-  // Branch b: 3. Merge new creds with current creds
-  // Branch b: 4. Call callback with merged creds
+  // 1. Get & set litAuthSig and holoAuthSigDigest
+  // 2. Get creds from server
+  // 3. Merge new creds with current creds
+  // 4. Call callback with merged creds
   useEffect(() => {
     if (!account.address) return;
     (async () => {
@@ -123,24 +157,10 @@ const StoreCredentials = (props) => {
     if (!readyToLoadCreds) return;
     (async () => {
       try {
-        if (props.jobID === 'retryMint') {
-          console.log('retrying mint')
-          const localEncryptedCreds = getLocalEncryptedUserCredentials()
-          if (!localEncryptedCreds) {
-            throw new Error("Could not retrieve credentials. Are you sure you have minted your Holo?");
-          }
-          const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = localEncryptedCreds
-          const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
-          window.localStorage.removeItem('holoPlaintextVouchedCreds')
-          if (props.onCredsStored) props.onCredsStored(currentSortedCreds[props.issuer])
-          return;
-        }
-        else {
-          const credsTemp = props.prefilledCreds ?? (await loadCredentialsVeriff());
-          window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
-          if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
-          await mergeAndSetCreds(credsTemp)
-        }
+        const credsTemp = props.prefilledCreds ?? (await loadCredentials());
+        window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
+        if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
+        await mergeAndSetCreds(credsTemp)
       } catch (err) {
         console.error(err);
         setError(`Error loading credentials: ${err.message}`);
@@ -154,32 +174,44 @@ const StoreCredentials = (props) => {
   }
   return (
     <>
+      {declinedToStoreCreds ? (
+        <>
+          <h3>Minting aborted</h3>
+          <p>Made a mistake? Please email Holonym support at{" "}
+            <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
+            your situation.
+          </p>
+        </>
+      ) : (
+        <>
         <div style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-      }}>
-        <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
-        <ThreeDots 
-          height="20" 
-          width="40" 
-          radius="2"
-          color="#FFFFFF" 
-          ariaLabel="three-dots-loading"
-          wrapperStyle={{marginBottom:"-20px"}}
-          wrapperClassName=""
-          visible={true}
-          />
+        }}>
+          <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
+          <ThreeDots 
+            height="20" 
+            width="40" 
+            radius="2"
+            color="#FFFFFF" 
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{marginBottom:"-20px"}}
+            wrapperClassName=""
+            visible={true}
+            />
 
-      </div>
-      <p>Please sign the new messages in your wallet</p>
-      <p>{error}</p>
-      {error && (
-        <p>
-          Please email Holonym support at{" "}
-          <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
-          the error.
-        </p>
+        </div>
+        <p>Please sign the new messages in your wallet</p>
+        <p>{error}</p>
+        {error && (
+          <p>
+            Please email Holonym support at{" "}
+            <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
+            the error.
+          </p>
+        )}
+        </>
       )}
     </>
   );

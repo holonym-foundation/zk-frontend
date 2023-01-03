@@ -44,6 +44,17 @@
   padding-bottom: 56.25%;
 }
 
+.mint-options {
+      padding-top: 40px;
+      display: grid;
+      /* // width: 100%; */
+      /* max-width: 750px; */
+      /* // margin: 0 auto; */
+      grid-template-columns: repeat(2, 1fr);
+      /* grid-template-rows: repeat(2, 1fr); */
+      grid-gap: 10px;
+  }
+
 body {
   background-color: #02070c;
   font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
@@ -56,7 +67,7 @@ h1 {
   margin-top: 20px;
   margin-bottom: 10px;
   font-family: 'Clover Semibold', sans-serif;
-  font-size: 67px;
+  font-size: xx-large;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -65,7 +76,7 @@ h2 {
   margin-top: 20px;
   margin-bottom: 10px;
   font-family: 'Clover Semibold', sans-serif;
-  font-size: 51px;
+  font-size: x-large;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -92,7 +103,7 @@ h5 {
   margin-top: 10px;
   margin-bottom: 10px;
   font-family: 'Clover Semibold', sans-serif;
-  font-size: 21px;
+  font-size: large;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -100,7 +111,7 @@ h5 {
 p {
   margin-bottom: 10px;
   font-family: Montserrat, sans-serif;
-  font-size: 16px;
+  font-size: small;
   line-height: 1.5;
 }
 
@@ -971,8 +982,9 @@ p.no-margin.small {
 }
 
 .x-card.blue.disable {
-  border-color: #707070;
   background-image: linear-gradient(135deg, #707070, #01010c 40%);
+  border-color: #707070;
+  color:grey;
 }
 
 .x-card.profile {

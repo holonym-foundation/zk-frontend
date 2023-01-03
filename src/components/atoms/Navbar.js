@@ -59,7 +59,7 @@ export default function Navbar(props) {
             <a href="/mint" className="nav-link w-nav-link">Mint</a>
             <a href="/prove" className="nav-link w-nav-link">Prove</a>
             <a href="/profile" className="nav-link w-nav-link">Profile</a>
-            <div className="nav-wallet">
+            <div className="nav-wallet" style={{ backgroundColor: 'var(--dark-card-background)' }}>
               <img src={UserImage} loading="lazy" alt="" className="nav-wallet-img" />
               {account?.address && account?.connector ? (
                 <div className="nav-wallet-text">

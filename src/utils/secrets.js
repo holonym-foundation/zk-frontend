@@ -81,7 +81,7 @@ export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey,
 }
 
 /**
- * Returns encrypted credentials from localStorage if present. Otherwise queries credential storage API
+ * Returns encrypted credentials from localStorage if present
  * @returns {object} { sigDigest, encryptedCredentials, encryptedSymmetricKey } if successful
  */
 export function getLocalEncryptedUserCredentials() {

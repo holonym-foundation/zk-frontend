@@ -39,6 +39,7 @@ export const VERIFF_PUBLIC_API_KEY =
     ? "374cd822-c529-4c50-a4ea-e142119a36c8"
     : "f429838c-4777-4b82-adf4-79e669a5427d";
 // export const VERIFF_PUBLIC_API_KEY = "f429838c-4777-4b82-adf4-79e669a5427d";
+export const maxVouchedJobCount = 100000;
 
 export const stateAbbreviations = {
   ALABAMA: "AL",
