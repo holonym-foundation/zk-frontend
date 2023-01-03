@@ -14,6 +14,7 @@ import {
 } from "../utils/secrets";
 import { 
   idServerUrl,
+  serverAddress,
 } from "../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
@@ -32,6 +33,7 @@ const Verified = (props) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
+  const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
   const [loading, setLoading] = useState(true);
   const [successScreen, setSuccessScreen] = useState(false);
   const { data: account } = useAccount();
@@ -66,18 +68,58 @@ const Verified = (props) => {
     }
   }
 
+  function getCredsConfirmation(sortedCreds, credsTemp) {
+    // Ask user for confirmation if they already have credentials from this issuer
+    if (sortedCreds[credsTemp.issuer]) {
+      console.log('Issuer already in sortedCreds')
+      const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
+      let extraMessage = '';
+      if (Object.values(serverAddress).includes(credsTemp.issuer))
+        extraMessage = "You will not be able to undo this action. "
+      const confirmation = window.confirm(
+        `You already have credentials from this issuer. Would you like to overwrite them? ` +
+        extraMessage +
+        `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
+      )
+      if (confirmation) {
+        console.log(`User is overwriting creds from ${credsTemp.issuer}`)
+        return true
+      } else {
+        console.log(`User is not overwriting creds from ${credsTemp.issuer}`)
+        return false;
+      }
+    }
+    return true;
+  }
+
+  async function getAndDecryptCurrentCreds() {
+    let encryptedCurrentCreds = getLocalEncryptedUserCredentials()
+    if (!encryptedCurrentCreds) {
+      try {
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
+        const data = await resp.json();
+        if (!data.error) encryptedCurrentCreds = data;
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    let sortedCreds = {};
+    if (encryptedCurrentCreds) {
+      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCreds;
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig());
+      sortedCreds = {...currentSortedCreds};
+    }
+    return sortedCreds
+  }
+
   async function mergeAndSetCreds(credsTemp) {
     credsTemp.newSecret = generateSecret();
-    const litAuthSig = getLitAuthSig();
     // Merge new creds with old creds
-    // TODO: Before we add multiple issuers: Need a way to know whether, if !encryptedCurrentCredsResp, 
-    // encryptedCurrentCredsResp is empty because user doesn't have creds or because creds have been removed from localStorage
-    const encryptedCurrentCredsResp = getLocalEncryptedUserCredentials()
-    let sortedCreds = {};
-    if (encryptedCurrentCredsResp) {
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCredsResp;
-      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-      sortedCreds = {...currentSortedCreds};
+    const sortedCreds = await getAndDecryptCurrentCreds();
+    const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
+    if (!confirmed) {
+      setDeclinedToStoreCreds(true);
+      return;
     }
     sortedCreds[credsTemp.issuer] = credsTemp;
 
@@ -87,9 +129,9 @@ const Verified = (props) => {
       setError("Error: Could not get user signature");
       return;
     }
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, getLitAuthSig());
     setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
-    window.localStorage.removeItem('holoPlaintextVouchedCreds')
+    window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
     if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer])
   }
   
@@ -116,7 +158,7 @@ const Verified = (props) => {
     (async () => {
       try {
         const credsTemp = props.prefilledCreds ?? (await loadCredentials());
-        window.localStorage.setItem('holoPlaintextVouchedCreds', JSON.stringify(credsTemp))
+        window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
         if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
         await mergeAndSetCreds(credsTemp)
       } catch (err) {
@@ -132,32 +174,44 @@ const Verified = (props) => {
   }
   return (
     <>
+      {declinedToStoreCreds ? (
+        <>
+          <h3>Minting aborted</h3>
+          <p>Made a mistake? Please email Holonym support at{" "}
+            <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
+            your situation.
+          </p>
+        </>
+      ) : (
+        <>
         <div style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-      }}>
-        <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
-        <ThreeDots 
-          height="20" 
-          width="40" 
-          radius="2"
-          color="#FFFFFF" 
-          ariaLabel="three-dots-loading"
-          wrapperStyle={{marginBottom:"-20px"}}
-          wrapperClassName=""
-          visible={true}
-          />
+        }}>
+          <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
+          <ThreeDots 
+            height="20" 
+            width="40" 
+            radius="2"
+            color="#FFFFFF" 
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{marginBottom:"-20px"}}
+            wrapperClassName=""
+            visible={true}
+            />
 
-      </div>
-      <p>Please sign the new messages in your wallet</p>
-      <p>{error}</p>
-      {error && (
-        <p>
-          Please email Holonym support at{" "}
-          <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
-          the error.
-        </p>
+        </div>
+        <p>Please sign the new messages in your wallet</p>
+        <p>{error}</p>
+        {error && (
+          <p>
+            Please email Holonym support at{" "}
+            <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
+            the error.
+          </p>
+        )}
+        </>
       )}
     </>
   );
