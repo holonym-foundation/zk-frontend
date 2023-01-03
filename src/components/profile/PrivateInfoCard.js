@@ -62,7 +62,7 @@ export default function PrivateInfoCard({ creds }) {
                     <div className="private-info-attribute-name">{credName}</div>
                     <div className="private-info-attribute-value">{creds[credName]?.cred}</div>
                     <div className="private-info-attribute-date-issued">{creds[credName]?.completedAt}</div>
-                    <div className="private-info-attribute-issuer">{issuerAddrToName[creds[credName]?.issuer]}</div>
+                    <div className="private-info-attribute-issuer">{issuerAddrToName[creds[credName]?.issuer] ?? creds[credName]?.issuer}</div>
                   </>
                 )
               )
@@ -78,7 +78,7 @@ export default function PrivateInfoCard({ creds }) {
                 <div className="private-info-attribute-name">Phone Number</div>
                 <div className="private-info-attribute-value">{creds['Phone Number']?.cred}</div>
                 <div className="private-info-attribute-date-issued">{creds?.['Phone Number']?.completedAt}</div>
-                <div className="private-info-attribute-issuer">{issuerAddrToName[creds?.['Phone Number']?.issuer]}</div>
+                <div className="private-info-attribute-issuer">{issuerAddrToName[creds?.['Phone Number']?.issuer] ?? creds?.['Phone Number']?.issuer}</div>
               </>
             ) : (
               <>
