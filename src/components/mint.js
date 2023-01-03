@@ -51,7 +51,7 @@ const StepIDV = ({phoneNumber}) => {
     (async () => {
       const resp = await fetch(`${idServerUrl}/vouched/job-count`)
       const data = await resp.json();
-      if (data.jobCount >= maxVouchedJobCount) {
+      if (data?.jobCount >= maxVouchedJobCount || data?.total >= maxVouchedJobCount) {
         alert("Sorry, we cannot verify any more IDs at this time");
         return;
       }
