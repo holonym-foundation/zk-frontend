@@ -12,7 +12,7 @@ import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
-import { idServerUrl, maxVouchedJobCount } from '../constants/misc';
+import { idServerUrl, maxDailyVouchedJobCount } from '../constants/misc';
 
 // import { Success } from "./components/success";
 
@@ -51,7 +51,7 @@ const StepIDV = ({phoneNumber}) => {
     (async () => {
       const resp = await fetch(`${idServerUrl}/vouched/job-count`)
       const data = await resp.json();
-      if (data?.jobCount >= maxVouchedJobCount || data?.total >= maxVouchedJobCount) {
+      if (data?.today >= maxDailyVouchedJobCount) {
         alert("Sorry, we cannot verify any more IDs at this time");
         return;
       }
