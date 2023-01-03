@@ -16,6 +16,7 @@ import WebFont from "webfontloader";
 // import WalletModal from "./components/atoms/WalletModal";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/atoms/Navbar";
+import Footer from "./components/atoms/Footer";
 import Mint from "./components/mint.js";
 import Profile from './components/profile/profile';
 import LoadingElement from "./components/loading-element";
@@ -156,6 +157,7 @@ function App() {
     </div>
   </div>
   </Suspense>
+  {/* <Footer /> */}
   </div>
   </HoloAuthSigProvider>
   </LitAuthSigProvider>
