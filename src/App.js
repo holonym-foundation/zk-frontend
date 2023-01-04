@@ -30,6 +30,7 @@ import { browserName, isMobile } from "react-device-detect";
 import MintOptions from "./components/mint-options.js";
 import { LitAuthSigProvider } from './context/LitAuthSig';
 import { HoloAuthSigProvider } from './context/HoloAuthSig';
+import ToastyBugReportCard from "./components/atoms/ToastyBugReportCard";
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 
@@ -156,6 +157,7 @@ function App() {
       </Router>
     </div>
   </div>
+  <ToastyBugReportCard />
   </Suspense>
   {/* <Footer /> */}
   </div>

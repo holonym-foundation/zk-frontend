@@ -26,7 +26,6 @@
     "react-error-boundary": "^3.1.4",
     "react-loader-spinner": "^5.3.4",
     "react-phone-number-input": "^3.2.12",
-    "react-query": "^3.38.1",
     "react-router-dom": "^6.3.0",
     "react-scripts": "4.0.3",
     "react-step-progress-bar": "^1.0.3",
