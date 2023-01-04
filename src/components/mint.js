@@ -13,7 +13,6 @@ import RoundedWindow from "./RoundedWindow";
 import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
-import { createVeriffSession } from "../utils/veriff";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 import { idServerUrl, maxVouchedJobCount } from '../constants/misc';
 
@@ -53,13 +52,18 @@ const StepIDV = ({phoneNumber}) => {
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({ 
     queryKey: ['veriffSession'],
-    queryFn: createVeriffSession 
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/veriff/session`, {
+        method: "POST",
+      })
+      return await resp.json()
+    } 
   });
 
   useEffect(() => {
-    if (!phoneNumber || !veriffSessionQuery.data?.verification) return;
+    if (!phoneNumber || !veriffSessionQuery.data?.url) return;
     
-    const verification = veriffSessionQuery.data.verification;
+    const verification = veriffSessionQuery.data;
     const handleVeriffEvent = (msg) => {
       if (msg === MESSAGES.FINISHED) {
         const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
