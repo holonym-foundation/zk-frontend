@@ -33,7 +33,7 @@ function Banner() {
           </p>
           <p>
             <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
-            Your privacy is gauranteed by strong cryptography.
+            Your privacy is guaranteed by strong cryptography.
             <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
             <br/>
             View{" "}

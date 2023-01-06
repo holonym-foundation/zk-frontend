@@ -201,7 +201,8 @@ const Verified = (props) => {
             />
 
         </div>
-        <p>Please sign the new messages in your wallet</p>
+        <p>Please sign the new messages in your wallet.</p>
+        <p>Loading credentials could take a few seconds.</p>
         <p>{error}</p>
         {error && (
           <p>Please open a ticket in the{" "}

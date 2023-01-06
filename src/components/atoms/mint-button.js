@@ -70,20 +70,23 @@ const MintButton = (props) => {
           justifyContent: "center",
           alignItems: "center"
         }}>
-        Mint Your Holo
-        {minting && !error && <ThreeDots 
-          height="20" 
-          width="20" 
-          radius="2"
-          color="#0F0F0F" 
-          ariaLabel="three-dots-loading"
-          wrapperStyle={{marginLeft:"20px"}}
-          wrapperClassName=""
-          visible={true}
-          />}
+          {minting ? "Minting" : "Mint Your Holo"}
+          {minting && !error && <ThreeDots 
+            height="20" 
+            width="20" 
+            radius="2"
+            color="#0F0F0F" 
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{marginLeft:"20px"}}
+            wrapperClassName=""
+            visible={true}
+            />}
           </div>
       </button>
 
+      <p style={{ marginTop: '20px' }}>
+        Do not refresh the page during minting. Otherwise the mint could fail.
+      </p>
       
       <p style={{color:"red"}}>{error}</p>
     </div>
