@@ -1145,7 +1145,7 @@ p.no-margin.small {
 
 .social-icon {
   display: inline-block;
-  height: 32px;
+  height: 24px;
   padding-left: 0px;
 }
 
@@ -1155,6 +1155,7 @@ p.no-margin.small {
   display: -ms-flexbox;
   display: flex;
   width: 100%;
+  margin-top: 5%;
   margin-bottom: 5%;
   -webkit-box-pack: end;
   -webkit-justify-content: flex-end;
@@ -1257,18 +1258,15 @@ p.no-margin.small {
   display: flex;
 }
 
-.card-link {
-  margin-left: 10px;
+.in-text-link {
   -webkit-transition: all 500ms cubic-bezier(.23, 1, .32, 1);
   transition: all 500ms cubic-bezier(.23, 1, .32, 1);
-  font-family: Montserrat, sans-serif;
   color: #fdc094;
-  font-size: 16px;
   line-height: 1.5;
   text-decoration: none;
 }
 
-.card-link:hover {
+.in-text-link:hover {
   color: #fff;
   text-decoration: underline;
 }

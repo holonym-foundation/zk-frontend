@@ -8,9 +8,6 @@ import {
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   generateSecret,
-  storeCredentials,
-  getIsHoloRegistered,
-  requestCredentials,
 } from "../utils/secrets";
 import { 
   idServerUrl,
@@ -177,9 +174,11 @@ const StoreCredentials = (props) => {
       {declinedToStoreCreds ? (
         <>
           <h3>Minting aborted</h3>
-          <p>Made a mistake? Please email Holonym support at{" "}
-            <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
-            your situation.
+          <p>Made a mistake? Please open a ticket in the{" "}
+            <a href="https://discord.com/channels/976235255793057872/1016368982850293811" target="_blank" rel="noreferrer" className="in-text-link">
+              #support-tickets
+            </a>{" "}
+            channel in the Holonym Discord with a description of your situation.
           </p>
         </>
       ) : (
@@ -202,13 +201,15 @@ const StoreCredentials = (props) => {
             />
 
         </div>
-        <p>Please sign the new messages in your wallet</p>
+        <p>Please sign the new messages in your wallet.</p>
+        <p>Loading credentials could take a few seconds.</p>
         <p>{error}</p>
         {error && (
-          <p>
-            Please email Holonym support at{" "}
-            <a href="mailto:help@holonym.id">help@holonym.id</a> with a description of
-            the error.
+          <p>Please open a ticket in the{" "}
+            <a href="https://discord.com/channels/976235255793057872/1016368982850293811" target="_blank" rel="noreferrer" className="in-text-link">
+              #support-tickets
+            </a>{" "}
+            channel in the Holonym Discord with a description of the error.
           </p>
         )}
         </>

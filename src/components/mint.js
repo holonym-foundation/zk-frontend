@@ -14,7 +14,7 @@ import "react-phone-number-input/style.css";
 import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
 import { getCredentialsPhone, sendCode } from "../utils/phone";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
-import { idServerUrl, maxVouchedJobCount } from '../constants/misc';
+import { idServerUrl, maxDailyVouchedJobCount } from '../constants/misc';
 
 // import { Success } from "./components/success";
 
