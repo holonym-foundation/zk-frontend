@@ -6,6 +6,7 @@ import HoloBurgerIcon from '../../img/Holo-Burger-Icon.svg';
 import { truncateAddress, udReverseResolution } from "../../utils/ui-helpers";
 import WalletModal from "./WalletModal";
 import ConnectWallet from "./ConnectWallet";
+import AnnouncementBanner from "./AnnouncementBanner";
 
 export default function Navbar(props) {
   const { data: account } = useAccount();
@@ -75,6 +76,7 @@ export default function Navbar(props) {
           {/* <ConnectWallet /> */}
           {/* <div className="menu-button w-nav-button"><img src={HoloBurgerIcon} loading="lazy" alt="" className="burger-icon" /></div> */}
         </div>
+        <AnnouncementBanner />
       </div>
     </>
   );

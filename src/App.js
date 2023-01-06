@@ -30,7 +30,6 @@ import { browserName, isMobile } from "react-device-detect";
 import MintOptions from "./components/mint-options.js";
 import { LitAuthSigProvider } from './context/LitAuthSig';
 import { HoloAuthSigProvider } from './context/HoloAuthSig';
-import Banner from "./components/atoms/Banner";
 import ToastyBugReportCard from "./components/atoms/ToastyBugReportCard";
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
@@ -58,7 +57,6 @@ function App() {
     <LitAuthSigProvider>
       <HoloAuthSigProvider>
         <div className="x-section bg-img">
-          <Banner />
           <div className="x-container nav">
             <Navbar />
           </div>
