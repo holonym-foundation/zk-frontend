@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import HolonymLogo from '../../img/Holonym-Logo-W.png';
 import UserImage from '../../img/User.svg';
-import HoloBurgerIcon from '../../img/Holo-Burger-Icon.svg';
 import { truncateAddress, udReverseResolution } from "../../utils/ui-helpers";
 import WalletModal from "./WalletModal";
-import ConnectWallet from "./ConnectWallet";
 import AnnouncementBanner from "./AnnouncementBanner";
 
 export default function Navbar(props) {
@@ -50,12 +48,6 @@ export default function Navbar(props) {
             </div>
           <img src={HolonymLogo} loading="lazy" alt="" sizes="200px" className="logo" />
           </a>
-          {/* <nav role="navigation" className="nav-menu flex w-nav-menu" style={{ fontSize: "1rem" }}>
-            <a href="#" className="nav-link w-nav-link">connect wallet</a>
-            <div className="nav-wallet"><img src={UserImage} loading="lazy" alt="" className="nav-wallet-img" />
-              <div className="nav-wallet-text">0x227...C597</div>
-            </div>
-          </nav> */}
           <nav role="navigation" className="nav-menu flex w-nav-menu" style={{ fontSize: "1rem" }}>
             <a href="/mint" className="nav-link w-nav-link">Mint</a>
             <a href="/prove" className="nav-link w-nav-link">Prove</a>
@@ -73,8 +65,6 @@ export default function Navbar(props) {
               )}
             </div>
           </nav>
-          {/* <ConnectWallet /> */}
-          {/* <div className="menu-button w-nav-button"><img src={HoloBurgerIcon} loading="lazy" alt="" className="burger-icon" /></div> */}
         </div>
         <AnnouncementBanner />
       </div>

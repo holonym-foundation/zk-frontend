@@ -1,6 +1,5 @@
 const ConnectWalletScreen = () => (
     <>
-    {/* <ConnectWallet /> */}
     <div className="x-container w-container">
         <div style={{display: "flex", flexDirection: "column"}}>
           <h1>Please Connect Your Wallet First</h1>

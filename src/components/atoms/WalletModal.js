@@ -32,36 +32,33 @@ const WalletModal = (props) => {
   const { connect, connectors, error, isConnecting, pendingConnector } = useConnect();
   return (
     <Modal visible={props.visible} setVisible={props.setVisible} blur={props.blur}>
-            
-              {/* <div className="x-card blue"> */}
-              
-              <div className="x-wrapper small-center" style={{ padding: "0px", minWidth: "285px", maxWidth: "400px"  }}>
-              <h2 className="h2-small">Select Wallet</h2>
-                <p className="p-2 white">Connect to the site below with one of our available wallet providers.</p>
-                {connectors.map((connector) => {
-                  if(!connector.ready){return null}
-                  // console.log(connector.id)
-                  return <div key={connector.id} >
-                  <div
-                    onClick={() => {connect(connector); props.setVisible(false)}}
-                  >
-                    <WalletOption 
-                      logo={walletMetadata[connector.id].logo} 
-                      name={walletMetadata[connector.id].name}
-                      description={walletMetadata[connector.id].description}
-                      />
-                    
-                    
+      {/* <div className="x-card blue"> */}
+      <div className="x-wrapper small-center" style={{ padding: "0px", minWidth: "285px", maxWidth: "400px"  }}>
+        <h2 className="h2-small">Select Wallet</h2>
+        <p className="p-2 white">Connect to the site below with one of our available wallet providers.</p>
+          {connectors.map((connector) => {
+            if(!connector.ready){return null}
+            // console.log(connector.id)
+            return (
+              <div key={connector.id} >
+                <div
+                  onClick={() => {connect(connector); props.setVisible(false)}}
+                >
+                  <WalletOption 
+                    logo={walletMetadata[connector.id].logo} 
+                    name={walletMetadata[connector.id].name}
+                    description={walletMetadata[connector.id].description}
+                    />
                     {/* {isConnecting &&
                       connector.id === pendingConnector?.id &&
                       ' (connecting)'} */}
-                  </div>
-                  <div className="spacer-small" />
                 </div>
-              })}
-
-              {error && <p>{error.message}</p>}
+                <div className="spacer-small" />
               </div>
+            )})}
+
+        {error && <p>{error.message}</p>}
+      </div>
     </Modal>
   )
 }

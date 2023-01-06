@@ -11,9 +11,7 @@ const ConnectWallet = ()=>{
           visible={walletModalShowing}
           setVisible={setWalletModalShowing}
           blur={true}
-        />
-        {/* <HomeLogo /> */}
-  
+        />  
         {account?.address && account?.connector ? (
           <Address address={account.address} />
         ) : (

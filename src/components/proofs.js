@@ -21,7 +21,6 @@ import {
   chainUsedForLit,
   defaultChainToProveOn
 } from "../constants/misc";
-// import ConnectWallet from "./atoms/ConnectWallet";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 
@@ -29,7 +28,6 @@ import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
-// import { getExtensionState } from "../utils/extension-helpers";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import Relayer from "../utils/relayer";
@@ -272,7 +270,6 @@ const Proofs = () => {
         {customError}
   </ErrorScreen>
   return (
-    // <Suspense fallback={<LoadingElement />}>
     <RoundedWindow>
     <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"}}>
         {!account?.address ? (
@@ -318,7 +315,6 @@ const Proofs = () => {
         )}
     </div>
     </RoundedWindow>
-    // </Suspense>
   );
 };
 

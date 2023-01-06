@@ -8,9 +8,6 @@ import {
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   generateSecret,
-  storeCredentials,
-  getIsHoloRegistered,
-  requestCredentials,
 } from "../utils/secrets";
 import { 
   idServerUrl,
