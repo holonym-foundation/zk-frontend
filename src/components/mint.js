@@ -48,6 +48,8 @@ const StepPhoneInput = (props) => {
 }
 
 // Step 2A happens when user is using phone with crosscheck for government ID
+// NOTE: Veriff does not support crosscheck, so phone number is not needed. Leaving this code in for now
+// in case we want to add crosscheck in the future
 const StepIDV = ({phoneNumber}) => {
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({ 
