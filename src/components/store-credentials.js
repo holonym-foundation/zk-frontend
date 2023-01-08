@@ -47,21 +47,19 @@ const Verified = (props) => {
   async function loadCredentials() {
     setError(undefined);
     setLoading(true);
-    try {
-      // const resp = await fetch(
-      //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
-      // );
-      const resp = await fetch(searchParams.get('retrievalEndpoint'))
-      const data = await resp.json();
-      if (!data) {
-        console.error(`Could not retrieve credentials.`);
-        return;
-      } else {
-        setLoading(false);
-        return data;
-      }
-    } catch (err) {
-      console.error(`Could not retrieve credentials. Details: ${err}`);
+    // const resp = await fetch(
+    //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
+    // );
+    const resp = await fetch(searchParams.get('retrievalEndpoint'))
+    const data = await resp.json();
+    if (!data) {
+      console.error(`Could not retrieve credentials.`);
+      throw new Error(`Could not retrieve credentials.`);
+    } else if (data.error) {
+      throw new Error(data.error);
+    } else {
+      setLoading(false);
+      return data;
     }
   }
 
@@ -203,7 +201,7 @@ const Verified = (props) => {
         </div>
         <p>Please sign the new messages in your wallet.</p>
         <p>Loading credentials could take a few seconds.</p>
-        <p>{error}</p>
+        <p style={{ color: "#f00", fontSize: "1.1rem" }}>{error}</p>
         {error && (
           <p>Please open a ticket in the{" "}
             <a href="https://discord.com/channels/976235255793057872/1016368982850293811" target="_blank" rel="noreferrer" className="in-text-link">
