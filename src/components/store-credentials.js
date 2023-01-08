@@ -47,15 +47,20 @@ const Verified = (props) => {
   async function loadCredentials() {
     setError(undefined);
     setLoading(true);
-    // const resp = await fetch(
-    //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
-    // );
     const resp = await fetch(searchParams.get('retrievalEndpoint'))
+
+    // handle error from phone-number-server
+    if (resp.status !== 200) {
+      throw new Error(resp.text())
+    }
+
     const data = await resp.json();
+    console.log('store-credentials: data', data)
     if (!data) {
       console.error(`Could not retrieve credentials.`);
       throw new Error(`Could not retrieve credentials.`);
     } else if (data.error) {
+      // handle error from id-server
       throw new Error(data.error);
     } else {
       setLoading(false);
@@ -152,7 +157,7 @@ const Verified = (props) => {
     if (!readyToLoadCreds) return;
     (async () => {
       try {
-        const credsTemp = props.prefilledCreds ?? (await loadCredentials());
+        const credsTemp = await loadCredentials();
         window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
         if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
         await mergeAndSetCreds(credsTemp)

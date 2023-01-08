@@ -56,7 +56,7 @@ function App() {
                   <Routes>
                     <Route exact path={"/"} element={<MintOptions />} />
                     <Route exact path={"/mint"} element={<MintOptions />} />
-                    <Route exact path={"/mint/:credType/:storing"} element={<Mint />} />
+                    <Route exact path={"/mint/:credType/:store"} element={<Mint />} />
                     <Route exact path={"/mint/:credType"} element={<Mint />} />
                     <Route exact path={"/retry"} element={<Mint retry={true} />} />
                     <Route exact path={"/prove"} element={<ProofMenu />} />

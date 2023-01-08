@@ -45,7 +45,7 @@ const loadVouched = (phoneNumber) => {
         if( job.result.success){
           const retrievalEndpoint = `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${job.id}`
           console.log('jobID is', job.id)
-          window.location.href=(`/mint/idgov/storing?retrievalEndpoint=${retrievalEndpoint}`);
+          window.location.href=(`/mint/idgov/store?retrievalEndpoint=${retrievalEndpoint}`);
         } else {
           alert('Verification failed')
           // window.location.href=("");
