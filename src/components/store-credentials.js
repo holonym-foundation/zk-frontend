@@ -11,7 +11,7 @@ import {
 } from "../utils/secrets";
 import { 
   idServerUrl,
-  serverAddress,
+  issuerWhitelist,
 } from "../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
 import { Success } from "./success";
@@ -68,12 +68,9 @@ const Verified = (props) => {
     if (sortedCreds[credsTemp.issuer]) {
       console.log('Issuer already in sortedCreds')
       const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
-      let extraMessage = '';
-      if (Object.values(serverAddress).includes(credsTemp.issuer))
-        extraMessage = "You will not be able to undo this action. "
       const confirmation = window.confirm(
         `You already have credentials from this issuer. Would you like to overwrite them? ` +
-        extraMessage +
+        "You will not be able to undo this action. " +
         `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
       )
       if (confirmation) {
@@ -108,6 +105,11 @@ const Verified = (props) => {
   }
 
   async function mergeAndSetCreds(credsTemp) {
+    const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
+    if (!lowerCaseIssuerWhitelist.includes(credsTemp.issuer.toLowerCase())) {
+      setError(`Error: Issuer ${credsTemp.issuer} is not whitelisted.`);
+      return;
+    }
     credsTemp.newSecret = generateSecret();
     // Merge new creds with old creds
     const sortedCreds = await getAndDecryptCurrentCreds();
