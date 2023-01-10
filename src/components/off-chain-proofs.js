@@ -78,7 +78,6 @@ const Proofs = () => {
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
-  const [sessionRetrieved, setSessionRetrieved] = useState(false);
   const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
@@ -91,11 +90,10 @@ const Proofs = () => {
   } = useHoloAuthSig();
   const sessionQuery = useQuery({
     queryKey: ["getSession"],
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       try {
         if (!searchParams.get("sessionId")) return { error: "No session id" };
-        if (sessionRetrieved) return sessionQuery?.data;
-        setSessionRetrieved(true);
         const sessionId = searchParams.get("sessionId");
         const resp = await fetch(`${idServerUrl}/sessions/${sessionId}`);
         return await resp.json();
@@ -314,7 +312,7 @@ const Proofs = () => {
                 <div className="spacer-med" />
                 <br />
                 {error ? (
-                  <p>Error: {error}</p>
+                  <p style={{ color: "red", fontSize: "1rem" }}>Error: {error}</p>
                 ) : (creds ? <p>
                         This will give you, 
                         <code> {truncateAddress(account.address)} </code>, 
