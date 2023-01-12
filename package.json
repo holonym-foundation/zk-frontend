@@ -50,9 +50,6 @@
     "test": "craco test",
     "eject": "craco eject"
   },
-  "resolutions": {
-    "zustand": "3.7.2"
-  },
   "eslintConfig": {
     "extends": [
       "react-app",
