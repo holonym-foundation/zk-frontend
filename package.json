@@ -40,6 +40,9 @@
     "webfontloader": "^1.6.28",
     "zokrates-js": "^1.1.3"
   },
+  "resolutions": {
+    "zustand": "3.7.2"
+  },
   "scripts": {
     "start": "PORT=3002 craco start",
     "start:cached-preproc": "PORT=3002 PREPROC_CACHED_LOCALLY=true craco start",
