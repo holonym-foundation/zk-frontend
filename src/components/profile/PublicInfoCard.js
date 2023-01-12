@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { InfoButton } from "../info-button";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 
