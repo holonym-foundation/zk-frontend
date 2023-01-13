@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import "../../vouched-css-customization.css";
+import { useParams, useNavigate } from "react-router-dom";
 import "react-phone-number-input/style.css";
-import loadVouched from "../../load-vouched";
+import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
+import { useQuery } from '@tanstack/react-query'
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import MintButton from "../atoms/mint-button";
 import StoreCredentials from "./store-credentials";
@@ -14,29 +14,55 @@ import MintContainer from "./MintContainer";
 const allowedCredTypes = ["idgov", "phone"];
 
 const StepIDV = ({ phoneNumber }) => {
+  const navigate = useNavigate();
+  const veriffSessionQuery = useQuery({
+    queryKey: ['veriffSession'],
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/veriff/session`, {
+        method: "POST",
+      })
+      return await resp.json()
+    } 
+  });
+
   useEffect(() => {
-    (async () => {
-      const resp = await fetch(`${idServerUrl}/vouched/job-count`);
-      const data = await resp.json();
-      if (data?.today >= maxDailyVouchedJobCount) {
-        alert("Sorry, we cannot verify any more IDs at this time");
-        return;
+    if (!phoneNumber || !veriffSessionQuery.data?.url) return;
+    
+    const verification = veriffSessionQuery.data;
+    const handleVeriffEvent = (msg) => {
+      if (msg === MESSAGES.FINISHED) {
+        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
+        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+        navigate(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
       }
-      loadVouched(phoneNumber);
-    })();
-  }, []);
+    }
+    createVeriffFrame({
+      url: verification.url,
+      onEvent: handleVeriffEvent
+    });
+  }, [veriffSessionQuery])
+
+  // Old code for vouched. Should probably implement similar "maxJobCount" check for Veriff
+  // useEffect(() => {
+  //   (async () => {
+  //     const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+  //     const data = await resp.json();
+  //     if (data.jobCount >= maxVouchedJobCount) {
+  //       alert("Sorry, we cannot verify any more IDs at this time");
+  //       return;
+  //     }
+  //     loadVouched(phoneNumber);
+  //   })();
+  // }, []);
 
   if (!phoneNumber) {
     return <p>No phone number specified</p>
   }
   return (
     <>
-      <h3 style={{ marginBottom: "25px", marginTop: "-25px" }}>
-        Verify your ID
-      </h3>
-      <div id="vouched-element" style={{ height: "10vh" }}></div>
+      <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
     </>
-  )
+  );
 }
 
 function useMintGovernmentIDState() {
