@@ -75,6 +75,7 @@ const Proofs = () => {
   const [customError, setCustomError] = useState();
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
   const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
@@ -125,7 +126,7 @@ const Proofs = () => {
       scope,
       creds_.newSecret
     );
-    // Once setProof is called, the proof is submtited
+    // Once setProof is called, the proof is submited
     setProof(por);
     console.log("proof is", JSON.stringify(por));
   }
@@ -162,7 +163,7 @@ const Proofs = () => {
       scope,
       creds_.newSecret
     );
-    // Once setProof is called, the proof is submtited
+    // Once setProof is called, the proof is submited
     setProof(as);
   }
 
@@ -226,10 +227,12 @@ const Proofs = () => {
 
   useEffect(() => {
     if (!(submissionConsent && creds && proof)) return;
+    setSubmitting(true);
     submitProofThenStoreMetadata(
       proof,
       proofs[params.proofType].contractName
-    );
+    )
+      .then(() => setSubmitting(false));
   }, [proof, submissionConsent]);
 
   if (account && !window.ethereum) {
@@ -303,7 +306,7 @@ const Proofs = () => {
                           className="x-button"
                           onClick={() => setSubmissionConsent(true)}
                         >
-                          Submit proof
+                          {submitting ? "Submitting..." : "Submit proof"}
                         </button>
                       ) : (
                         <LoadingProofsButton />

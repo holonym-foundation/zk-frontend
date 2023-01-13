@@ -141,7 +141,7 @@ const Proofs = () => {
       scope,
       creds_.newSecret
     );
-    // Once setProof is called, the proof is submtited
+    // Once setProof is called, the proof is submited
     setProof(por);
     console.log("proof is", JSON.stringify(por));
   }
@@ -178,7 +178,7 @@ const Proofs = () => {
       scope,
       creds_.newSecret
     );
-    // Once setProof is called, the proof is submtited
+    // Once setProof is called, the proof is submited
     setProof(as);
   }
 
