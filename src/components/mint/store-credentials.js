@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { useAccount } from "wagmi";
-
+import { useSearchParams } from "react-router-dom";
 import {
   encryptObject,
   setLocalUserCredentials,
@@ -14,26 +12,19 @@ import {
   serverAddress,
 } from "../../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
-import { Success } from "../success";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
-import MintButton from "../atoms/mint-button";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
 // Comment:
 // LitJsSdk.disconnectWeb3()
 
-// Display success message, and retrieve user credentials to store in browser
-const Verified = (props) => {
-  // const { jobID } = useParams();
+const StoreCredentials = (props) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [successScreen, setSuccessScreen] = useState(false);
-  const { data: account } = useAccount();
 
   const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
@@ -46,7 +37,6 @@ const Verified = (props) => {
 
   async function loadCredentials() {
     setError(undefined);
-    setLoading(true);
     const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
     console.log('retrievalEndpoint', retrievalEndpoint)
     const resp = await fetch(retrievalEndpoint)
@@ -65,7 +55,6 @@ const Verified = (props) => {
       // handle error from id-server
       throw new Error(data.error);
     } else {
-      setLoading(false);
       return data;
     }
   }
@@ -139,11 +128,10 @@ const Verified = (props) => {
   
   // Steps:
   // 1. Get & set litAuthSig and holoAuthSigDigest
-  // 2. Get creds from server
+  // 2. Get creds from retrievalEndpoint (e.g., phone-number-server or id-server)
   // 3. Merge new creds with current creds
   // 4. Call callback with merged creds
   useEffect(() => {
-    if (!account.address) return;
     (async () => {
       if (!getLitAuthSig()) {
         await signLitAuthMessage();
@@ -153,7 +141,7 @@ const Verified = (props) => {
       }
       setReadyToLoadCreds(true);
     })()
-  }, [account])
+  }, [])
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
@@ -170,10 +158,6 @@ const Verified = (props) => {
     })()
   }, [readyToLoadCreds])
 
-
-  if (successScreen) {
-    return <Success />;
-  }
   return (
     <>
       {declinedToStoreCreds ? (
@@ -223,4 +207,4 @@ const Verified = (props) => {
   );
 };
 
-export default Verified;
+export default StoreCredentials;

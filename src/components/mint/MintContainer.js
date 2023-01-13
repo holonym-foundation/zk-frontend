@@ -11,7 +11,7 @@ const MintContainer = ({ steps, currentIdx, children }) => {
 
   return (
     <RoundedWindow>
-      {!account ? (
+      {!account?.address ? (
         <ConnectWalletScreen />
       ) : (
         <>
