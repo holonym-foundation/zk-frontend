@@ -8,16 +8,16 @@ import {
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   generateSecret,
-} from "../utils/secrets";
+} from "../../utils/secrets";
 import { 
   idServerUrl,
   serverAddress,
-} from "../constants/misc";
+} from "../../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
-import { Success } from "./success";
-import { useLitAuthSig } from '../context/LitAuthSig';
-import { useHoloAuthSig } from "../context/HoloAuthSig";
-import MintButton from "./atoms/mint-button";
+import { Success } from "../success";
+import { useLitAuthSig } from '../../context/LitAuthSig';
+import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import MintButton from "../atoms/mint-button";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
@@ -47,7 +47,9 @@ const Verified = (props) => {
   async function loadCredentials() {
     setError(undefined);
     setLoading(true);
-    const resp = await fetch(searchParams.get('retrievalEndpoint'))
+    const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
+    console.log('retrievalEndpoint', retrievalEndpoint)
+    const resp = await fetch(retrievalEndpoint)
 
     // handle error from phone-number-server
     if (resp.status !== 200) {

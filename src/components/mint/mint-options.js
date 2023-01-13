@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAccount, useNetwork } from 'wagmi'
 // import { InfoButton } from "./info-button";
-import RoundedWindow from "./RoundedWindow";
-import { chainIdUsedForLit } from "../constants/misc";
-import phoneImg from "../img/phone.png";
-import idImg from "../img/id.png";
-import moneyImg from "../img/money.png";
-import questionImg from "../img/question.png";
+import RoundedWindow from "../RoundedWindow";
+import { chainIdUsedForLit } from "../../constants/misc";
+import phoneImg from "../../img/phone.png";
+import idImg from "../../img/id.png";
+import moneyImg from "../../img/money.png";
+import questionImg from "../../img/question.png";
 
 const opts = [
     { 
