@@ -17,7 +17,7 @@ const Progress = ({steps, currentIdx}) => {
       filledBackground="linear-gradient(to right, rgb(106,148,223), rgb(64, 124, 104))"
     >
     {steps.map((step, idx) => (
-        <Step transition="scale">
+        <Step key={step} transition="scale">
         {({ accomplished }) => (
           <Container idx={idx} text={step}></Container>
         )}

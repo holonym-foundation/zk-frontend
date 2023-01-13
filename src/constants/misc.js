@@ -23,6 +23,14 @@ export const serverAddress = {
   "phone" : ((process.env.NODE_ENV === "development") ? "0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513" : "0xB625e69aB86db23C23682875Ba10FbC8f8756d16")
 }
 
+// Necessary now that any site can redirect a user to Holonym and store user credentials. A user's
+// credential set could get cluttered with untrusted sites if we don't check against the whitelist.
+export const issuerWhitelist = [
+  '0x8281316aC1D51c94f2DE77575301cEF615aDea84',
+  '0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513',
+  '0xB625e69aB86db23C23682875Ba10FbC8f8756d16',
+]
+
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
 
 export const defaultActionId = "123456789"

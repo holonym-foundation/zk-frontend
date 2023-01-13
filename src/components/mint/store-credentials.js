@@ -1,39 +1,30 @@
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { useAccount } from "wagmi";
-
+import { useSearchParams } from "react-router-dom";
 import {
   encryptObject,
   setLocalUserCredentials,
   getLocalEncryptedUserCredentials,
   decryptObjectWithLit,
   generateSecret,
-} from "../utils/secrets";
+} from "../../utils/secrets";
 import { 
   idServerUrl,
-  serverAddress,
-} from "../constants/misc";
+  issuerWhitelist,
+} from "../../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
-import { Success } from "./success";
-import { useLitAuthSig } from '../context/LitAuthSig';
-import { useHoloAuthSig } from "../context/HoloAuthSig";
-import MintButton from "./atoms/mint-button";
+import { useLitAuthSig } from '../../context/LitAuthSig';
+import { useHoloAuthSig } from "../../context/HoloAuthSig";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
 // Comment:
 // LitJsSdk.disconnectWeb3()
 
-// Display success message, and retrieve user credentials to store in browser
 const StoreCredentials = (props) => {
-  // const { jobID } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [successScreen, setSuccessScreen] = useState(false);
-  const { data: account } = useAccount();
 
   const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
@@ -46,22 +37,25 @@ const StoreCredentials = (props) => {
 
   async function loadCredentials() {
     setError(undefined);
-    setLoading(true);
-    try {
-      // const resp = await fetch(
-      //   `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${jobID}`
-      // );
-      const resp = await fetch(searchParams.get('retrievalEndpoint'))
-      const data = await resp.json();
-      if (!data) {
-        console.error(`Could not retrieve credentials.`);
-        return;
-      } else {
-        setLoading(false);
-        return data;
-      }
-    } catch (err) {
-      console.error(`Could not retrieve credentials. Details: ${err}`);
+    const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
+    console.log('retrievalEndpoint', retrievalEndpoint)
+    const resp = await fetch(retrievalEndpoint)
+
+    // handle error from phone-number-server
+    if (resp.status !== 200) {
+      throw new Error(resp.text())
+    }
+
+    const data = await resp.json();
+    console.log('store-credentials: data', data)
+    if (!data) {
+      console.error(`Could not retrieve credentials.`);
+      throw new Error(`Could not retrieve credentials.`);
+    } else if (data.error) {
+      // handle error from id-server
+      throw new Error(data.error);
+    } else {
+      return data;
     }
   }
 
@@ -70,12 +64,9 @@ const StoreCredentials = (props) => {
     if (sortedCreds[credsTemp.issuer]) {
       console.log('Issuer already in sortedCreds')
       const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
-      let extraMessage = '';
-      if (Object.values(serverAddress).includes(credsTemp.issuer))
-        extraMessage = "You will not be able to undo this action. "
       const confirmation = window.confirm(
         `You already have credentials from this issuer. Would you like to overwrite them? ` +
-        extraMessage +
+        "You will not be able to undo this action. " +
         `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
       )
       if (confirmation) {
@@ -110,6 +101,11 @@ const StoreCredentials = (props) => {
   }
 
   async function mergeAndSetCreds(credsTemp) {
+    const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
+    if (!lowerCaseIssuerWhitelist.includes(credsTemp.issuer.toLowerCase())) {
+      setError(`Error: Issuer ${credsTemp.issuer} is not whitelisted.`);
+      return;
+    }
     credsTemp.newSecret = generateSecret();
     // Merge new creds with old creds
     const sortedCreds = await getAndDecryptCurrentCreds();
@@ -134,11 +130,10 @@ const StoreCredentials = (props) => {
   
   // Steps:
   // 1. Get & set litAuthSig and holoAuthSigDigest
-  // 2. Get creds from server
+  // 2. Get creds from retrievalEndpoint (e.g., phone-number-server or id-server)
   // 3. Merge new creds with current creds
   // 4. Call callback with merged creds
   useEffect(() => {
-    if (!account.address) return;
     (async () => {
       if (!getLitAuthSig()) {
         await signLitAuthMessage();
@@ -148,13 +143,13 @@ const StoreCredentials = (props) => {
       }
       setReadyToLoadCreds(true);
     })()
-  }, [account])
+  }, [])
 
   useEffect(() => {
     if (!readyToLoadCreds) return;
     (async () => {
       try {
-        const credsTemp = props.prefilledCreds ?? (await loadCredentials());
+        const credsTemp = await loadCredentials();
         window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
         if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
         await mergeAndSetCreds(credsTemp)
@@ -165,10 +160,6 @@ const StoreCredentials = (props) => {
     })()
   }, [readyToLoadCreds])
 
-
-  if (successScreen) {
-    return <Success />;
-  }
   return (
     <>
       {declinedToStoreCreds ? (
@@ -203,7 +194,7 @@ const StoreCredentials = (props) => {
         </div>
         <p>Please sign the new messages in your wallet.</p>
         <p>Loading credentials could take a few seconds.</p>
-        <p>{error}</p>
+        <p style={{ color: "#f00", fontSize: "1.1rem" }}>{error}</p>
         {error && (
           <p>Please open a ticket in the{" "}
             <a href="https://discord.com/channels/976235255793057872/1016368982850293811" target="_blank" rel="noreferrer" className="in-text-link">
