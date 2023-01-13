@@ -10,9 +10,6 @@ import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants/misc";
 import MintContainer from "./MintContainer";
 
-// Add to this when a new issuer is added
-const allowedCredTypes = ["idgov", "phone"];
-
 const StepIDV = ({ phoneNumber }) => {
   useEffect(() => {
     (async () => {
@@ -49,7 +46,6 @@ function useMintGovernmentIDState() {
   // NOTE: Phone# should be removed once we switch to Veriff
   const steps = ["Phone#", "Verify", "Store", "Mint"];
 
-  // const currentStep = useMemo(() => steps[currentIdx], [steps, currentIdx]);
   const currentStep = useMemo(() => {
     if (!phoneNumber && !store && !creds) return "Phone#";
     if (phoneNumber && !store && !creds) return "Verify";

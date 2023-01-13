@@ -28,6 +28,7 @@ import ToastyBugReportCard from "./components/atoms/ToastyBugReportCard";
 import OffChainProofs from './components/off-chain-proofs';
 import MintGovernmentID from "./components/mint/MintGovernmentID";
 import MintPhoneNumber from './components/mint/MintPhoneNumber';
+import MintExternal from "./components/mint/MintExternal";
 import { Provider as WagmiProvider } from "wagmi";
 import { wagmiClient } from "./wagmiClient";
 
@@ -69,10 +70,7 @@ function App() {
                         <Route exact path={"/mint/idgov/:store"} element={<MintGovernmentID />} />
                         <Route exact path={"/mint/phone"} element={<MintPhoneNumber />} />
                         <Route exact path={"/mint/phone/:store"} element={<MintPhoneNumber />} />
-
-                        {/* TODO: Write a component for minting creds from external issuers. Should have 2 steps: "Store" and "Mint" */}
-                        {/* <Route exact path={"/mint/external/:store"} element={<MintPhoneNumber />} /> */}
-
+                        <Route exact path={"/mint/external/:store"} element={<MintExternal />} />
                         <Route exact path={"/prove"} element={<ProofMenu />} />
                         {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
                         <Route exact path={"/prove/:proofType/:actionId/:callback"} element={<Proofs />} />

@@ -23,7 +23,6 @@ function useMintPhoneNumberState() {
 
   const steps = ["Phone#", "Verify", "Store", "Mint"];
 
-  // const currentStep = useMemo(() => steps[currentIdx], [steps, currentIdx]);
   const currentStep = useMemo(() => {
     if (!phoneNumber && !store && !creds) return "Phone#";
     if (phoneNumber && !store && !creds) return "Verify";
