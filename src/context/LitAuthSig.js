@@ -34,12 +34,6 @@ function LitAuthSigProvider({ children }) {
       signedMessage: message,
       address: account.address
     }
-    // const authSigTemp = {
-    //   sig: "0x18720b54cf0d29d618a90793d5e76f4838f04b559b02f1f01568d8e81c26ae9536e11bb90ad311b79a5bc56149b14103038e5e03fee83931a146d93d150eb0f61c",
-    //   derivedVia: "web3.eth.personal.sign",
-    //   signedMessage: '"localhost:3002 wants you to sign in with your Ethereum account:\n0x27c497C4fE4913f422C2ff3cb0952534Dc3D3E7c\n\n\nURI: http://localhost:3002\nVersion: 1\nChain ID: 1\nNonce: 8Hg51JjG1jQSncNPZ\nIssued At: 2022-12-29T18:35:40.228Z"',
-    //   address: "0x27c497c4fe4913f422c2ff3cb0952534dc3d3e7c"
-    // }
     window.localStorage.setItem('lit-auth-signature', JSON.stringify(authSigTemp))
     return authSigTemp
   }
