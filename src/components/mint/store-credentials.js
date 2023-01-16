@@ -43,7 +43,7 @@ const StoreCredentials = (props) => {
 
     // handle error from phone-number-server
     if (resp.status !== 200) {
-      throw new Error(resp.text())
+      throw new Error(await resp.text())
     }
 
     const data = await resp.json();
