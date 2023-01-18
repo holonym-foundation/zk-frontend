@@ -16,6 +16,7 @@ const MintButton = (props) => {
     const creds = props.creds;
 
     async function sendCredsToServer() {
+      console.log('generating proof of knowledge of leaf preimage')
       const proof = await proveKnowledgeOfLeafPreimage(
         creds.serializedCreds.map(item => ethers.BigNumber.from(item || "0").toString()),
         creds.newSecret
@@ -28,11 +29,17 @@ const MintButton = (props) => {
         encryptedSymmetricKey: encryptedSymmetricKey,
       }
       try {
-        await fetch(`${idServerUrl}/credentials`, {
+        console.log('sending encrypted creds to backup server')
+        const resp = await fetch(`${idServerUrl}/credentials`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reqBody)
         })
+        if (resp.status !== 200) {
+          throw new Error("Error: Could not send credentials to server.")
+        } else {
+          console.log('successfully sent encrypted creds to backup server')
+        }
       } catch (err) {
         console.error(err)
         setError('Error: Could not send credentials to server.')
@@ -57,10 +64,10 @@ const MintButton = (props) => {
           proof: oalProof
       }
       // console.log("minting args", JSON.stringify(mintingArgs))
-        const result = await Relayer.mint(mintingArgs,
-          props.onSuccess
-        );
-        await sendCredsToServer();
+        const result = await Relayer.mint(mintingArgs, async () => {
+          await sendCredsToServer();
+          props.onSuccess();
+        });
     }
 
     return <div style={{ textAlign: "center" }}>
