@@ -22,16 +22,28 @@ import { useHoloAuthSig } from "../../context/HoloAuthSig";
 
 const StoreCredentials = (props) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [readyToLoadCreds, setReadyToLoadCreds] = useState();
+  const [readyToLoadCreds, setReadyToLoadCreds] = useState(false);
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
 
   const { litAuthSig } = useLitAuthSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
 
+  function storeJobID(retrievalEndpoint) {
+    // TODO: check for sessionId and id-server veriff endpoint once we migrate to Veriff
+    if (
+      retrievalEndpoint.includes('jobID') && 
+      retrievalEndpoint.includes(`${idServerUrl}/registerVouched/vouchedCredentials`)
+    ) {
+      const jobID = retrievalEndpoint.split('jobID=')[1]
+      localStorage.setItem('jobID', jobID);
+    }
+  }
+
   async function loadCredentials() {
     setError(undefined);
     const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
+    storeJobID(retrievalEndpoint)
     console.log('retrievalEndpoint', retrievalEndpoint)
     const resp = await fetch(retrievalEndpoint)
 
@@ -127,6 +139,12 @@ const StoreCredentials = (props) => {
   // 3. Call callback with merged creds
 
   useEffect(() => {
+    // using readyToLoadCreds as a temporary workaround to avoid querying id-server twice
+    setReadyToLoadCreds(true);
+  }, [])
+
+  useEffect(() => {
+    if (!readyToLoadCreds) return;
     (async () => {
       try {
         const credsTemp = await loadCredentials();
@@ -138,7 +156,7 @@ const StoreCredentials = (props) => {
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
-  }, [])
+  }, [readyToLoadCreds])
 
   return (
     <>

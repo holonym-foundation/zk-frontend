@@ -36,11 +36,48 @@ const StepIDV = ({ phoneNumber }) => {
   )
 }
 
+const ConfirmRetry = ({ setRetry }) => (
+  <div style={{ textAlign: 'center' }}>
+    <h2>Skip verification?</h2>
+    <p>We noticed you have verified yourself already.</p>
+    <p>Would you like to skip to the Store step?</p>
+    <div style={{ display: 'flex', flex: 'flex-row', marginTop: '20px' }}>
+      <button
+        className="export-private-info-button"
+        style={{
+          lineHeight: "1",
+          fontSize: "16px"
+        }}
+        onClick={() => setRetry(false)}
+      >
+        No, I want to verify again
+      </button>
+      <div style={{ margin: '10px' }}></div>
+      <button
+        className="x-button"
+        style={{
+          lineHeight: "1",
+          fontSize: "16px"
+        }}
+        onClick={() => {
+          // TODO: Change URL when we migrate to Veriff
+          const retrievalEndpoint = `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
+          const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+          window.location.href=(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+        }}
+      >
+        Yes
+      </button>
+    </div>
+  </div>
+)
+
 function useMintGovernmentIDState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [creds, setCreds] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
+  const [retry, setRetry] = useState(!!localStorage.getItem('jobID'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
   // NOTE: Phone# should be removed once we switch to Veriff
@@ -62,6 +99,8 @@ function useMintGovernmentIDState() {
     setSuccess,
     creds,
     setCreds,
+    retry,
+    setRetry,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -77,6 +116,8 @@ const MintGovernmentID = () => {
     setSuccess,
     creds,
     setCreds,
+    retry,
+    setRetry,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -89,6 +130,8 @@ const MintGovernmentID = () => {
     <MintContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
+      ) : retry && currentStep !== "Store" && currentStep !== "Mint" ? (
+        <ConfirmRetry setRetry={setRetry} />
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (
