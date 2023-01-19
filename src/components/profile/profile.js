@@ -93,22 +93,19 @@ export default function Profile(props) {
   const [proofMetadata, setProofMetadata] = useState();
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
-  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
+  const { litAuthSig, signLitAuthMessage } = useLitAuthSig();
   const {
     signHoloAuthMessage,
-    holoAuthSigIsError,
-    holoAuthSigIsLoading,
-    holoAuthSigIsSuccess,
-    getHoloAuthSigDigest
+    holoAuthSigDigest
   } = useHoloAuthSig();
 
   useEffect(() => {
     if (!account?.address) return;
     (async () => {
-      if (!getLitAuthSig()) {
+      if (!litAuthSig) {
         await signLitAuthMessage();
       }
-      if (!getHoloAuthSigDigest()) {
+      if (!holoAuthSigDigest) {
         await signHoloAuthMessage();
       }
       setReadyToLoadCredsAndProofs(true);
@@ -120,14 +117,14 @@ export default function Profile(props) {
       try {
         let encryptedCredsObj = getLocalEncryptedUserCredentials()
         if (!encryptedCredsObj) {
-          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
+          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
           encryptedCredsObj = await resp.json();
         }
         if (encryptedCredsObj) {
           const plaintextCreds = await decryptObjectWithLit(
             encryptedCredsObj.encryptedCredentials, 
             encryptedCredsObj.encryptedSymmetricKey, 
-            getLitAuthSig()
+            litAuthSig
           )
           const formattedCreds = formatCreds(plaintextCreds);
           setCreds(formattedCreds);
@@ -140,14 +137,14 @@ export default function Profile(props) {
       try {
         let encryptedProofMetadata = getLocalProofMetadata()
         if (!encryptedProofMetadata) {
-          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${getHoloAuthSigDigest()}`)
+          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
           encryptedProofMetadata = await resp.json();
         }
         if (encryptedProofMetadata) {
           const decryptedProofMetadata = await decryptObjectWithLit(
             encryptedProofMetadata.encryptedProofMetadata,
             encryptedProofMetadata.encryptedSymmetricKey,
-            getLitAuthSig()
+            litAuthSig
           )
           const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
           setProofMetadata(populatedData)

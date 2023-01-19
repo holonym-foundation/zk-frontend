@@ -4,6 +4,7 @@
  */
 import React, { createContext, useContext } from 'react'
 import { useAccount, useSignMessage } from 'wagmi';
+import { useLocalStorage } from 'usehooks-ts'
 import { chainIdUsedForLit } from "../constants/misc";
 import { createSiweMessage } from "../utils/misc";
 
@@ -11,21 +12,18 @@ const LitAuthSigContext = createContext(null)
 
 function LitAuthSigProvider({ children }) {
   const { data: account } = useAccount();
+  const [litAuthSig, setLitAuthSig] = useLocalStorage('lit-auth-signature', null)
   const {
     data: signedAuthMessage,
-    isError: holoAuthSigIsError,
-    isLoading: holoAuthSigIsLoading,
-    isSuccess: holoAuthSigIsSuccess, 
+    isError: litAuthSigIsError,
+    isLoading: litAuthSigIsLoading,
+    isSuccess: litAuthSigIsSuccess, 
     signMessageAsync
   } = useSignMessage()
 
-  function getLitAuthSig() {
-    const authSig = window.localStorage.getItem('lit-auth-signature');
-    return authSig ? JSON.parse(authSig) : null;
-  }
-
   async function signLitAuthMessage() {
     if (!account?.address) return;
+    console.log('requesting litAuthSig')
     const message = createSiweMessage(account.address, "", chainIdUsedForLit.toString())
     const signature = await signMessageAsync({ message: message });
     const authSigTemp = {
@@ -34,12 +32,18 @@ function LitAuthSigProvider({ children }) {
       signedMessage: message,
       address: account.address
     }
-    window.localStorage.setItem('lit-auth-signature', JSON.stringify(authSigTemp))
+    setLitAuthSig(authSigTemp);
     return authSigTemp
   }
 
   return (
-    <LitAuthSigContext.Provider value={{ getLitAuthSig, signLitAuthMessage }}>
+    <LitAuthSigContext.Provider value={{
+      litAuthSig,
+      litAuthSigIsError,
+      litAuthSigIsLoading,
+      litAuthSigIsSuccess,
+      signLitAuthMessage
+    }}>
       {children}
     </LitAuthSigContext.Provider>
   )

@@ -26,14 +26,8 @@ const StoreCredentials = (props) => {
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
 
-  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
-  const {
-    signHoloAuthMessage,
-    holoAuthSigIsError,
-    holoAuthSigIsLoading,
-    holoAuthSigIsSuccess,
-    getHoloAuthSigDigest,
-  } = useHoloAuthSig();
+  const { litAuthSig } = useLitAuthSig();
+  const { holoAuthSigDigest } = useHoloAuthSig();
 
   async function loadCredentials() {
     setError(undefined);
@@ -84,7 +78,7 @@ const StoreCredentials = (props) => {
     let encryptedCurrentCreds = getLocalEncryptedUserCredentials()
     if (!encryptedCurrentCreds) {
       try {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
         const data = await resp.json();
         if (!data.error) encryptedCurrentCreds = data;
       } catch (err) {
@@ -94,7 +88,7 @@ const StoreCredentials = (props) => {
     let sortedCreds = {};
     if (encryptedCurrentCreds) {
       const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCreds;
-      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig());
+      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
       sortedCreds = {...currentSortedCreds};
     }
     return sortedCreds
@@ -117,36 +111,22 @@ const StoreCredentials = (props) => {
     sortedCreds[credsTemp.issuer] = credsTemp;
 
     // Store creds
-    const holoAuthSigDigest = getHoloAuthSigDigest();
     if (!holoAuthSigDigest) {
       setError("Error: Could not get user signature");
       return;
     }
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, getLitAuthSig());
+    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
     setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
     window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
     if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer])
   }
   
   // Steps:
-  // 1. Get & set litAuthSig and holoAuthSigDigest
-  // 2. Get creds from retrievalEndpoint (e.g., phone-number-server or id-server)
-  // 3. Merge new creds with current creds
-  // 4. Call callback with merged creds
-  useEffect(() => {
-    (async () => {
-      if (!getLitAuthSig()) {
-        await signLitAuthMessage();
-      }
-      if (!getHoloAuthSigDigest()) {
-        await signHoloAuthMessage();
-      }
-      setReadyToLoadCreds(true);
-    })()
-  }, [])
+  // 1. Get creds from retrievalEndpoint (e.g., phone-number-server or id-server)
+  // 2. Merge new creds with current creds
+  // 3. Call callback with merged creds
 
   useEffect(() => {
-    if (!readyToLoadCreds) return;
     (async () => {
       try {
         const credsTemp = await loadCredentials();
@@ -158,7 +138,7 @@ const StoreCredentials = (props) => {
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
-  }, [readyToLoadCreds])
+  }, [])
 
   return (
     <>

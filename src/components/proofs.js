@@ -78,15 +78,12 @@ const Proofs = () => {
   const [submitting, setSubmitting] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
-  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
+  const { litAuthSig, signLitAuthMessage } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
   const {
     signHoloAuthMessage,
-    holoAuthSigIsError,
-    holoAuthSigIsLoading,
-    holoAuthSigIsSuccess,
-    getHoloAuthSigDigest,
+    holoAuthSigDigest,
   } = useHoloAuthSig();
 
   const proofs = {
@@ -177,10 +174,10 @@ const Proofs = () => {
   useEffect(() => {
     if (!account?.address) return;
     (async () => {
-      if (!getLitAuthSig()) {
+      if (!litAuthSig) {
         await signLitAuthMessage();
       }
-      if (!getHoloAuthSigDigest()) {
+      if (!holoAuthSigDigest) {
         await signHoloAuthMessage();
       }
       setReadyToLoadCreds(true);
@@ -197,7 +194,7 @@ const Proofs = () => {
         encryptedCredentials = localEncryptedCreds.encryptedCredentials
         encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
       } else {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
         const data = await resp.json();
         if (!data) {
           setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
@@ -205,7 +202,7 @@ const Proofs = () => {
         encryptedCredentials = data.encryptedCredentials
         encryptedSymmetricKey = data.encryptedSymmetricKey
       }
-      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {
@@ -245,8 +242,8 @@ const Proofs = () => {
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata
-        const authSig = getLitAuthSig() ?? await signLitAuthMessage();
-        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, authSig, getHoloAuthSigDigest())
+        const authSig = litAuthSig ?? await signLitAuthMessage();
+        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, authSig, holoAuthSigDigest)
         setSuccess(true);
       }
       else {

@@ -2,14 +2,17 @@
  * Simple provider component & hook to store the Holo auth sig (and sigDigest) in 
  * context so that it doesn't have to be passed as props to every component
  */
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext } from 'react'
 import { useSignMessage } from 'wagmi';
+import { useLocalStorage } from 'usehooks-ts'
 import { sha256 } from '../utils/secrets';
 import { holonymAuthMessage } from "../constants/misc";
 
 const HoloAuthSigContext = createContext(null)
 
 function HoloAuthSigProvider({ children }) {
+  const [holoAuthSig, setHoloAuthSig] = useLocalStorage('holoAuthSig', null)
+  const [holoAuthSigDigest, setHoloAuthSigDigest] = useLocalStorage('holoAuthSigDigest', null)
   const {
     data: signedAuthMessage,
     isError: holoAuthSigIsError,
@@ -18,19 +21,12 @@ function HoloAuthSigProvider({ children }) {
     signMessageAsync
   } = useSignMessage({ message: holonymAuthMessage })
 
-  function getHoloAuthSig() {
-    return window.localStorage.getItem('holoAuthSig');
-  }
-
-  function getHoloAuthSigDigest() {
-    return window.localStorage.getItem('holoSigDigest');
-  }
-
   async function signHoloAuthMessage() {
+    console.log('requesting litAuthSig')
     const signedMessage = await signMessageAsync();
-    window.localStorage.setItem('holoAuthSig', signedMessage)
+    setHoloAuthSig(signedMessage)
     const digest = await sha256(signedMessage);
-    window.localStorage.setItem('holoSigDigest', digest)
+    setHoloAuthSigDigest(digest)
   }
 
   return (
@@ -39,8 +35,8 @@ function HoloAuthSigProvider({ children }) {
       holoAuthSigIsError,
       holoAuthSigIsLoading,
       holoAuthSigIsSuccess,
-      getHoloAuthSig,
-      getHoloAuthSigDigest,
+      holoAuthSig,
+      holoAuthSigDigest,
     }}>
       {children}
     </HoloAuthSigContext.Provider>

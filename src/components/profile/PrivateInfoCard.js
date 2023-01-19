@@ -79,14 +79,12 @@ export default function PrivateInfoCard({ creds }) {
   const navigate = useNavigate();
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [authSigs, setAuthSigs] = useState(null);
-  const { getLitAuthSig } = useLitAuthSig();
-  const { getHoloAuthSig } = useHoloAuthSig();
+  const { litAuthSig } = useLitAuthSig();
+  const { holoAuthSig } = useHoloAuthSig();
 
   useEffect(() => {
     // Whether creds are populated is a proxy for whether authSigs are populated
     if (!creds) return;
-    const holoAuthSig = getHoloAuthSig();
-    const litAuthSig = getLitAuthSig();
     const authSigsTemp = JSON.stringify({ holoAuthSig, litAuthSig });
     setAuthSigs(authSigsTemp);
   }, [creds])

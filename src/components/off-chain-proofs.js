@@ -78,15 +78,12 @@ const Proofs = () => {
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
-  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
+  const { litAuthSig, signLitAuthMessage } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
   const {
     signHoloAuthMessage,
-    holoAuthSigIsError,
-    holoAuthSigIsLoading,
-    holoAuthSigIsSuccess,
-    getHoloAuthSigDigest,
+    holoAuthSigDigest,
   } = useHoloAuthSig();
   const sessionQuery = useQuery({
     queryKey: ["getSession"],
@@ -194,10 +191,10 @@ const Proofs = () => {
   useEffect(() => {
     if (!account?.address || !sessionQuery?.data) return;
     (async () => {
-      if (!getLitAuthSig()) {
+      if (!litAuthSig) {
         await signLitAuthMessage();
       }
-      if (!getHoloAuthSigDigest()) {
+      if (!holoAuthSigDigest) {
         await signHoloAuthMessage();
       }
 
@@ -239,7 +236,7 @@ const Proofs = () => {
         encryptedCredentials = localEncryptedCreds.encryptedCredentials
         encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
       } else {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
+        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
         const data = await resp.json();
         if (!data) {
           setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
@@ -247,7 +244,7 @@ const Proofs = () => {
         encryptedCredentials = data.encryptedCredentials
         encryptedSymmetricKey = data.encryptedSymmetricKey
       }
-      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, getLitAuthSig())
+      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {
