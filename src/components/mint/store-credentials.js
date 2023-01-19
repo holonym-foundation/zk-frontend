@@ -166,7 +166,7 @@ const StoreCredentials = (props) => {
         <>
           <h3>Minting aborted</h3>
           <p>Made a mistake? Please open a ticket in the{" "}
-            <a href="https://discord.com/channels/976235255793057872/1016368982850293811" target="_blank" rel="noreferrer" className="in-text-link">
+            <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
               #support-tickets
             </a>{" "}
             channel in the Holonym Discord with a description of your situation.
@@ -197,7 +197,7 @@ const StoreCredentials = (props) => {
         <p style={{ color: "#f00", fontSize: "1.1rem" }}>{error}</p>
         {error && (
           <p>Please open a ticket in the{" "}
-            <a href="https://discord.com/channels/976235255793057872/1016368982850293811" target="_blank" rel="noreferrer" className="in-text-link">
+            <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
               #support-tickets
             </a>{" "}
             channel in the Holonym Discord with a description of the error.
