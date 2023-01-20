@@ -33,6 +33,8 @@ export const issuerWhitelist = [
 
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
 
+export const holonymKeyGenMessage = "Holonym keygen"
+
 export const defaultActionId = "123456789"
 
 export const chainUsedForLit = 'ethereum';

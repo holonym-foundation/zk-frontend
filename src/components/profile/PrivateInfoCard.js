@@ -8,6 +8,7 @@ import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { serverAddress } from "../../constants/misc";
 import { useLitAuthSig } from "../../context/LitAuthSig";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
 const issuerAddrToName = Object.fromEntries(
   Object.values(serverAddress).map(addr => [addr, "Holonym"])
@@ -81,11 +82,12 @@ export default function PrivateInfoCard({ creds }) {
   const [authSigs, setAuthSigs] = useState(null);
   const { litAuthSig } = useLitAuthSig();
   const { holoAuthSig } = useHoloAuthSig();
+  const { holoKeyGenSig } = useHoloKeyGenSig();
 
   useEffect(() => {
     // Whether creds are populated is a proxy for whether authSigs are populated
     if (!creds) return;
-    const authSigsTemp = JSON.stringify({ holoAuthSig, litAuthSig });
+    const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig, litAuthSig });
     setAuthSigs(authSigsTemp);
   }, [creds])
 
