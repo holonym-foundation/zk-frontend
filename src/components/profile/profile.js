@@ -10,6 +10,7 @@ import {
   getLocalProofMetadata,
   decryptObjectWithLit,
   getCredentials,
+  getProofMetadata,
 } from '../../utils/secrets';
 import { 
   idServerUrl,
@@ -112,21 +113,25 @@ export default function Profile(props) {
     }
     async function getAndSetProofMetadata() {
       try {
-        // TODO: Implement a getProofMetadata() function like getCredentials() that merges local, remote, Lit, and AES creds` 
-        let encryptedProofMetadata = getLocalProofMetadata()
-        if (!encryptedProofMetadata) {
-          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
-          encryptedProofMetadata = await resp.json();
-        }
-        if (encryptedProofMetadata) {
-          const decryptedProofMetadata = await decryptObjectWithLit(
-            encryptedProofMetadata.encryptedProofMetadata,
-            encryptedProofMetadata.encryptedSymmetricKey,
-            litAuthSig
-          )
-          const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
+        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, true);
+        if (proofMetadataTemp) {
+          const populatedData = populateProofMetadataDisplayDataAndRestructure(proofMetadataTemp)
           setProofMetadata(populatedData)
         }
+        // let encryptedProofMetadata = getLocalProofMetadata()
+        // if (!encryptedProofMetadata) {
+        //   const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
+        //   encryptedProofMetadata = await resp.json();
+        // }
+        // if (encryptedProofMetadata) {
+        //   const decryptedProofMetadata = await decryptObjectWithLit(
+        //     encryptedProofMetadata.encryptedProofMetadata,
+        //     encryptedProofMetadata.encryptedSymmetricKey,
+        //     litAuthSig
+        //   )
+        //   const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
+        //   setProofMetadata(populatedData)
+        // }
       } catch (err) {
         console.log(err)
       }
