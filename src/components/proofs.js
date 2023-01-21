@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useNetwork } from "wagmi";
-import { 
-  getLocalEncryptedUserCredentials,
-  decryptObjectWithLit,
+import {
+  getCredentials,
   storeProofMetadata,
 } from "../utils/secrets";
 import {
@@ -30,6 +29,7 @@ import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import Relayer from "../utils/relayer";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 
@@ -78,13 +78,11 @@ const Proofs = () => {
   const [submitting, setSubmitting] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
   const [es, setES] = useState();
-  const { litAuthSig, signLitAuthMessage } = useLitAuthSig();
+  const { litAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
-  const {
-    signHoloAuthMessage,
-    holoAuthSigDigest,
-  } = useHoloAuthSig();
+  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
   const proofs = {
     "us-residency": {
@@ -174,12 +172,6 @@ const Proofs = () => {
   useEffect(() => {
     if (!account?.address) return;
     (async () => {
-      if (!litAuthSig) {
-        await signLitAuthMessage();
-      }
-      if (!holoAuthSigDigest) {
-        await signHoloAuthMessage();
-      }
       setReadyToLoadCreds(true);
     })()
   }, [account]);
@@ -188,21 +180,7 @@ const Proofs = () => {
     if (!readyToLoadCreds) return;
     async function loadCreds() {
       console.log('Loading creds')
-      let encryptedCredentials, encryptedSymmetricKey;
-      const localEncryptedCreds = getLocalEncryptedUserCredentials()
-      if (localEncryptedCreds) {
-        encryptedCredentials = localEncryptedCreds.encryptedCredentials
-        encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
-      } else {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
-        const data = await resp.json();
-        if (!data) {
-          setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
-        }
-        encryptedCredentials = data.encryptedCredentials
-        encryptedSymmetricKey = data.encryptedSymmetricKey
-      }
-      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {
@@ -242,8 +220,7 @@ const Proofs = () => {
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata
-        const authSig = litAuthSig ?? await signLitAuthMessage();
-        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, authSig, holoAuthSigDigest)
+        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, litAuthSig, holoAuthSigDigest)
         setSuccess(true);
       }
       else {

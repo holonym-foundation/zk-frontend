@@ -16,6 +16,7 @@ const Relayer = {
               sigDigest: <sigDigest from getLocalEncryptedUserCredentials() response>
               encryptedCredentials: <encryptedCredentials from getLocalEncryptedUserCredentials() response>
               encryptedSymmetricKey: <encryptedSymmetricKey from getLocalEncryptedUserCredentials() response>
+              encryptedCredentialsAES: <encryptedCredentials from getLocalEncryptedUserCredentials() response>
             }
           }
     */

@@ -7,9 +7,9 @@ import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
 import { useLitAuthSig } from "../../context/LitAuthSig";
 import { 
-  getLocalEncryptedUserCredentials,
   getLocalProofMetadata,
   decryptObjectWithLit,
+  getCredentials,
 } from '../../utils/secrets';
 import { 
   idServerUrl,
@@ -17,6 +17,7 @@ import {
   chainUsedForLit,
 } from "../../constants/misc";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
 const credsFieldsToIgnore = [
   'completedAt',
@@ -93,45 +94,21 @@ export default function Profile(props) {
   const [proofMetadata, setProofMetadata] = useState();
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
-  const { litAuthSig, signLitAuthMessage } = useLitAuthSig();
-  const {
-    signHoloAuthMessage,
-    holoAuthSigDigest
-  } = useHoloAuthSig();
+  const { litAuthSig } = useLitAuthSig();
+  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
   useEffect(() => {
     if (!account?.address) return;
-    (async () => {
-      if (!litAuthSig) {
-        await signLitAuthMessage();
-      }
-      if (!holoAuthSigDigest) {
-        await signHoloAuthMessage();
-      }
-      setReadyToLoadCredsAndProofs(true);
-    })()
+    setReadyToLoadCredsAndProofs(true);
   }, [account])
 
   useEffect(() => {
     async function getAndSetCreds() {
-      try {
-        let encryptedCredsObj = getLocalEncryptedUserCredentials()
-        if (!encryptedCredsObj) {
-          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
-          encryptedCredsObj = await resp.json();
-        }
-        if (encryptedCredsObj) {
-          const plaintextCreds = await decryptObjectWithLit(
-            encryptedCredsObj.encryptedCredentials, 
-            encryptedCredsObj.encryptedSymmetricKey, 
-            litAuthSig
-          )
-          const formattedCreds = formatCreds(plaintextCreds);
-          setCreds(formattedCreds);
-        }
-      } catch (err) {
-        console.log(err)
-      }
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+      if (!sortedCreds) return;
+      const formattedCreds = formatCreds(sortedCreds);
+      setCreds(formattedCreds);
     }
     async function getAndSetProofMetadata() {
       try {

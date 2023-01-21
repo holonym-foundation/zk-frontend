@@ -2,7 +2,7 @@
  * Simple provider component & hook to store the Holo KeyGen sig (and sigDigest) in 
  * context so that it doesn't have to be passed as props to every component
  */
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useMemo } from 'react'
 import { useSignMessage } from 'wagmi';
 import { useLocalStorage } from 'usehooks-ts'
 import { sha256 } from '../utils/secrets';
@@ -13,6 +13,15 @@ const HoloKeyGenSigContext = createContext(null)
 function HoloKeyGenSigProvider({ children }) {
   const [holoKeyGenSig, setHoloKeyGenSig] = useLocalStorage('holoKeyGenSig', null)
   const [holoKeyGenSigDigest, setHoloKeyGenSigDigest] = useLocalStorage('holoKeyGenSigDigest', null)
+  // Using useLocalStorage on strings results in double quotes being added to the ends of the strings
+  const parsedHoloKeyGenSig = useMemo(
+    () => holoKeyGenSig?.replaceAll('"', ''),
+    [holoKeyGenSig]
+  )
+  const parsedHoloKeyGenSigDigest = useMemo(
+    () => holoKeyGenSigDigest?.replaceAll('"', ''),
+    [holoKeyGenSigDigest]
+  )
   const {
     data: signedKeyGenMessage,
     isError: holoKeyGenSigIsError,
@@ -35,8 +44,8 @@ function HoloKeyGenSigProvider({ children }) {
       holoKeyGenSigIsError,
       holoKeyGenSigIsLoading,
       holoKeyGenSigIsSuccess,
-      holoKeyGenSig,
-      holoKeyGenSigDigest,
+      holoKeyGenSig: parsedHoloKeyGenSig,
+      holoKeyGenSigDigest: parsedHoloKeyGenSigDigest,
     }}>
       {children}
     </HoloKeyGenSigContext.Provider>

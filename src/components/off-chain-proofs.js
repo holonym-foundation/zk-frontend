@@ -3,11 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useNetwork } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  getLocalEncryptedUserCredentials,
-  decryptObjectWithLit,
-  storeProofMetadata,
-} from "../utils/secrets";
+import { getCredentials } from "../utils/secrets";
 import {
   getDateAsInt,
   poseidonTwoInputs,
@@ -17,10 +13,7 @@ import {
 import { 
   serverAddress, 
   idServerUrl, 
-  holonymAuthMessage, 
   defaultActionId,
-  chainUsedForLit,
-  defaultChainToProveOn
 } from "../constants/misc";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
@@ -31,6 +24,7 @@ import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
 import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import Relayer from "../utils/relayer";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 
@@ -78,13 +72,11 @@ const Proofs = () => {
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
-  const { litAuthSig, signLitAuthMessage } = useLitAuthSig();
+  const { litAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
   const { switchNetworkAsync } = useNetwork()
-  const {
-    signHoloAuthMessage,
-    holoAuthSigDigest,
-  } = useHoloAuthSig();
+  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const sessionQuery = useQuery({
     queryKey: ["getSession"],
     refetchOnWindowFocus: false,
@@ -189,15 +181,7 @@ const Proofs = () => {
   // 7. Redirect user to callback URL & include proof in query params
 
   useEffect(() => {
-    if (!account?.address || !sessionQuery?.data) return;
     (async () => {
-      if (!litAuthSig) {
-        await signLitAuthMessage();
-      }
-      if (!holoAuthSigDigest) {
-        await signHoloAuthMessage();
-      }
-
       // Get sessionId and callback from URL
       const sessionId = searchParams.get("sessionId");
       const callbackUrl = searchParams.get("callback");
@@ -230,21 +214,7 @@ const Proofs = () => {
     if (!readyToLoadCreds) return;
     async function loadCreds() {
       console.log('Loading creds')
-      let encryptedCredentials, encryptedSymmetricKey;
-      const localEncryptedCreds = getLocalEncryptedUserCredentials()
-      if (localEncryptedCreds) {
-        encryptedCredentials = localEncryptedCreds.encryptedCredentials
-        encryptedSymmetricKey = localEncryptedCreds.encryptedSymmetricKey
-      } else {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
-        const data = await resp.json();
-        if (!data) {
-          setError("Error: Could not retrieve credentials for proof. Please make sure you have minted your Holo.");
-        }
-        encryptedCredentials = data.encryptedCredentials
-        encryptedSymmetricKey = data.encryptedSymmetricKey
-      }
-      const sortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig)
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {

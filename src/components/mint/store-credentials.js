@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  encryptObject,
+  encryptWithAES,
+  encryptObjectWithLit,
   setLocalUserCredentials,
-  getLocalEncryptedUserCredentials,
-  decryptObjectWithLit,
   generateSecret,
+  getCredentials,
 } from "../../utils/secrets";
 import { 
   idServerUrl,
@@ -14,6 +14,7 @@ import {
 import { ThreeDots } from "react-loader-spinner";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
@@ -28,6 +29,7 @@ const StoreCredentials = (props) => {
 
   const { litAuthSig } = useLitAuthSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
+  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
   function storeJobID(retrievalEndpoint) {
     // TODO: check for sessionId and id-server veriff endpoint once we migrate to Veriff
@@ -67,7 +69,7 @@ const StoreCredentials = (props) => {
 
   function getCredsConfirmation(sortedCreds, credsTemp) {
     // Ask user for confirmation if they already have credentials from this issuer
-    if (sortedCreds[credsTemp.issuer]) {
+    if (sortedCreds?.[credsTemp.issuer]) {
       console.log('Issuer already in sortedCreds')
       const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
       const confirmation = window.confirm(
@@ -86,26 +88,6 @@ const StoreCredentials = (props) => {
     return true;
   }
 
-  async function getAndDecryptCurrentCreds() {
-    let encryptedCurrentCreds = getLocalEncryptedUserCredentials()
-    if (!encryptedCurrentCreds) {
-      try {
-        const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
-        const data = await resp.json();
-        if (!data.error) encryptedCurrentCreds = data;
-      } catch (err) {
-        console.log(err)
-      }
-    }
-    let sortedCreds = {};
-    if (encryptedCurrentCreds) {
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = encryptedCurrentCreds;
-      const currentSortedCreds = await decryptObjectWithLit(encryptedCredentials, encryptedSymmetricKey, litAuthSig);
-      sortedCreds = {...currentSortedCreds};
-    }
-    return sortedCreds
-  }
-
   async function mergeAndSetCreds(credsTemp) {
     const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
     if (!lowerCaseIssuerWhitelist.includes(credsTemp.issuer.toLowerCase())) {
@@ -114,7 +96,7 @@ const StoreCredentials = (props) => {
     }
     credsTemp.newSecret = generateSecret();
     // Merge new creds with old creds
-    const sortedCreds = await getAndDecryptCurrentCreds();
+    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig) ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);
@@ -122,15 +104,13 @@ const StoreCredentials = (props) => {
     }
     sortedCreds[credsTemp.issuer] = credsTemp;
 
-    // Store creds
-    if (!holoAuthSigDigest) {
-      setError("Error: Could not get user signature");
-      return;
-    }
-    const { encryptedString, encryptedSymmetricKey } = await encryptObject(sortedCreds, litAuthSig);
-    setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey)
-    window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
-    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer])
+    // Store creds. Encrypt with AES, using holoAuthSigDigest as the key.
+    // For backwards compatibility, we also encrypt with Lit.
+    const encryptedCredentialsAES = encryptWithAES(sortedCreds, holoKeyGenSigDigest);
+    const { encryptedString, encryptedSymmetricKey } = await encryptObjectWithLit(sortedCreds, litAuthSig);
+    setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey, encryptedCredentialsAES);
+    window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`);
+    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer]);
   }
   
   // Steps:

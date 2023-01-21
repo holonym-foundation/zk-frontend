@@ -4,16 +4,20 @@ import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
 import { idServerUrl } from "../../constants/misc";
 import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
-import { getLocalEncryptedUserCredentials } from "../../utils/secrets";
+import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
+import { useLitAuthSig } from '../../context/LitAuthSig';
+import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
 
-
-const MintButton = (props) => {
+const MintButton = ({ creds, onSuccess }) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
-    const creds = props.creds;
+    const { litAuthSig } = useLitAuthSig();
+    const { holoAuthSigDigest } = useHoloAuthSig();
+    const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
     async function sendCredsToServer() {
       console.log('generating proof of knowledge of leaf preimage')
@@ -21,27 +25,9 @@ const MintButton = (props) => {
         creds.serializedCreds.map(item => ethers.BigNumber.from(item || "0").toString()),
         creds.newSecret
       );
-      const { sigDigest, encryptedCredentials, encryptedSymmetricKey } = getLocalEncryptedUserCredentials()
-      const reqBody = {
-        sigDigest: sigDigest,
-        proof: proof,
-        encryptedCredentials: encryptedCredentials,
-        encryptedSymmetricKey: encryptedSymmetricKey,
-      }
-      try {
-        console.log('sending encrypted creds to backup server')
-        const resp = await fetch(`${idServerUrl}/credentials`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reqBody)
-        })
-        if (resp.status !== 200) {
-          throw new Error("Error: Could not send credentials to server.")
-        } else {
-          console.log('successfully sent encrypted creds to backup server')
-        }
-      } catch (err) {
-        console.error(err)
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, false);
+      const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, proof);
+      if (!success) {
         setError('Error: Could not send credentials to server.')
       }
     }
@@ -66,7 +52,7 @@ const MintButton = (props) => {
       // console.log("minting args", JSON.stringify(mintingArgs))
         const result = await Relayer.mint(mintingArgs, async () => {
           await sendCredsToServer();
-          props.onSuccess();
+          onSuccess();
         });
     }
 
