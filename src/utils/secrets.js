@@ -177,11 +177,9 @@ export async function getRemoteEncryptedUserCredentials(holoAuthSigDigest) {
  * @param {string} holoKeyGenSigDigest Used as key for AES encryption/decryption
  * @param {string} holoAuthSigDigest 
  * @param {object} litAuthSig
- * @param {boolean} restore Re-store merged creds locally and remotely after retrieving and merging them. This will
- * only work if the user has previously stored their credentials in remote backup under their holoAuthSigDigest (see id-server for details).
  * @returns A sortedCreds object if credentials are found, null if not.
  */
-export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, restore = false) {
+export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig) {
   // 1. Get encrypted creds from localStorage (if they are there)
   const localEncryptedCreds = getLocalEncryptedUserCredentials();
   // 2. Get encrypted creds from remote backup (if they are there)
@@ -213,7 +211,7 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
   }
   // 6. Store merged creds in case there is a difference between local and remote
   if (Object.keys(mergedCreds).length > 0) {
-    if (restore) storeCredentials(mergedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+    storeCredentials(mergedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
     return mergedCreds;
   }
   return null;
