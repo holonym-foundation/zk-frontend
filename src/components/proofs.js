@@ -220,7 +220,7 @@ const Proofs = () => {
       console.log("relayer result", result)
       if(!result.error) {
         // TODO: At this point, display message to user that they are now signing to store their proof metadata
-        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, litAuthSig, holoAuthSigDigest)
+        await storeProofMetadata(result.data, proof.inputs[1], params.proofType, params.actionId, litAuthSig, holoAuthSigDigest, holoKeyGenSigDigest);
         setSuccess(true);
       }
       else {

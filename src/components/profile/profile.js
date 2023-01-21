@@ -112,6 +112,7 @@ export default function Profile(props) {
     }
     async function getAndSetProofMetadata() {
       try {
+        // TODO: Implement a getProofMetadata() function like getCredentials() that merges local, remote, Lit, and AES creds` 
         let encryptedProofMetadata = getLocalProofMetadata()
         if (!encryptedProofMetadata) {
           const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)

@@ -160,10 +160,14 @@ export async function getRemoteEncryptedUserCredentials(holoAuthSigDigest) {
     console.log('Fetching creds from remote backup')
     const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
     const data = await resp.json();
-    console.log('Retrieved creds from remote backup')
-    if (data.error) return null;
+    if (data.error) {
+      console.log('Error fetching creds from remote backup', data.error);
+      return null;
+    }
+    if (data?.encryptedCredentials) console.log('Retrieved creds from remote backup');
     return data;
   } catch (err) {
+    console.log('Error fetching creds from remote backup', err);
     return null;
   }
 }
@@ -275,73 +279,155 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
   }
 }
 
-export async function storeProofMetadata(tx, senderAddress, proofType, actionId, authSig, sigDigest) {
-  // TODO: Rewrite this using AES instead of Lit
+function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) {
+  const senderAddrHex = ethers.BigNumber.from(
+    senderAddress ?? '0x00'
+  ).toHexString();
+  const missingLeadingZeros = 42 - senderAddrHex.length;
+  const senderAddr = 
+    missingLeadingZeros === 0 
+      ? senderAddrHex 
+      : '0x' + '0'.repeat(missingLeadingZeros) + senderAddrHex.slice(2);
+  const thisProofMetadata = {
+    proofType: proofType,
+    address: senderAddr, 
+    chainId: tx.chainId, 
+    blockNumber: tx.blockNumber,
+    txHash: tx.transactionHash,
+  }
+  if (proofType === 'uniqueness') {
+    thisProofMetadata.actionId = actionId || defaultActionId;
+  }
+  return thisProofMetadata;
+} 
+
+export async function storeProofMetadata(tx, senderAddress, proofType, actionId, litAuthSig, holoAuthSigDigest, holoKeyGenSigDigest) {
+  // TODO: Remove Lit support after some time
   try {
-    const senderAddrHex = ethers.BigNumber.from(
-      senderAddress ?? '0x00'
-    ).toHexString();
-    const missingLeadingZeros = 42 - senderAddrHex.length;
-    const senderAddr = 
-      missingLeadingZeros === 0 
-        ? senderAddrHex 
-        : '0x' + '0'.repeat(missingLeadingZeros) + senderAddrHex.slice(2);
-    const thisProofMetadata = {
-      proofType: proofType,
-      address: senderAddr, 
-      chainId: tx.chainId, 
-      blockNumber: tx.blockNumber,
-      txHash: tx.transactionHash,
-    }
-    if (proofType === 'uniqueness') {
-      thisProofMetadata.actionId = actionId || defaultActionId;
-    }
+    const thisProofMetadata = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
     console.log('Storing proof metadata')
     console.log(thisProofMetadata)
-    // Get proof metadata from localStorage or from server (if localStorage is empty)
-    let oldEncryptedProofMetadata = getLocalProofMetadata()
-    if (!oldEncryptedProofMetadata) {
-      const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${sigDigest}`)
-      const data = await resp.json();
-      if (data) oldEncryptedProofMetadata = data
-    }
-    const oldProofMetadataArr = oldEncryptedProofMetadata ? await decryptObjectWithLit(
-      oldEncryptedProofMetadata.encryptedProofMetadata, 
-      oldEncryptedProofMetadata.encryptedSymmetricKey, 
-      authSig
-    ) : [];
-    // Merge old proof metadata with new proof metadata
-    const newProofMetadataArr = Array.from(
-      oldProofMetadataArr?.length > 0 ? [...oldProofMetadataArr, thisProofMetadata] : [thisProofMetadata]
-    )
 
-    const { encryptedString, encryptedSymmetricKey } = await encryptObjectWithLit(newProofMetadataArr, authSig)
-    setLocalEncryptedProofMetadata(encryptedString, encryptedSymmetricKey)
-    
-    // Store encrypted proof metadata in server
-    const reqBody = {
-      sigDigest: sigDigest,
-      encryptedProofMetadata: encryptedString,
-      encryptedSymmetricKey: encryptedSymmetricKey
+    // 1. Get local old proof metadata
+    const localOldEncryptedProofMetadata = getLocalProofMetadata();
+    // 2. Get remote old proof metadata
+    const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
+    const remoteOldEncryptedProofMetadata = await resp.json();
+    // 5. If Lit-encrypted proof metadata is present, decrypt it
+    let oldProofMetadataArrLit = [];
+    if (localOldEncryptedProofMetadata?.encryptedProofMetadata) {
+      oldProofMetadataArrLit = await decryptObjectWithLit(
+        localOldEncryptedProofMetadata.encryptedProofMetadata,
+        localOldEncryptedProofMetadata.encryptedSymmetricKey,
+        litAuthSig
+      );
     }
-    const resp = await fetch(`${idServerUrl}/proof-metadata`, {
+    if (remoteOldEncryptedProofMetadata?.encryptedProofMetadata) {
+      const remoteOldProofMetadataArrLit = await decryptObjectWithLit(
+        remoteOldEncryptedProofMetadata.encryptedProofMetadata,
+        remoteOldEncryptedProofMetadata.encryptedSymmetricKey,
+        litAuthSig
+      );
+      oldProofMetadataArrLit = oldProofMetadataArrLit.concat(remoteOldProofMetadataArrLit);
+    }
+    // 6. If AES-encrypted proof metadata is present, decrypt it
+    let oldProofMetadataArrAES = [];
+    if (localOldEncryptedProofMetadata?.encryptedProofMetadataAES) {
+      oldProofMetadataArrAES = decryptWithAES(
+        localOldEncryptedProofMetadata.encryptedProofMetadataAES,
+        holoKeyGenSigDigest
+      );
+    }
+    if (remoteOldEncryptedProofMetadata?.encryptedProofMetadataAES) {
+      const remoteOldProofMetadataArrAES = decryptWithAES(
+        remoteOldEncryptedProofMetadata.encryptedProofMetadataAES,
+        holoKeyGenSigDigest
+      );
+      oldProofMetadataArrAES = oldProofMetadataArrAES.concat(remoteOldProofMetadataArrAES);
+    }
+    // 7. Merge old proof metadata with new proof metadata
+    const mergedOldProofMetadata = [];
+    for (const item of oldProofMetadataArrLit.concat(oldProofMetadataArrAES)) {
+      if (!mergedOldProofMetadata.find(i => i.txHash === item.txHash)) {
+        mergedOldProofMetadata.push(item);
+      }
+    }
+    const newProofMetadataArr = mergedOldProofMetadata.concat(thisProofMetadata);
+    // 8. Encrypt merged proof metadata with Lit and AES
+    const encryptedProofMetadataLit = await encryptObjectWithLit(newProofMetadataArr, litAuthSig);
+    const encryptedProofMetadataAES = encryptWithAES(newProofMetadataArr, holoKeyGenSigDigest);
+    // 9. Store encrypted proof metadata in localStorage and in remote backup
+    setLocalEncryptedProofMetadata(
+      encryptedProofMetadataLit?.encryptedString,
+      encryptedProofMetadataLit?.encryptedSymmetricKey,
+      encryptedProofMetadataAES
+    );
+    const resp2 = await fetch(`${idServerUrl}/proof-metadata`, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(reqBody)
-    })
-    const data = await resp.json();
+      body: JSON.stringify({
+        sigDigest: holoAuthSigDigest,
+        encryptedProofMetadata: encryptedProofMetadataLit?.encryptedString,
+        encryptedSymmetricKey: encryptedProofMetadataLit?.encryptedSymmetricKey,
+        encryptedProofMetadataAES: encryptedProofMetadataAES
+      })
+    });
+    if (resp2.status !== 200) throw new Error((await resp2.json()).error);
+    return true;
   } catch (err) {
-    console.log(err)
+    console.error(err);
+    return false;
   }
+
+  //   // Get proof metadata from localStorage or from server (if localStorage is empty)
+  //   let oldEncryptedProofMetadata = getLocalProofMetadata()
+  //   if (!oldEncryptedProofMetadata) {
+  //     const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
+  //     const data = await resp.json();
+  //     if (data) oldEncryptedProofMetadata = data
+  //   }
+  //   const oldProofMetadataArrLit = oldEncryptedProofMetadata ? await decryptObjectWithLit(
+  //     oldEncryptedProofMetadata.encryptedProofMetadata, 
+  //     oldEncryptedProofMetadata.encryptedSymmetricKey, 
+  //     litAuthSig
+  //   ) : [];
+  //   // Merge old proof metadata with new proof metadata
+  //   const newProofMetadataArr = Array.from(
+  //     oldProofMetadataArrLit?.length > 0 ? [...oldProofMetadataArrLit, thisProofMetadata] : [thisProofMetadata]
+  //   )
+
+  //   const encryptedProofMetadataAES = encryptWithAES(newProofMetadataArr, holoKeyGenSigDigest);
+  //   const { encryptedString, encryptedSymmetricKey } = await encryptObjectWithLit(newProofMetadataArr, litAuthSig)
+  //   setLocalEncryptedProofMetadata(encryptedString, encryptedSymmetricKey, encryptedProofMetadataAES)
+    
+  //   // Store encrypted proof metadata in server
+  //   const reqBody = {
+  //     sigDigest: holoAuthSigDigest,
+  //     encryptedProofMetadata: encryptedString,
+  //     encryptedSymmetricKey: encryptedSymmetricKey,
+  //     encryptedProofMetadataAES: encryptedProofMetadataAES
+  //   }
+  //   const resp = await fetch(`${idServerUrl}/proof-metadata`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify(reqBody)
+  //   })
+  //   const data = await resp.json();
+  // } catch (err) {
+  //   console.log(err)
+  // }
 }
 
-export function setLocalEncryptedProofMetadata(encryptedProofMetadata, encryptedSymmetricKey) {
+export function setLocalEncryptedProofMetadata(encryptedProofMetadata, encryptedSymmetricKey, encryptedProofMetadataAES) {
   try {
     window.localStorage.setItem('holoEncryptedProofMetadata', encryptedProofMetadata)
     window.localStorage.setItem('holoProofMetadataSymmetricKey', encryptedSymmetricKey)
+    window.localStorage.setItem('holoEncryptedProofMetadataAES', encryptedProofMetadataAES)
     return true;
   } catch (err) {
     console.log(err);
@@ -350,21 +436,25 @@ export function setLocalEncryptedProofMetadata(encryptedProofMetadata, encrypted
 }
 
 export function getLocalProofMetadata() {
-  const localSigDigest = window.localStorage.getItem('holoSigDigest')
-  const localEncryptedProofMetadata = window.localStorage.getItem('holoEncryptedProofMetadata')
-  const localEncryptedSymmetricKey = window.localStorage.getItem('holoProofMetadataSymmetricKey')
-  const varsAreDefined = localSigDigest && localEncryptedProofMetadata && localEncryptedSymmetricKey;
-  const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedProofMetadata === 'undefined' || localEncryptedSymmetricKey === 'undefined'
+  const localSigDigest = window.localStorage.getItem('holoSigDigest');
+  const localEncryptedProofMetadataLit = window.localStorage.getItem('holoEncryptedProofMetadata'); // for backwards compatibility with version that uses Lit
+  const localEncryptedSymmetricKeyLit = window.localStorage.getItem('holoProofMetadataSymmetricKey'); // for backwards compatibility with version that uses Lit
+  const localEncryptedProofMetadataAES = window.localStorage.getItem('holoEncryptedProofMetadataAES')
+  const varsAreDefined = localSigDigest && localEncryptedProofMetadataLit && localEncryptedSymmetricKeyLit;
+  const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedProofMetadataLit === 'undefined' || localEncryptedSymmetricKeyLit === 'undefined'
   if (varsAreDefined && !varsAreUndefinedStr) {
       console.log('Found proof metadata in localStorage')
       return {
         sigDigest: localSigDigest,
-        encryptedProofMetadata: localEncryptedProofMetadata,
-        encryptedSymmetricKey: localEncryptedSymmetricKey
+        encryptedProofMetadata: localEncryptedProofMetadataLit,
+        encryptedSymmetricKey: localEncryptedSymmetricKeyLit,
+        encryptedProofMetadataAES: localEncryptedProofMetadataAES
       }
   }
   console.log('Did not find proof metadata in localStorage')
 }
+
+// TODO: getProofMetadata(holoKeyGenSigDigest, holoAuthSig, litAuthSig)
 
 export function generateSecret() {
   const newSecret = new Uint8Array(16);
