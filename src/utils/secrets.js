@@ -89,6 +89,49 @@ export function decryptWithAES(data, key) {
 }
 
 /**
+ * @param {string} encryptedData String that should be an object when decrypted
+ * @param {*} encryptedSymmetricKey 
+ * @param {*} litAuthSig 
+ * @returns {object}
+ */
+export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
+  const acConditions = lit.getAccessControlConditions(litAuthSig.address)
+  try {
+    const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, chainUsedForLit, acConditions, litAuthSig)
+    return JSON.parse(stringifiedCreds);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+/**
+ * KOLP == Knowledge of Leaf Preimage
+ */
+export function getLatestKolpProof() {
+  const cachedKolpProofStr = localStorage.getItem('latest-kolp-proof');
+  if (cachedKolpProofStr && cachedKolpProofStr !== 'undefined' && cachedKolpProofStr !== 'null') {
+    try {
+      return JSON.parse(cachedKolpProofStr);
+    } catch (err) {
+      return null
+    }
+  }
+  return null;
+}
+
+export function setLatestKolpProof(kolpProof) {
+  if (kolpProof) {
+    try {
+      localStorage.setItem('latest-kolp-proof', JSON.stringify(kolpProof));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
  * Set user credentials in localStorage
  * @param {string} sigDigest 
  * @param {string} encryptedCredentialsLit credentials encrypted with Lit - included for backwards compatibility
@@ -107,22 +150,6 @@ export function setLocalUserCredentials(sigDigest, encryptedCredentialsLit, encr
     return true;
   } catch (err) {
     return false;
-  }
-}
-
-/**
- * @param {string} encryptedData String that should be an object when decrypted
- * @param {*} encryptedSymmetricKey 
- * @param {*} litAuthSig 
- * @returns {object}
- */
-export async function decryptObjectWithLit(encryptedData, encryptedSymmetricKey, litAuthSig) {
-  const acConditions = lit.getAccessControlConditions(litAuthSig.address)
-  try {
-    const stringifiedCreds = await lit.decrypt(encryptedData, encryptedSymmetricKey, chainUsedForLit, acConditions, litAuthSig)
-    return JSON.parse(stringifiedCreds);
-  } catch (err) {
-    console.log(err);
   }
 }
 
@@ -252,7 +279,7 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
   setLocalUserCredentials(holoAuthSigDigest, encryptedCredsLit, encryptedSymmetricKeyLit, encryptedCredsAES);
   // 4. Store encrypted creds in remote backup
   try {
-    let kolpProof = proof;
+    let kolpProof = proof ?? getLatestKolpProof();
     if (!kolpProof) {
       for (const issuer of Object.keys(creds)) {
         if (creds[issuer].serializedCreds) {
@@ -264,6 +291,7 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
         }
       }
     }
+    setLatestKolpProof(kolpProof);
     // This request will fail if the user does not have a valid proof. Hence the try-catch.
     console.log('sending encrypted creds to remote backup');
     const resp = await fetch(`${idServerUrl}/credentials`, {
