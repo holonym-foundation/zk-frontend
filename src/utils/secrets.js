@@ -246,8 +246,6 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
   }
   // 6. Store merged creds in case there is a difference between local and remote
   if (Object.keys(mergedCreds).length > 0) {
-    // TODO: Make sure this only runs a few times per site visit, at max, provided that the user isn't updating
-    // their credentials. It's making the site unresponsive.
     storeCredentials(mergedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
     return mergedCreds;
   }
@@ -267,7 +265,7 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
  * @returns True if storage in remote backup is successful, false otherwise.
  */
 export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, proof) {
-  // TODO: Remove Lit support after some time
+  // TODO: Remove Lit support after some time. Remember to update id-server as well.
   // 1. Encrypt creds with AES
   const encryptedCredsAES = encryptWithAES(creds, holoKeyGenSigDigest);
   // 2. encrypt creds with Lit
@@ -324,7 +322,7 @@ function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) {
     missingLeadingZeros === 0 
       ? senderAddrHex 
       : '0x' + '0'.repeat(missingLeadingZeros) + senderAddrHex.slice(2);
-  const thisProofMetadata = {
+  const proofMetadataItem = {
     proofType: proofType,
     address: senderAddr, 
     chainId: tx.chainId, 
@@ -332,21 +330,21 @@ function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) {
     txHash: tx.transactionHash,
   }
   if (proofType === 'uniqueness') {
-    thisProofMetadata.actionId = actionId || defaultActionId;
+    proofMetadataItem.actionId = actionId || defaultActionId;
   }
-  return thisProofMetadata;
+  return proofMetadataItem;
 } 
 
 export async function addProofMetadataItem(tx, senderAddress, proofType, actionId, litAuthSig, holoAuthSigDigest, holoKeyGenSigDigest) {
   // TODO: Remove Lit support after some time
   try {
-    const thisProofMetadata = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
+    const proofMetadataItem = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
     console.log('Storing proof metadata')
-    console.log(thisProofMetadata)
+    console.log(proofMetadataItem)
     // 1. Get old proof metadata
     const oldProofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, false);
     // 2. Merge old proof metadata with new proof metadata
-    const newProofMetadataArr = oldProofMetadata.concat(thisProofMetadata);
+    const newProofMetadataArr = oldProofMetadata.concat(proofMetadataItem);
     // 3. Encrypt merged proof metadata with Lit and AES
     const encryptedProofMetadataLit = await encryptObjectWithLit(newProofMetadataArr, litAuthSig);
     const encryptedProofMetadataAES = encryptWithAES(newProofMetadataArr, holoKeyGenSigDigest);
@@ -463,10 +461,14 @@ export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, l
   }
   // 6. Store merged proof metadata in localStorage and remote backup in case there is a difference between local and remote
   if (mergedProofMetadata.length > 0 && restore) {
+    // encrypt mergedProofMetadata with Lit
+    const encryptedProofMetadataLit = await encryptObjectWithLit(mergedProofMetadata, litAuthSig);
+    // encrypt mergedProofMetadata with AES
+    const encryptedProofMetadataAES = encryptWithAES(mergedProofMetadata, holoKeyGenSigDigest);
     setLocalEncryptedProofMetadata(
-      localProofMetadata?.encryptedProofMetadata,
-      localProofMetadata?.encryptedSymmetricKey,
-      localProofMetadata?.encryptedProofMetadataAES
+      encryptedProofMetadataLit?.encryptedString,
+      encryptedProofMetadataLit?.encryptedSymmetricKey,
+      encryptedProofMetadataAES
     );
     try {
       console.log('sending proof metadata to remote backup')
@@ -478,9 +480,9 @@ export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, l
         },
         body: JSON.stringify({
           sigDigest: holoAuthSigDigest,
-          encryptedProofMetadata: localProofMetadata?.encryptedProofMetadata,
-          encryptedSymmetricKey: localProofMetadata?.encryptedSymmetricKey,
-          encryptedProofMetadataAES: localProofMetadata?.encryptedProofMetadataAES
+          encryptedProofMetadata: encryptedProofMetadataLit?.encryptedString,
+          encryptedSymmetricKey: encryptedProofMetadataLit?.encryptedSymmetricKey,
+          encryptedProofMetadataAES: encryptedProofMetadataAES
         })
       });
       if (resp2.status !== 200) throw new Error((await resp2.json()).error);
