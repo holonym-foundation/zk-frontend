@@ -1,21 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { formatPhoneNumberIntl } from "react-phone-number-input";
+import { useState, useEffect } from "react";
 import { useAccount } from 'wagmi';
-import { InfoButton } from "../info-button";
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
 import { useLitAuthSig } from "../../context/LitAuthSig";
 import { 
-  getLocalProofMetadata,
-  decryptObjectWithLit,
   getCredentials,
   getProofMetadata,
 } from '../../utils/secrets';
 import { 
-  idServerUrl,
   primeToCountryCode,
-  chainUsedForLit,
 } from "../../constants/misc";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
@@ -90,9 +83,10 @@ function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
 }
 
 export default function Profile(props) {
-  const navigate = useNavigate();
   const [creds, setCreds] = useState();
+  const [credsLoading, setCredsLoading] = useState(true);
   const [proofMetadata, setProofMetadata] = useState();
+  const [proofMetadataLoading, setProofMetadataLoading] = useState(true);
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
   const { litAuthSig } = useLitAuthSig();
@@ -106,10 +100,16 @@ export default function Profile(props) {
 
   useEffect(() => {
     async function getAndSetCreds() {
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
-      if (!sortedCreds) return;
-      const formattedCreds = formatCreds(sortedCreds);
-      setCreds(formattedCreds);
+      try {
+        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+        if (!sortedCreds) return;
+        const formattedCreds = formatCreds(sortedCreds);
+        setCreds(formattedCreds);
+      } catch (err) {
+        console.log(err)
+      } finally {
+        setCredsLoading(false)
+      }
     }
     async function getAndSetProofMetadata() {
       try {
@@ -118,22 +118,10 @@ export default function Profile(props) {
           const populatedData = populateProofMetadataDisplayDataAndRestructure(proofMetadataTemp)
           setProofMetadata(populatedData)
         }
-        // let encryptedProofMetadata = getLocalProofMetadata()
-        // if (!encryptedProofMetadata) {
-        //   const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${holoAuthSigDigest}`)
-        //   encryptedProofMetadata = await resp.json();
-        // }
-        // if (encryptedProofMetadata) {
-        //   const decryptedProofMetadata = await decryptObjectWithLit(
-        //     encryptedProofMetadata.encryptedProofMetadata,
-        //     encryptedProofMetadata.encryptedSymmetricKey,
-        //     litAuthSig
-        //   )
-        //   const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
-        //   setProofMetadata(populatedData)
-        // }
       } catch (err) {
         console.log(err)
+      } finally {
+        setProofMetadataLoading(false)
       }
     }
     getAndSetCreds()
@@ -144,9 +132,9 @@ export default function Profile(props) {
     <>
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
-        <PublicInfoCard proofMetadata={proofMetadata} />
+        <PublicInfoCard proofMetadata={proofMetadata} loading={proofMetadataLoading} />
         <div className="spacer-large"></div>
-        <PrivateInfoCard creds={creds} />
+        <PrivateInfoCard creds={creds} loading={credsLoading} />
       </div>
     </div>
   </>
