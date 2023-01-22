@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import aesjs from 'aes-js';
-import { idServerUrl, defaultActionId, chainUsedForLit } from "../constants/misc";
+import { idServerUrl, issuerWhitelist, defaultActionId, chainUsedForLit } from "../constants/misc";
 import lit from './lit';
 import { proveKnowledgeOfLeafPreimage } from "./proofs";
 
@@ -238,11 +238,19 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
     decryptedRemoteCredsLit = await decryptObjectWithLit(remoteEncryptedCreds.encryptedCredentials, remoteEncryptedCreds.encryptedSymmetricKey, litAuthSig);
   }
   // 5. Merge local and remote creds
-  const mergedCreds = {
-    ...decryptedLocalCredsAES,
-    ...decryptedLocalCredsLit,
-    ...decryptedRemoteCredsAES,
-    ...decryptedRemoteCredsLit,
+  // If user provides signature for incorrect decryption key (which will happen if the user signs from a different account than the one used when encrypting), 
+  // the decryption procedure will still return some result, so we check that the result contains expected properties before merging.
+  let mergedCreds = {}
+  const credsArr = [decryptedLocalCredsAES, decryptedLocalCredsLit, decryptedRemoteCredsAES, decryptedRemoteCredsLit];
+  for (const issuer of issuerWhitelist) {
+    for (const credentialSet of credsArr) {
+      if (credentialSet?.[issuer]) {
+        mergedCreds = {
+          ...mergedCreds,
+          [issuer]: credentialSet[issuer],
+        }
+      }
+    }
   }
   // 6. Store merged creds in case there is a difference between local and remote
   if (Object.keys(mergedCreds).length > 0) {
@@ -455,7 +463,7 @@ export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, l
   // 5. Merge local and remote proof metadata
   const mergedProofMetadata = [];
   for (const item of proofMetadataArrLit.concat(proofMetadataArrAES)) {
-    if (!mergedProofMetadata.find(i => i.txHash === item.txHash)) {
+    if (!mergedProofMetadata.find(i => i?.txHash === item?.txHash)) {
       mergedProofMetadata.push(item);
     }
   }
