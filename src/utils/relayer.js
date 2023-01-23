@@ -37,22 +37,8 @@ const Relayer = {
     },
 
     
-    prove : async function(proof, contractName, network, onSuccess, onError) {
-        let res;
-        let error;
-        try {
-          res = await axios.post(`${relayerUrl}/writeProof/${contractName}/${network}`, { writeProofArgs: proof })
-          if (res.status == 200) {
-            onSuccess(res);
-          }
-        } catch (e) {
-            (onError && onError(e))
-            error = e;
-          
-        }
-        return res || {error:error};
-    },
-
+    prove : async (proof, contractName, network, onSuccess, onError) => 
+      axios.post(`${relayerUrl}/writeProof/${contractName}/${network}`, { writeProofArgs: proof }).then(res => res.data),
 
     getTree : async function(network, onError) {
         let res;
