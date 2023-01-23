@@ -314,6 +314,7 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
       })
     });
     if (resp.status !== 200) throw new Error((await resp.json()).error);
+    console.log('Successfully sent encrypted creds to remote backup.')
     return true;
   } catch (err) {
     console.error('The following error occurred while sending encrypted creds to remote backup.', err);

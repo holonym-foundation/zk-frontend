@@ -1,10 +1,12 @@
 import { useEffect } from "react";
+import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import RoundedWindow from "./RoundedWindow";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 import { useLitAuthSig } from '../context/LitAuthSig';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
+import { holonymAuthMessage, holonymKeyGenMessage } from "../constants/misc";
 
 const SignatureContainer = ({ children }) => {
   const { data: account } = useAccount();
@@ -13,7 +15,8 @@ const SignatureContainer = ({ children }) => {
     litAuthSigIsError,
     litAuthSigIsLoading,
     litAuthSigIsSuccess,
-    signLitAuthMessage 
+    signLitAuthMessage,
+    clearLitAuthSig,
   } = useLitAuthSig();
   const {
     signHoloAuthMessage,
@@ -22,6 +25,7 @@ const SignatureContainer = ({ children }) => {
     holoAuthSigIsSuccess,
     holoAuthSig,
     holoAuthSigDigest,
+    clearHoloAuthSig,
   } = useHoloAuthSig();
   const {
     signHoloKeyGenMessage,
@@ -30,18 +34,19 @@ const SignatureContainer = ({ children }) => {
     holoKeyGenSigIsSuccess,
     holoKeyGenSig,
     holoKeyGenSigDigest,
+    clearHoloKeyGenSig,
   } = useHoloKeyGenSig();
 
   useEffect(() => {
     if (!account?.address || !account?.connector) return;
     if (!litAuthSig && !litAuthSigIsLoading && !litAuthSigIsSuccess) {
-      signLitAuthMessage()
+      signLitAuthMessage().catch(err => console.error(err))
     }
     if (!litAuthSigIsLoading && !holoAuthSig && !holoAuthSigIsLoading && !holoAuthSigIsSuccess) {
-      signHoloAuthMessage()
+      signHoloAuthMessage().catch(err => console.error(err))
     }
     if (!holoAuthSigIsLoading && !litAuthSigIsLoading && !holoKeyGenSig && !holoKeyGenSigIsLoading && !holoKeyGenSigIsSuccess) {
-      signHoloKeyGenMessage()
+      signHoloKeyGenMessage().catch(err => console.error(err))
     }
   }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,6 +64,26 @@ const SignatureContainer = ({ children }) => {
     ]
   )
 
+  useEffect(() => {
+    if (!account?.address || !account?.connector) return;
+    // Check that sigs are from account. If they aren't, re-request them
+    if (litAuthSig && litAuthSig.address !== account.address) {
+      console.log('account changed. Re-retrieving litAuthSig');
+      clearLitAuthSig()
+      signLitAuthMessage().catch(err => console.error(err))
+    }
+    if (holoAuthSig && ethers.utils.verifyMessage(holonymAuthMessage, holoAuthSig) !== account.address) {
+      console.log('account changed. Re-retrieving holoAuthSig');
+      clearHoloAuthSig()
+      signHoloAuthMessage().catch(err => console.error(err))
+    }
+    if (holoKeyGenSig && ethers.utils.verifyMessage(holonymKeyGenMessage, holoKeyGenSig) !== account.address) {
+      console.log('account changed. Re-retrieving holoKeyGenSig');
+      clearHoloKeyGenSig()
+      signHoloKeyGenMessage().catch(err => console.error(err))
+    }
+  }, [account])
+  
   const mainDivStyles = {
     position: "relative",
     paddingTop: "100px",

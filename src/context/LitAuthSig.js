@@ -12,7 +12,7 @@ const LitAuthSigContext = createContext(null)
 
 function LitAuthSigProvider({ children }) {
   const { data: account } = useAccount();
-  const [litAuthSig, setLitAuthSig] = useLocalStorage('lit-auth-signature', null)
+  const [litAuthSig, setLitAuthSig] = useLocalStorage('lit-auth-signature', "")
   const {
     data: signedAuthMessage,
     isError: litAuthSigIsError,
@@ -36,13 +36,18 @@ function LitAuthSigProvider({ children }) {
     return authSigTemp
   }
 
+  function clearLitAuthSig() {
+    setLitAuthSig("");
+  }
+
   return (
     <LitAuthSigContext.Provider value={{
       litAuthSig,
       litAuthSigIsError,
       litAuthSigIsLoading,
       litAuthSigIsSuccess,
-      signLitAuthMessage
+      signLitAuthMessage,
+      clearLitAuthSig
     }}>
       {children}
     </LitAuthSigContext.Provider>

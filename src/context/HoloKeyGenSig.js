@@ -11,8 +11,8 @@ import { holonymKeyGenMessage } from "../constants/misc";
 const HoloKeyGenSigContext = createContext(null)
 
 function HoloKeyGenSigProvider({ children }) {
-  const [holoKeyGenSig, setHoloKeyGenSig] = useLocalStorage('holoKeyGenSig', null)
-  const [holoKeyGenSigDigest, setHoloKeyGenSigDigest] = useLocalStorage('holoKeyGenSigDigest', null)
+  const [holoKeyGenSig, setHoloKeyGenSig] = useLocalStorage('holoKeyGenSig', "")
+  const [holoKeyGenSigDigest, setHoloKeyGenSigDigest] = useLocalStorage('holoKeyGenSigDigest', "")
   // Using useLocalStorage on strings results in double quotes being added to the ends of the strings
   const parsedHoloKeyGenSig = useMemo(
     () => holoKeyGenSig?.replaceAll('"', ''),
@@ -38,6 +38,11 @@ function HoloKeyGenSigProvider({ children }) {
     setHoloKeyGenSigDigest(digest)
   }
 
+  function clearHoloKeyGenSig() {
+    setHoloKeyGenSig("");
+    setHoloKeyGenSigDigest("");
+  }
+
   return (
     <HoloKeyGenSigContext.Provider value={{
       signHoloKeyGenMessage,
@@ -46,6 +51,7 @@ function HoloKeyGenSigProvider({ children }) {
       holoKeyGenSigIsSuccess,
       holoKeyGenSig: parsedHoloKeyGenSig,
       holoKeyGenSigDigest: parsedHoloKeyGenSigDigest,
+      clearHoloKeyGenSig
     }}>
       {children}
     </HoloKeyGenSigContext.Provider>

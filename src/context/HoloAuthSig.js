@@ -11,8 +11,8 @@ import { holonymAuthMessage } from "../constants/misc";
 const HoloAuthSigContext = createContext(null)
 
 function HoloAuthSigProvider({ children }) {
-  const [holoAuthSig, setHoloAuthSig] = useLocalStorage('holoAuthSig', null)
-  const [holoAuthSigDigest, setHoloAuthSigDigest] = useLocalStorage('holoAuthSigDigest', null)
+  const [holoAuthSig, setHoloAuthSig] = useLocalStorage('holoAuthSig', "")
+  const [holoAuthSigDigest, setHoloAuthSigDigest] = useLocalStorage('holoAuthSigDigest', "")
   // Using useLocalStorage on strings results in double quotes being added to the ends of the strings
   const parsedHoloAuthSig = useMemo(
     () => holoAuthSig?.replaceAll('"', ''),
@@ -38,6 +38,11 @@ function HoloAuthSigProvider({ children }) {
     setHoloAuthSigDigest(digest)
   }
 
+  function clearHoloAuthSig() {
+    setHoloAuthSig("");
+    setHoloAuthSigDigest("");
+  }
+
   return (
     <HoloAuthSigContext.Provider value={{
       signHoloAuthMessage,
@@ -46,6 +51,7 @@ function HoloAuthSigProvider({ children }) {
       holoAuthSigIsSuccess,
       holoAuthSig: parsedHoloAuthSig,
       holoAuthSigDigest: parsedHoloAuthSigDigest,
+      clearHoloAuthSig
     }}>
       {children}
     </HoloAuthSigContext.Provider>
