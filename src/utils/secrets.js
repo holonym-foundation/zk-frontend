@@ -240,8 +240,9 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
   // 5. Merge local and remote creds
   // If user provides signature for incorrect decryption key (which will happen if the user signs from a different account than the one used when encrypting), 
   // the decryption procedure will still return some result, so we check that the result contains expected properties before merging.
+  // Importantly, since new creds are stored locally before being backed up, if there is a conflict between local and remote creds, the local version will be used.
   let mergedCreds = {}
-  const credsArr = [decryptedLocalCredsAES, decryptedLocalCredsLit, decryptedRemoteCredsAES, decryptedRemoteCredsLit];
+  const credsArr = [decryptedRemoteCredsAES, decryptedRemoteCredsLit, decryptedLocalCredsAES, decryptedLocalCredsLit];
   for (const issuer of issuerWhitelist) {
     for (const credentialSet of credsArr) {
       if (credentialSet?.[issuer]) {
