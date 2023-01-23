@@ -133,7 +133,7 @@ async function submitProofThenStoreMetadata(
 		defaultChainToProveOn,
 	);
 	await addProofMetadataItem(
-		result.data,
+		result,
 		proof.inputs[1],
 		proofType,
 		actionId,
@@ -141,6 +141,7 @@ async function submitProofThenStoreMetadata(
 		holoAuthSigDigest,
 		holoKeyGenSigDigest,
 	);
+  return result;
 }
 const METAMASK_ERROR_TYPE = "metamask";
 const MINTING_ERROR_TYPE = "mint";
@@ -169,20 +170,21 @@ async function testMetamask(account) {
 
 const Proofs = () => {
 	const params = useParams();
-	const [creds, setCreds] = useState();
+	const [sortedCreds, setSortedCreds] = useState();
 
 	const [error, setError] = useState();
 	const [customError, setCustomError] = useState();
 	const [proof, setProof] = useState();
 	const [submissionConsent, setSubmissionConsent] = useState(false);
-	const [es, setES] = useState();
+  const [proofSubmissionSuccess, setProofSubmissionSuccess] = useState(false);
 	const { litAuthSig } = useLitAuthSig();
 	const { data: account } = useAccount();
 	const { switchNetworkAsync } = useNetwork();
 	const { holoAuthSigDigest } = useHoloAuthSig();
 	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 	const accountReadyAddress = useMemo(
-		account?.connector.ready && account?.address && account.address,
+		() => account?.connector.ready && account?.address && account.address,
+    []
 	);
 
 	const proofs = {
@@ -205,11 +207,11 @@ const Proofs = () => {
 
 	const getCredentialsQuery = useQuery(
 		["getCredentials", `${holoKeyGenSigDigest}${holoAuthSigDigest}`],
-		getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig),
+		() => getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig),
 		{
-			onSuccess: (sortedCreds) => {
-				if (sortedCreds) {
-					setCreds(sortedCreds);
+			onSuccess: (sortedCredsTemp) => {
+				if (sortedCredsTemp) {
+					setSortedCreds(sortedCredsTemp);
 				} else {
 					setError({
 						type: MINTING_ERROR_TYPE,
@@ -218,18 +220,20 @@ const Proofs = () => {
 					});
 				}
 			},
-			onError: (error) => setError({
-        type: MINTING_ERROR_TYPE,
-        message: String(error)
-      }),
-			enabled: accountReadyAddress,
+			onError: (error) => {
+        setError({
+          type: MINTING_ERROR_TYPE,
+          message: String(error)
+        })
+      },
+			enabled: !!accountReadyAddress,
 		},
 	);
 
 	const loadProofQuery = useQuery(
 		["loadProof"],
 		async () => {
-			const creds = creds[serverAddress["idgov"]];
+			const creds = sortedCreds[serverAddress["idgov"]];
 			if (!creds) {
 				throw new Error({
           type: NOGOV_ERROR_TYPE
@@ -237,13 +241,13 @@ const Proofs = () => {
 			}
 			console.log("Loading proof");
 			if (params.proofType === "us-residency") {
-				loadPoR(creds, accountReadyAddress);
+				return loadPoR(creds, accountReadyAddress);
 			} else if (params.proofType === "uniqueness") {
 				if (!params.actionId)
 					console.error(
 						`Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`,
 					);
-				loadAntiSybil(
+				return loadAntiSybil(
 					creds,
 					accountReadyAddress,
 					params.actionId || defaultActionId,
@@ -251,9 +255,9 @@ const Proofs = () => {
 			}
 		},
 		{
-			enabled: accountReadyAddress && !!creds && params.proofType in proofs,
+			enabled: !!accountReadyAddress && !!sortedCreds && params.proofType in proofs,
 			onError: (error) => {
-				if (type in error && error.type === NOGOV_ERROR_TYPE) {
+				if ("type" in error && error.type === NOGOV_ERROR_TYPE) {
 					setCustomError(
 						<p>
 							To do this proof, your Holo must have a government ID. Please{" "}
@@ -276,7 +280,7 @@ const Proofs = () => {
 	);
 
 	const submitProofThenStoreMetadataQuery = useQuery(
-		"submitProofThenStoreMetadata",
+		["submitProofThenStoreMetadata"],
 		async () =>
 			submitProofThenStoreMetadata(
 				proof,
@@ -288,8 +292,10 @@ const Proofs = () => {
 				holoKeyGenSigDigest,
 			),
 		{
-			enabled: submissionConsent && creds && proof,
-			onSuccess: () => {
+			enabled: !!(submissionConsent && sortedCreds && proof),
+			onSuccess: (result) => {
+        console.log('result from submitProofThenStoreMetadata')
+        console.log(result)
 				if (result.error) {
 					console.log("error", result);
 					setError({
@@ -298,7 +304,9 @@ const Proofs = () => {
             result?.error?.message,
           });
 					// TODO: At this point, display message to user that they are now signing to store their proof metadata
-				}
+				} else {
+          setProofSubmissionSuccess(true);
+        }
 			},
 		},
 	);
@@ -311,7 +319,8 @@ const Proofs = () => {
 		}
 	}, [account, window.ethereum]);
 
-	if (submitProofThenStoreMetadataQuery.isSuccess) {
+  // submitProofThenStoreMetadataQuery.isSuccess was being set to true before the proof was actually submitted
+	if (proofSubmissionSuccess) {
 		if (params.callback) window.location.href = `https://${params.callback}`;
 		return <Success title="Success" />;
 	}
@@ -349,9 +358,9 @@ const Proofs = () => {
 						<h2>Prove {proofs[params.proofType].name}</h2>
 						<div className="spacer-med" />
 						<br />
-						{error ? (
-							<p>Error: {error}</p>
-						) : creds ? (
+						{error?.message ? (
+							<p>Error: {error.message}</p>
+						) : sortedCreds ? (
 							<p>
 								This will give you,
 								<code> {truncateAddress(account.address)} </code>, a{" "}
@@ -378,7 +387,7 @@ const Proofs = () => {
 						)}
 						<div className="spacer-med" />
 						<br />
-						{creds ? (
+						{sortedCreds ? (
 							proof ? (
 								<button
 									className="x-button"
