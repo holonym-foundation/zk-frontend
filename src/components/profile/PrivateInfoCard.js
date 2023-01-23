@@ -86,11 +86,10 @@ export default function PrivateInfoCard({ creds, loading }) {
   const { holoKeyGenSig } = useHoloKeyGenSig();
 
   useEffect(() => {
-    // Whether creds are populated is a proxy for whether authSigs are populated
-    if (!creds) return;
+    if (!litAuthSig || !holoAuthSig || !holoKeyGenSig) return;
     const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig, litAuthSig });
     setAuthSigs(authSigsTemp);
-  }, [creds])
+  }, [litAuthSig, holoAuthSig, holoKeyGenSig])
 
   const exportButtonClasses = classNames({
     "export-private-info-button": true,
