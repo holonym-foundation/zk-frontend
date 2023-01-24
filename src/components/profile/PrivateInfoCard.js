@@ -46,7 +46,7 @@ const ExportModal = ({ authSigs, visible, setVisible, blur = true, }) => {
     <>
       <Modal visible={visible} setVisible={setVisible} blur={blur}>
         <div style={{ textAlign: 'center' }}>
-          <h3>Export Private Info</h3>
+          <h3>Export Your Holo</h3>
           <p>Export your private info to the Holonym mobile app.</p>
           <p>Copy to clipboard or scan QR code.</p>
           <hr />
@@ -122,7 +122,7 @@ export default function PrivateInfoCard({ creds, loading }) {
           <>
             <div className="card-header" style={{ display: "flex"}}>
               <div>
-                <h2 className="card-header-title">Private Info</h2>
+                <h2 className="card-header-title">Your Holo</h2>
                 <div style={{ display: 'flex' }}>
                   <p>This is kept locally and privately. Only you can see it.</p>
                   <div style={{ marginBottom: "12px", position: 'relative', top: '-4px', left: '-4px' }}>
