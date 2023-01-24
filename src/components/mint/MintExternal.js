@@ -3,7 +3,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import MintButton from "../atoms/mint-button";
+import MintButton from "./mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
 import MintContainer from "./MintContainer";
