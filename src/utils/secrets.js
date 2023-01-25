@@ -187,11 +187,12 @@ export async function getRemoteEncryptedUserCredentials(holoAuthSigDigest) {
     console.log('Fetching creds from remote backup')
     const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
     const data = await resp.json();
-    if (data.error) {
+    if (!data) throw new Error('No data returned from remote backup')
+    if (data?.error) {
       console.log('Error fetching creds from remote backup', data.error);
       return null;
     }
-    if (data?.encryptedCredentials) console.log('Retrieved creds from remote backup');
+    if (data.encryptedCredentials) console.log('Retrieved creds from remote backup');
     return data;
   } catch (err) {
     console.log('Error fetching creds from remote backup', err);
@@ -200,7 +201,8 @@ export async function getRemoteEncryptedUserCredentials(holoAuthSigDigest) {
 }
 
 /**
- * Get credentials from localStorage and remote backup.
+ * Get credentials from localStorage and remote backup. Also re-stores credentials
+ * before returning them.
  * @param {string} holoKeyGenSigDigest Used as key for AES encryption/decryption
  * @param {string} holoAuthSigDigest 
  * @param {object} litAuthSig
@@ -240,16 +242,34 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
   // 5. Merge local and remote creds
   // If user provides signature for incorrect decryption key (which will happen if the user signs from a different account than the one used when encrypting), 
   // the decryption procedure will still return some result, so we check that the result contains expected properties before merging.
-  // Importantly, since new creds are stored locally before being backed up, if there is a conflict between local and remote creds, the local version will be used.
-  let mergedCreds = {}
-  const credsArr = [decryptedRemoteCredsAES, decryptedRemoteCredsLit, decryptedLocalCredsAES, decryptedLocalCredsLit];
+  // If there is a conflict between two credential sets, use the credentials that were most recently issued. There can be a conflict
+  // if the user has credentials stored in multiple browsers and receives new credentials from an issuer.
+  // allCreds has shape: [{ '0x1234': { completedAt: 123, rawCreds: {...} }, '0x5678': {...} }, ...]
+  const allCreds = [];
+  if (decryptedRemoteCredsAES) allCreds.push(decryptedRemoteCredsAES);
+  if (decryptedRemoteCredsLit) allCreds.push(decryptedRemoteCredsLit);
+  if (decryptedLocalCredsAES) allCreds.push(decryptedLocalCredsAES);
+  if (decryptedLocalCredsLit) allCreds.push(decryptedLocalCredsLit);
+  let mergedCreds = {};
   for (const issuer of issuerWhitelist) {
-    for (const credentialSet of credsArr) {
-      if (credentialSet?.[issuer]) {
-        mergedCreds = {
-          ...mergedCreds,
-          [issuer]: credentialSet[issuer],
+    const credsFromIssuer = allCreds.filter(sortedCredsTemp => sortedCredsTemp[issuer]);
+    if (credsFromIssuer.length === 1) {
+      mergedCreds = {
+        ...mergedCreds,
+        [issuer]: credsFromIssuer[0][issuer],
+      }
+    } else if (credsFromIssuer.length > 1) {
+      // User has multiple sets of credentials for the same issuer. Use the most recently issued set.
+      const sortedCredsFromIssuer = credsFromIssuer.sort(
+        (a, b) => {
+          const bDate = new Date(b[issuer]?.completedAt ?? b[issuer]?.rawCreds?.completedAt).getTime();
+          const aDate = new Date(a[issuer]?.completedAt ?? a[issuer]?.rawCreds?.completedAt).getTime();
+          return bDate - aDate;
         }
+      );
+      mergedCreds = {
+        ...mergedCreds,
+        [issuer]: sortedCredsFromIssuer[0][issuer],
       }
     }
   }
