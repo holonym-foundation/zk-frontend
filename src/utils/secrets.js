@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import aesjs from 'aes-js';
-import { idServerUrl, issuerWhitelist, defaultActionId, chainUsedForLit } from "../constants/misc";
+import { idServerUrl, issuerWhitelist, defaultActionId, chainUsedForLit, zokratesFieldPrime } from "../constants/misc";
 import lit from './lit';
 import { proveKnowledgeOfLeafPreimage } from "./proofs";
 
@@ -524,7 +524,8 @@ export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, l
 }
 
 export function generateSecret() {
-  const newSecret = new Uint8Array(16);
+  const newSecret = new Uint8Array(64);
   crypto.getRandomValues(newSecret);
-  return ethers.BigNumber.from(newSecret).toHexString();
+  const primeAsBigNum = ethers.BigNumber.from(zokratesFieldPrime)
+  return ethers.BigNumber.from(newSecret).mod(primeAsBigNum).toHexString();
 }

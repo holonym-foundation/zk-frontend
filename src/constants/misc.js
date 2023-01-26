@@ -44,6 +44,8 @@ export const defaultChainToProveOn = process.env.NODE_ENV === 'development' ? 'o
 
 export const maxDailyVouchedJobCount = 5000;
 
+export const zokratesFieldPrime = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
+
 export const stateAbbreviations = {
   ALABAMA: "AL",
   ALASKA: "AK",
