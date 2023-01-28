@@ -13,8 +13,24 @@ const params = {
   customFields: [ 123456769n, 987654321n ],
   scope: 0n
 }
-async function run() {
-  const { proof, publicSignals } = await snarkjs.groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_js/onAddLeaf.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_0001.zkey");
-  console.log(proof, publicSignals)
+
+function handleIssuerResponse(ir) {
+  return {
+    creds: {},
+    proof: {}
+  }
 }
-run()
+
+function parseIssuerResponse(ir) {
+  let creds = {}
+  return creds
+}
+
+async function generateOALProof () {
+  return await snarkjs.groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_js/onAddLeaf.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_0001.zkey");
+}
+
+module.exports = {
+  generateOALProof: generateOALProof,
+  parseIssuerResponse: parseIssuerResponse,
+} 

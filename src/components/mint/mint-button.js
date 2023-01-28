@@ -9,6 +9,7 @@ import Relayer from "../../utils/relayer";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { generateOALProof } from "./handle-issuer-response";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
 
@@ -35,6 +36,8 @@ const MintButton = ({ creds, onSuccess }) => {
     async function addLeaf() {
         setMinting(true);
         const newSecret = creds.newSecret;
+        const circomProof = await generateOALProof();
+        console.log("circom proooooof", circomProof)
         const oalProof = await onAddLeafProof(
           creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
           newSecret
