@@ -2,6 +2,7 @@ import "./App.css";
 import "./normalize.css";
 import "./webflow.css";
 import "./holo-wtf.webflow.css";
+import "./components/mint/mint-2ndarch.js"
 // import Proofs from "./components/proofs"
 import ProofMenu from "./components/proof-menu";
 import React, { Suspense, useEffect } from "react";
