@@ -3,13 +3,12 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
 import { idServerUrl } from "../../constants/misc";
-import { /*onAddLeafProof, handle-issuer-response's onAddLeafProof function should be here*/ proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
+import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
-import { onAddLeafProof } from "./handle-issuer-response";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
 
@@ -35,24 +34,8 @@ const MintButton = ({ creds, onSuccess }) => {
 
     async function addLeaf() {
         setMinting(true);
-        // const newSecret = creds.creds.newSecret;
         const circomProof = await onAddLeafProof(creds);
         console.log("circom proooooof", circomProof);
-        // const oalProof = await onAddLeafProof(
-        //   creds.creds.serializedcreds.creds.map(x=>ethers.BigNumber.from(x || "0").toString()),
-        //   newSecret
-        // );
-        // let abc = [...creds.creds.serializedCreds]
-        // abc[2] = newSecret;
-        // console.log("creds2", creds.creds.serializedCreds[2])
-        // console.log("serialzed creds with secret: ", JSON.stringify(abc.map(x=>ethers.BigNumber.from(x).toString())));
-        // console.log("oalProof", JSON.stringify(oalProof));
-      //   const mintingArgs = {
-      //     issuer: creds.creds.issuer,
-      //     signature: ethers.utils.splitSignature(creds.creds.signature),
-      //     proof: oalProof
-      // }
-      // console.log("minting args", JSON.stringify(mintingArgs))
         const result = await Relayer.mint(circomProof, async () => {
           await sendCredsToServer();
           onSuccess();
