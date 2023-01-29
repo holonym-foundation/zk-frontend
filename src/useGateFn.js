@@ -1,3 +1,11 @@
+import { useEffect } from "react";
+import { ethers } from "ethers";
+import { useAccount } from "wagmi";
+import { useLitAuthSig } from './context/LitAuthSig';
+import { useHoloAuthSig } from "./context/HoloAuthSig";
+import { useHoloKeyGenSig } from "./context/HoloKeyGenSig";
+import { holonymAuthMessage, holonymKeyGenMessage } from "./constants/misc";
+
 export function useGateFn(gate) {
 	const { data: account } = useAccount();
 	const {
@@ -71,15 +79,5 @@ export function useGateFn(gate) {
 		}
 	}, [account]);
 
-	const mainDivStyles = {
-		position: "relative",
-		paddingTop: "100px",
-		width: "100%",
-		height: "90%",
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "start",
-		flexDirection: "column",
-	};
-	return gate(mainDivStyles);
+	return gate({ account, litAuthSig, holoAuthSig, holoAuthSigDigest, holoKeyGenSig, holoKeyGenSigDigest });
 }

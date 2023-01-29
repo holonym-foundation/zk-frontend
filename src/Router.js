@@ -9,7 +9,7 @@ import MintPhoneNumber from './components/mint/MintPhoneNumber';
 import MintExternal from "./components/mint/MintExternal";
 import { Proofs } from "./App";
 
-export function Router() {
+export function AppRouter() {
   return (
     <Router>
       <Routes>
