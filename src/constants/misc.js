@@ -29,6 +29,8 @@ export const issuerWhitelist = [
   '0x8281316aC1D51c94f2DE77575301cEF615aDea84',
   '0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513',
   '0xB625e69aB86db23C23682875Ba10FbC8f8756d16',
+  // EdDSA signer 'address' format:
+  '0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993'
 ]
 
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"

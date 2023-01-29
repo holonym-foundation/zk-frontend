@@ -69,19 +69,19 @@ const StoreCredentials = (props) => {
 
   function getCredsConfirmation(sortedCreds, credsTemp) {
     // Ask user for confirmation if they already have credentials from this issuer
-    if (sortedCreds?.[credsTemp.issuer]) {
+    if (sortedCreds?.[credsTemp.creds.issuerAddress]) {
       console.log('Issuer already in sortedCreds')
-      const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
+      const credsToDisplay = sortedCreds[credsTemp.creds.issuerAddress]?.rawCreds ?? sortedCreds[credsTemp.creds.issuerAddress]
       const confirmation = window.confirm(
         `You already have credentials from this issuer. Would you like to overwrite them? ` +
         "You will not be able to undo this action. " +
         `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
       )
       if (confirmation) {
-        console.log(`User is overwriting creds from ${credsTemp.issuer}`)
+        console.log(`User is overwriting creds from ${credsTemp.creds.issuerAddress}`)
         return true
       } else {
-        console.log(`User is not overwriting creds from ${credsTemp.issuer}`)
+        console.log(`User is not overwriting creds from ${credsTemp.creds.issuerAddress}`)
         return false;
       }
     }
@@ -90,11 +90,12 @@ const StoreCredentials = (props) => {
 
   async function mergeAndSetCreds(credsTemp) {
     const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
-    if (!lowerCaseIssuerWhitelist.includes(credsTemp.issuer.toLowerCase())) {
-      setError(`Error: Issuer ${credsTemp.issuer} is not whitelisted.`);
+    console.log("credsTemp", credsTemp)
+    if (!lowerCaseIssuerWhitelist.includes(credsTemp.creds.issuerAddress.toLowerCase())) {
+      setError(`Error: Issuer ${credsTemp.creds.issuerAddress} is not whitelisted.`);
       return;
     }
-    credsTemp.newSecret = generateSecret();
+    credsTemp.creds.newSecret = generateSecret();
     // Merge new creds with old creds
     const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig) ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
@@ -102,7 +103,7 @@ const StoreCredentials = (props) => {
       setDeclinedToStoreCreds(true);
       return;
     }
-    sortedCreds[credsTemp.issuer] = credsTemp;
+    sortedCreds[credsTemp.creds.issuerAddress] = credsTemp;
 
     // Store creds. Encrypt with AES, using holoAuthSigDigest as the key.
     // For backwards compatibility, we also encrypt with Lit.
@@ -110,7 +111,7 @@ const StoreCredentials = (props) => {
     const { encryptedString, encryptedSymmetricKey } = await encryptObjectWithLit(sortedCreds, litAuthSig);
     setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey, encryptedCredentialsAES);
     window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`);
-    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer]);
+    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.creds.issuerAddress]);
   }
   
   // Steps:
