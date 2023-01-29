@@ -15,6 +15,7 @@ import { ThreeDots } from "react-loader-spinner";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { createLeaf } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
@@ -95,7 +96,12 @@ const StoreCredentials = (props) => {
       setError(`Error: Issuer ${credsTemp.creds.issuerAddress} is not whitelisted.`);
       return;
     }
-    credsTemp.creds.newSecret = generateSecret();
+    // Update the creds with the new secret
+    credsTemp.creds.newSecret = await generateSecret();
+    credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
+    credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
+    credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
+
     // Merge new creds with old creds
     const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig) ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);

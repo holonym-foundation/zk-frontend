@@ -3,13 +3,13 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
 import { idServerUrl } from "../../constants/misc";
-import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
+import { /*onAddLeafProof, handle-issuer-response's onAddLeafProof function should be here*/ proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
-import { generateOALProof } from "./handle-issuer-response";
+import { onAddLeafProof } from "./handle-issuer-response";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
 
@@ -23,8 +23,8 @@ const MintButton = ({ creds, onSuccess }) => {
     async function sendCredsToServer() {
       console.log('generating proof of knowledge of leaf preimage')
       const proof = await proveKnowledgeOfLeafPreimage(
-        creds.serializedCreds.map(item => ethers.BigNumber.from(item || "0").toString()),
-        creds.newSecret
+        creds.creds.serializedcreds.creds.map(item => ethers.BigNumber.from(item || "0").toString()),
+        creds.creds.newSecret
       );
       const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, false);
       const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, proof);
@@ -35,25 +35,25 @@ const MintButton = ({ creds, onSuccess }) => {
 
     async function addLeaf() {
         setMinting(true);
-        const newSecret = creds.newSecret;
-        const circomProof = await generateOALProof();
-        console.log("circom proooooof", circomProof)
-        const oalProof = await onAddLeafProof(
-          creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
-          newSecret
-        );
-        // let abc = [...creds.serializedCreds]
+        // const newSecret = creds.creds.newSecret;
+        const circomProof = await onAddLeafProof(creds);
+        console.log("circom proooooof", circomProof);
+        // const oalProof = await onAddLeafProof(
+        //   creds.creds.serializedcreds.creds.map(x=>ethers.BigNumber.from(x || "0").toString()),
+        //   newSecret
+        // );
+        // let abc = [...creds.creds.serializedCreds]
         // abc[2] = newSecret;
-        // console.log("creds2", creds.serializedCreds[2])
+        // console.log("creds2", creds.creds.serializedCreds[2])
         // console.log("serialzed creds with secret: ", JSON.stringify(abc.map(x=>ethers.BigNumber.from(x).toString())));
         // console.log("oalProof", JSON.stringify(oalProof));
-        const mintingArgs = {
-          issuer: creds.issuer,
-          signature: ethers.utils.splitSignature(creds.signature),
-          proof: oalProof
-      }
+      //   const mintingArgs = {
+      //     issuer: creds.creds.issuer,
+      //     signature: ethers.utils.splitSignature(creds.creds.signature),
+      //     proof: oalProof
+      // }
       // console.log("minting args", JSON.stringify(mintingArgs))
-        const result = await Relayer.mint(mintingArgs, async () => {
+        const result = await Relayer.mint(circomProof, async () => {
           await sendCredsToServer();
           onSuccess();
         });
