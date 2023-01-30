@@ -262,9 +262,21 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, lit
       // User has multiple sets of credentials for the same issuer. Use the most recently issued set.
       const sortedCredsFromIssuer = credsFromIssuer.sort(
         (a, b) => {
-          const bDate = new Date(b[issuer]?.completedAt ?? b[issuer]?.rawCreds?.completedAt).getTime();
-          const aDate = new Date(a[issuer]?.completedAt ?? a[issuer]?.rawCreds?.completedAt).getTime();
-          return bDate - aDate;
+          if (!a[issuer]?.creds?.iat && !b[issuer]?.creds?.iat) return 0;
+          if (!a[issuer]?.creds?.iat) return 1;
+          if (!b[issuer]?.creds?.iat) return -1;
+
+          // try-catch in case an iat isn't parsable as an ethers BigNumber. This will only happen if an issuer
+          // doesn't follow the standard, which is unlikely, but if it does happen and we do not handle it, the
+          // user could be blocked from getting their credentials.
+          try {
+            const bSecondsSince1900 = parseInt(ethers.BigNumber.from(b[issuer].creds.iat).toString());
+            const aSecondsSince1900 = parseInt(ethers.BigNumber.from(a[issuer].creds.iat).toString());
+            return bSecondsSince1900 - aSecondsSince1900; 
+          } catch (err) {
+            console.error(err);
+            return 0;
+          }
         }
       );
       mergedCreds = {
