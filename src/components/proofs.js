@@ -56,8 +56,7 @@ const LoadingProofsButton = (props) => (
 	</button>
 );
 
-async function loadAntiSybil(
-	{ newSecret, serializedCreds },
+async function loadAntiSybil(newSecret, serializedAsNewPreimage,
 	address,
 	actionId,
 ) {
@@ -74,7 +73,7 @@ async function loadAntiSybil(
 		nameCitySubdivisionZipStreetHash_,
 		completedAt_,
 		scope,
-	] = serializedCreds;
+	] = serializedAsNewPreimage;
 
 	return await antiSybil(
 		address,
@@ -89,7 +88,7 @@ async function loadAntiSybil(
 	);
 }
 
-async function loadPoR({ newSecret, serializedCreds }, address) {
+async function loadPoR(newSecret, serializedAsNewPreimage, address) {
 	const salt =
 		"18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
 	const footprint = await poseidonTwoInputs([
@@ -104,7 +103,7 @@ async function loadPoR({ newSecret, serializedCreds }, address) {
 		nameCitySubdivisionZipStreetHash_,
 		completedAt_,
 		scope,
-	] = serializedCreds;
+	] = serializedAsNewPreimage;
 	return await proofOfResidency(
 		address,
 		issuer_,
@@ -233,7 +232,7 @@ const Proofs = () => {
 	const loadProofQuery = useQuery(
 		["loadProof"],
 		async () => {
-			const creds = sortedCreds[serverAddress["idgov"]];
+			const creds = sortedCreds[serverAddress["idgov-v2"]];
 			if (!creds) {
 				throw new Error({
           type: NOGOV_ERROR_TYPE
@@ -241,14 +240,15 @@ const Proofs = () => {
 			}
 			console.log("Loading proof");
 			if (params.proofType === "us-residency") {
-				return loadPoR(creds, accountReadyAddress);
+				return loadPoR(creds.creds.newSecret, creds.creds.serializedAsNewPreimage, accountReadyAddress);
 			} else if (params.proofType === "uniqueness") {
 				if (!params.actionId)
 					console.error(
 						`Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`,
 					);
 				return loadAntiSybil(
-					creds,
+					creds.creds.newSecret,
+					creds.creds.serializedAsNewPreimage,
 					accountReadyAddress,
 					params.actionId || defaultActionId,
 				);

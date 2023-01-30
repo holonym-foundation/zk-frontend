@@ -22,7 +22,7 @@ const MintButton = ({ creds, onSuccess }) => {
     async function sendCredsToServer() {
       console.log('generating proof of knowledge of leaf preimage')
       const proof = await proveKnowledgeOfLeafPreimage(
-        creds.creds.serializedcreds.creds.map(item => ethers.BigNumber.from(item || "0").toString()),
+        creds.creds.serializedAsNewPreimage.map(item => ethers.BigNumber.from(item || "0").toString()),
         creds.creds.newSecret
       );
       const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, false);
