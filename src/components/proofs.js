@@ -189,11 +189,13 @@ const Proofs = () => {
 	const proofs = {
 		"us-residency": {
 			name: "US Residency",
-			contractName: "IsUSResident",
+			// contractName: "IsUSResident",
+			contractName: "IsUSResidentV2",
 		},
 		uniqueness: {
 			name: "Uniqueness",
-			contractName: "SybilResistance",
+			// contractName: "SybilResistance",
+			contractName: "SybilResistanceV2",
 		},
 	};
 
