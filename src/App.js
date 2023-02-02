@@ -33,6 +33,7 @@ import MintExternal from "./components/mint/MintExternal";
 import { Provider as WagmiProvider } from "wagmi";
 import { wagmiClient } from "./wagmiClient";
 import SignatureContainer from "./components/SignatureContainer";
+import ConvertCredentials from "./components/convert-credentials";
 
 const queryClient = new QueryClient()
 
@@ -87,6 +88,7 @@ function App() {
                             <Route exact path={"/profile"} element={<Profile />} />
                             {/* <Route path={"/chainswitchertest"} element={<ChainSwitcher />} /> */}
                             {/* <Route path={"/chainswitchermodaltest"} element={<ChainSwitcherModal />} /> */}
+                            <Route exact path={"/convert-credentials"} element={<ConvertCredentials />} />
                           </Routes>
                         </Router>
                       </SignatureContainer>

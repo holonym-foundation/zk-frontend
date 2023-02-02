@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
@@ -29,13 +30,14 @@ function formatCreds(sortedCreds) {
   // For example, only one issuer will ever provide a 'firstName' field.
   const reshapedCreds = {}
   Object.entries(sortedCreds).reduce((acc, [issuer, cred]) => {
-    const rawCreds = sortedCreds[issuer].rawCreds ?? sortedCreds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12    
+    const rawCreds = sortedCreds[issuer].metadata.rawCreds; 
     const newCreds = Object.entries(rawCreds).filter(([credName, credValue]) => credName !== 'completedAt').map(([credName, credValue]) => {
+      const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[issuer]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
       return {
         [credName]: {
           issuer,
           cred: credValue,
-          completedAt: rawCreds.completedAt,
+          iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
         }
       }
     })

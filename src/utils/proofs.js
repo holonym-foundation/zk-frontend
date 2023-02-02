@@ -99,7 +99,7 @@ export async function getMerkleProofParams(leaf) {
   const leaves = tree._nodes[0];
   if (leaves.indexOf(leaf) === -1) {
     console.error(
-      `Could not find leaf ${leaf} from querying on-chain list of leaves ${leaves}`
+      `Could not find leaf ${leaf} in leaves ${leaves}`
     );
   }
 
