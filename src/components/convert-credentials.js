@@ -138,8 +138,7 @@ const ConvertCredentials = () => {
           S: "n/a",
         },
       };
-      // TODO: this to serverAddress['phone-v2']
-      sortedCreds[serverAddress['phone']] = reformattedPhoneCreds;
+      sortedCreds[serverAddress['phone-v2']] = reformattedPhoneCreds;
     }
     console.log('sortedCreds after', sortedCreds);
     try {

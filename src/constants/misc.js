@@ -21,7 +21,8 @@ export const zkPhoneEndpoint =
 export const serverAddress = {
   "idgov" : "0x8281316aC1D51c94f2DE77575301cEF615aDea84", // TODO : should probably be different in testing than in prod for security
   "idgov-v2": "0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993",
-  "phone" : ((process.env.NODE_ENV === "development") ? "0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513" : "0xB625e69aB86db23C23682875Ba10FbC8f8756d16")
+  "phone" : ((process.env.NODE_ENV === "development") ? "0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513" : "0xB625e69aB86db23C23682875Ba10FbC8f8756d16"),
+  "phone-v2": "0x2998cab3d07a64315f1e8399ecef60a19f478231663f8740703bd30a42a91ed4",
 }
 
 // Necessary now that any site can redirect a user to Holonym and store user credentials. A user's
