@@ -24,7 +24,7 @@ const ConvertCredentials = () => {
       setError("Could not retrieve credentials.");
       return;
     }
-    console.log('sortedCreds', sortedCreds)
+    console.log('sortedCreds before', sortedCreds)
     const govIdCreds = sortedCreds[serverAddress['idgov']];
     if (govIdCreds && (!govIdCreds.creds || !govIdCreds.leaf || !govIdCreds.pubkey || !govIdCreds.signature)) {
       const reformattedGovIdCreds = {
@@ -44,25 +44,25 @@ const ConvertCredentials = () => {
             ethers.BigNumber.from(c).toHexString()
           ),
           serializedAsNewPreimage: [
-            ethers.BigNumber.from(govIdCreds.serializedCreds[0]),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[0]).toHexString(),
             ethers.BigNumber.from(govIdCreds.newSecret).toHexString(),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[2]),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[3]),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[4]),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[5]),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[2]).toHexString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[3]).toHexString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[4]).toHexString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[5]).toHexString(),
           ],
         },
         leaf: ethers.BigNumber.from(
-          createLeaf(govIdCreds.serializedCreds.map((c) => ethers.BigNumber.from(c).toString()))
+          await createLeaf(govIdCreds.serializedCreds.map((c) => ethers.BigNumber.from(c).toString()))
         ).toHexString(),
         newLeaf: ethers.BigNumber.from(
-          createLeaf([
-            ethers.BigNumber.from(govIdCreds.serializedCreds[0]),
-            ethers.BigNumber.from(govIdCreds.newSecret).toHexString(),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[2]),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[3]),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[4]),
-            ethers.BigNumber.from(govIdCreds.serializedCreds[5]),
+          await createLeaf([
+            ethers.BigNumber.from(govIdCreds.serializedCreds[0]).toString(),
+            ethers.BigNumber.from(govIdCreds.newSecret).toString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[2]).toString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[3]).toString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[4]).toString(),
+            ethers.BigNumber.from(govIdCreds.serializedCreds[5]).toString(),
           ])
         ).toString(),
         metadata: {
@@ -102,25 +102,25 @@ const ConvertCredentials = () => {
             ethers.BigNumber.from(c).toHexString()
           ),
           serializedAsNewPreimage: [
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[0]),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[0]).toHexString(),
             ethers.BigNumber.from(phoneNumberCreds.newSecret).toHexString(),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[2]),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[3]),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[4]),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[5]),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[2]).toHexString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[3]).toHexString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[4]).toHexString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[5]).toHexString(),
           ],
         },
         leaf: ethers.BigNumber.from(
-          createLeaf(phoneNumberCreds.serializedCreds.map((c) => ethers.BigNumber.from(c).toString()))
+          await createLeaf(phoneNumberCreds.serializedCreds.map((c) => ethers.BigNumber.from(c).toString()))
         ).toHexString(),
         newLeaf: ethers.BigNumber.from(
-          createLeaf([
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[0]),
-            ethers.BigNumber.from(phoneNumberCreds.newSecret).toHexString(),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[2]),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[3]),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[4]),
-            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[5]),
+          await createLeaf([
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[0]).toString(),
+            ethers.BigNumber.from(phoneNumberCreds.newSecret).toString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[2]).toString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[3]).toString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[4]).toString(),
+            ethers.BigNumber.from(phoneNumberCreds.serializedCreds[5]).toString(),
           ])
         ).toString(),
         metadata: {
@@ -140,6 +140,7 @@ const ConvertCredentials = () => {
       };
       sortedCreds[serverAddress['phone']] = reformattedPhoneCreds;
     }
+    console.log('sortedCreds after', sortedCreds);
     setConverting(false);
     setSuccess(true);
   }
