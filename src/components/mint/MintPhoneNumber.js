@@ -78,7 +78,7 @@ const MintPhoneNumber = () => {
     setCode(newCode);
     if (newCode.length === 6) {
       const country = parsePhoneNumber(phoneNumber).country;
-      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${newCode}/${country}`
+      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
       navigate(`/mint/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }

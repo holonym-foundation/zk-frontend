@@ -15,7 +15,7 @@ export const idServerUrl =
     
 export const zkPhoneEndpoint =
   process.env.NODE_ENV === "development"
-    ? "http://ec2-13-59-84-72.us-east-2.compute.amazonaws.com:3030"
+    ? "http://localhost:3030" // http://ec2-13-59-84-72.us-east-2.compute.amazonaws.com:3030"
     : "https://phone.holonym.io";
 
 export const serverAddress = {
@@ -30,7 +30,8 @@ export const issuerWhitelist = [
   '0xFc8a8De489EfEFb91B42bb8b1a6014B71211a513',
   '0xB625e69aB86db23C23682875Ba10FbC8f8756d16',
   // EdDSA signer 'address' format:
-  '0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993'
+  '0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993',
+  '0x2998cab3d07a64315f1e8399ecef60a19f478231663f8740703bd30a42a91ed4'
 ]
 
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
