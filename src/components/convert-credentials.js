@@ -5,7 +5,7 @@ import RoundedWindow from "./RoundedWindow";
 import { useLitAuthSig } from '../context/LitAuthSig';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import { getCredentials } from "../utils/secrets";
+import { getCredentials, storeCredentials } from "../utils/secrets";
 import { createLeaf, getDateAsInt } from "../utils/proofs";
 import { serverAddress } from "../constants/misc";
 
@@ -82,7 +82,7 @@ const ConvertCredentials = () => {
           S: "n/a",
         },
       };
-      sortedCreds[serverAddress['idgov']] = reformattedGovIdCreds;
+      sortedCreds[serverAddress['idgov-v2']] = reformattedGovIdCreds;
     }
     // Handle phone number creds
     const phoneNumberCreds = sortedCreds[serverAddress['phone']];
@@ -141,6 +141,13 @@ const ConvertCredentials = () => {
       sortedCreds[serverAddress['phone']] = reformattedPhoneCreds;
     }
     console.log('sortedCreds after', sortedCreds);
+    try {
+      await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+    } catch (err) {
+      console.error(err);
+      setError(err);
+      return;
+    }
     setConverting(false);
     setSuccess(true);
   }
