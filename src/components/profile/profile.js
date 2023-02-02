@@ -30,7 +30,8 @@ function formatCreds(sortedCreds) {
   // For example, only one issuer will ever provide a 'firstName' field.
   const reshapedCreds = {}
   Object.entries(sortedCreds).reduce((acc, [issuer, cred]) => {
-    const rawCreds = sortedCreds[issuer].metadata.rawCreds; 
+    // Handle gov id creds
+    const rawCreds = sortedCreds[issuer]?.metadata?.rawCreds ?? sortedCreds[issuer]?.metadata ?? {};
     const newCreds = Object.entries(rawCreds).filter(([credName, credValue]) => credName !== 'completedAt').map(([credName, credValue]) => {
       const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[issuer]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
       return {
