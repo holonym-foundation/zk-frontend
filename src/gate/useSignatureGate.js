@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
-import { useLitAuthSig } from './context/LitAuthSig';
-import { useHoloAuthSig } from "./context/HoloAuthSig";
-import { useHoloKeyGenSig } from "./context/HoloKeyGenSig";
-import { holonymAuthMessage, holonymKeyGenMessage } from "./constants/misc";
+import { useLitAuthSig } from '../context/LitAuthSig';
+import { useHoloAuthSig } from "../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
+import { holonymAuthMessage, holonymKeyGenMessage } from "../constants/misc";
 
-export function useGateFn(gate) {
+export default function useSignatureGate(gate) {
 	const { data: account } = useAccount();
 	const {
 		litAuthSig, litAuthSigIsError, litAuthSigIsLoading, litAuthSigIsSuccess, signLitAuthMessage, clearLitAuthSig,
@@ -79,5 +79,5 @@ export function useGateFn(gate) {
 		}
 	}, [account]);
 
-	return gate({ account, litAuthSig, holoAuthSig, holoAuthSigDigest, holoKeyGenSig, holoKeyGenSigDigest });
+	return gate({ litAuthSig, holoAuthSig, holoAuthSigDigest, holoKeyGenSig, holoKeyGenSigDigest });
 }

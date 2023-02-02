@@ -5,7 +5,8 @@ import { HoloAuthSigProvider } from "./context/HoloAuthSig";
 import { HoloKeyGenSigProvider } from "./context/HoloKeyGenSig";
 import { Provider as WagmiProvider } from "wagmi";
 import { wagmiClient } from "./wagmiClient";
-import { Gate } from "./Gate";
+import AccountConnectGate from "./gate/AccountConnectGate";
+import SignatureGate from "./gate/SignatureGate";
 
 export const queryClient = new QueryClient();
 
@@ -24,11 +25,11 @@ export function RootProvider({ children, connectWalletFallback, signMessagesFall
 				<LitAuthSigProvider>
 					<HoloAuthSigProvider>
 						<HoloKeyGenSigProvider>
-							<Gate gate={connectWalletGateFn} fallback={connectWalletFallback}>
-								<Gate gate={signMessagesGateFn} fallback={signMessagesFallback}>
+							<AccountConnectGate gate={connectWalletGateFn} fallback={connectWalletFallback}>
+								<SignatureGate gate={signMessagesGateFn} fallback={signMessagesFallback}>
 									{children}
-								</Gate>
-							</Gate>
+								</SignatureGate>
+							</AccountConnectGate>
 						</HoloKeyGenSigProvider>
 					</HoloAuthSigProvider>
 				</LitAuthSigProvider>
