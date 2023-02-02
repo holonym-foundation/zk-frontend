@@ -35,7 +35,7 @@ const ConvertCredentials = () => {
               govIdCreds.derivedCreds.nameDobCitySubdivisionZipStreetExpireHash.value
             ).toHexString(),
           ],
-          iat: getDateAsInt(govIdCreds.rawCreds.completedAt),
+          iat: ethers.BigNumber.from(getDateAsInt(govIdCreds.rawCreds.completedAt)).toHexString(),
           issuerAddress: govIdCreds.issuer,
           scope: ethers.BigNumber.from(govIdCreds.scope).toHexString(),
           secret: govIdCreds.secret,
@@ -93,7 +93,7 @@ const ConvertCredentials = () => {
             ethers.BigNumber.from(phoneNumberCreds.phoneNumber).toHexString(),
             ethers.BigNumber.from(0).toHexString(),
           ],
-          iat: getDateAsInt(phoneNumberCreds.completedAt),
+          iat: ethers.BigNumber.from(getDateAsInt(phoneNumberCreds.completedAt)).toHexString(),
           issuerAddress: phoneNumberCreds.issuer,
           scope: ethers.BigNumber.from(0).toHexString(),
           secret: phoneNumberCreds.secret,
