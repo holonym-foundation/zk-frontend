@@ -321,10 +321,10 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
     let kolpProof = proof ?? getLatestKolpProof();
     if (!kolpProof) {
       for (const issuer of Object.keys(creds)) {
-        if (creds[issuer].serializedAsNewPreimage) {
+        if (creds[issuer]?.creds?.serializedAsNewPreimage) {
           kolpProof = await proveKnowledgeOfLeafPreimage(
-            creds[issuer].serializedAsNewPreimage.map(item => ethers.BigNumber.from(item || "0").toString()),
-            creds[issuer].newSecret
+            creds[issuer].creds.serializedAsNewPreimage.map(item => ethers.BigNumber.from(item || "0").toString()),
+            creds[issuer].creds.newSecret
           );
           break;
         }
