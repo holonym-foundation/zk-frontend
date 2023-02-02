@@ -124,7 +124,7 @@ const ConvertCredentials = () => {
           ])
         ).toString(),
         metadata: {
-          phoneNumber: govIdCreds.phoneNumber,
+          phoneNumber: phoneNumberCreds.phoneNumber,
         },
         pubkey: {
           x: "n/a",
@@ -138,6 +138,7 @@ const ConvertCredentials = () => {
           S: "n/a",
         },
       };
+      // TODO: this to serverAddress['phone-v2']
       sortedCreds[serverAddress['phone']] = reformattedPhoneCreds;
     }
     console.log('sortedCreds after', sortedCreds);
