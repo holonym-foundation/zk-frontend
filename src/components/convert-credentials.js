@@ -24,7 +24,7 @@ const ConvertCredentials = () => {
       setError("Could not retrieve credentials.");
       return;
     }
-    console.log('sortedCreds before', sortedCreds)
+    console.log('sortedCreds before', Object.assign({}, sortedCreds))
     const govIdCreds = sortedCreds[serverAddress['idgov']];
     if (govIdCreds && (!govIdCreds.creds || !govIdCreds.leaf || !govIdCreds.pubkey || !govIdCreds.signature)) {
       const reformattedGovIdCreds = {
