@@ -72,7 +72,7 @@ function App() {
 
   if (isMobile) return <NotDesktop />
   return (
-    <RootProvider connectWalletFallback={ConnectWalletFallback} signMessagesFallback={SignMessagesFallback}>
+    <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
       <Suspense fallback={<LoadingElement />}>
         <Layout>
           <AppRouter />
