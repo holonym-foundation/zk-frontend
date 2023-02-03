@@ -36,10 +36,16 @@ const MintButton = ({ creds, onSuccess }) => {
         setMinting(true);
         const circomProof = await onAddLeafProof(creds);
         console.log("circom proooooof", circomProof);
-        const result = await Relayer.mint(circomProof, async () => {
-          await sendCredsToServer();
-          onSuccess();
-        });
+        const result = await Relayer.mint(
+          circomProof, 
+          async () => {
+            await sendCredsToServer();
+            onSuccess();
+          }, 
+          () => {
+            setError('Error: An error occurred while minting.')
+          }
+        );
     }
 
     return <div style={{ textAlign: "center" }}>
