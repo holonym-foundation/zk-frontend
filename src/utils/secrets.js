@@ -163,7 +163,7 @@ export function getLocalEncryptedUserCredentials() {
   const localEncryptedCreds = window.localStorage.getItem('holoEncryptedCredentials') // for lit
   const localEncryptedSymmetricKey = window.localStorage.getItem('holoEncryptedCredentialsSymmetricKey') // for lit
   const localEncryptedCredentialsAES = window.localStorage.getItem('holoEncryptedCredentialsAES')
-  const varsAreDefined = localSigDigest && localEncryptedCreds && localEncryptedSymmetricKey && localEncryptedCredentialsAES;
+  const varsAreDefined = localSigDigest && localEncryptedCreds && localEncryptedSymmetricKey; // && localEncryptedCredentialsAES;
   const varsAreUndefinedStr = 
     localSigDigest === 'undefined' || 
     localEncryptedCreds === 'undefined' || 
