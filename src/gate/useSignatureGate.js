@@ -4,7 +4,7 @@ import { useAccount } from "wagmi";
 import { useLitAuthSig } from '../context/LitAuthSig';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import { holonymAuthMessage, holonymKeyGenMessage } from "../constants/misc";
+import { holonymAuthMessage, holonymKeyGenMessage } from "../constants";
 
 export default function useSignatureGate(gate) {
 	const { data: account } = useAccount();

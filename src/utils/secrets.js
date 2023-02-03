@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import aesjs from 'aes-js';
-import { idServerUrl, issuerWhitelist, defaultActionId, chainUsedForLit } from "../constants/misc";
+import { idServerUrl, issuerWhitelist, defaultActionId, chainUsedForLit } from "../constants";
 import lit from './lit';
 import { proveKnowledgeOfLeafPreimage } from "./proofs";
 

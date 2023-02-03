@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAccount, useNetwork } from 'wagmi'
 // import { InfoButton } from "./info-button";
 import RoundedWindow from "../RoundedWindow";
-import { chainIdUsedForLit } from "../../constants/misc";
+import { chainIdUsedForLit } from "../../constants";
 import phoneImg from "../../img/phone.png";
 import idImg from "../../img/id.png";
 import moneyImg from "../../img/money.png";

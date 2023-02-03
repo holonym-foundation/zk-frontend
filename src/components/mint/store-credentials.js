@@ -10,7 +10,7 @@ import {
 import { 
   idServerUrl,
   issuerWhitelist,
-} from "../../constants/misc";
+} from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
 import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";

@@ -1,4 +1,4 @@
-import { zkPhoneEndpoint } from "../constants/misc";
+import { zkPhoneEndpoint } from "../constants";
 import axios from "axios";
 
 var hasRequestedCode = false;

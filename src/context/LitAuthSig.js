@@ -5,7 +5,7 @@
 import React, { createContext, useContext } from 'react'
 import { useAccount, useSignMessage } from 'wagmi';
 import { useLocalStorage } from 'usehooks-ts'
-import { chainIdUsedForLit } from "../constants/misc";
+import { chainIdUsedForLit } from "../constants";
 import { createSiweMessage } from "../utils/misc";
 
 const LitAuthSigContext = createContext(null)

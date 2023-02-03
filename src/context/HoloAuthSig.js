@@ -6,7 +6,7 @@ import React, { createContext, useContext, useMemo} from 'react'
 import { useSignMessage } from 'wagmi';
 import { useLocalStorage } from 'usehooks-ts'
 import { sha256 } from '../utils/secrets';
-import { holonymAuthMessage } from "../constants/misc";
+import { holonymAuthMessage } from "../constants";
 
 const HoloAuthSigContext = createContext(null)
 

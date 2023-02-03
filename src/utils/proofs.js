@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
-import { preprocEndpoint, defaultChainToProveOn } from "../constants/misc";
+import { preprocEndpoint, defaultChainToProveOn } from "../constants";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 import Relayer from "./relayer";

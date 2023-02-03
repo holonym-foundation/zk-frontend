@@ -1,3 +1,5 @@
+export * from './desiredChain';
+
 export const preprocEndpoint = 
   process.env.PREPROC_CACHED_LOCALLY === "true" 
   ? "http://localhost:8000"

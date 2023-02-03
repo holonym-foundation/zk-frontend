@@ -4,7 +4,7 @@ import { parsePhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
-import { zkPhoneEndpoint } from "../../constants/misc";
+import { zkPhoneEndpoint } from "../../constants";
 import MintButton from "../atoms/mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";

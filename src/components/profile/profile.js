@@ -9,7 +9,7 @@ import {
 } from '../../utils/secrets';
 import { 
   primeToCountryCode,
-} from "../../constants/misc";
+} from "../../constants";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 

@@ -7,7 +7,7 @@ import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import MintButton from "../atoms/mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
-import { idServerUrl, maxDailyVouchedJobCount } from "../../constants/misc";
+import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import MintContainer from "./MintContainer";
 
 const StepIDV = ({ phoneNumber }) => {

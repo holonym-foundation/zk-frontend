@@ -14,7 +14,7 @@ import {
   serverAddress, 
   idServerUrl, 
   defaultActionId,
-} from "../constants/misc";
+} from "../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 

@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import { ethers } from "ethers";
 import { ThreeDots } from "react-loader-spinner";
-import { idServerUrl } from "../../constants/misc";
+import { idServerUrl } from "../../constants";
 import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";

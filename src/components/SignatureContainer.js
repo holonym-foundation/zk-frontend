@@ -6,7 +6,7 @@ import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 import { useLitAuthSig } from '../context/LitAuthSig';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import { holonymAuthMessage, holonymKeyGenMessage } from "../constants/misc";
+import { holonymAuthMessage, holonymKeyGenMessage } from "../constants";
 
 const SignatureContainer = ({ children }) => {
   const { data: account } = useAccount();

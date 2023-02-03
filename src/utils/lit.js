@@ -1,5 +1,5 @@
 import LitJsSdk from "@lit-protocol/sdk-browser";
-import { chainUsedForLit } from '../constants/misc';
+import { chainUsedForLit } from '../constants';
 
 const client = new LitJsSdk.LitNodeClient({ debug: false })
 

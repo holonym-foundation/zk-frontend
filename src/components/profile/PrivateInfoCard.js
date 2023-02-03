@@ -6,7 +6,7 @@ import { Oval } from "react-loader-spinner";
 import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
-import { serverAddress } from "../../constants/misc";
+import { serverAddress } from "../../constants";
 import { useLitAuthSig } from "../../context/LitAuthSig";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";

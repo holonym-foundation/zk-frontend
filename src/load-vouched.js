@@ -1,4 +1,4 @@
-import { idServerUrl } from "./constants/misc";
+import { idServerUrl } from "./constants";
 
 const loadVouched = (phoneNumber) => {
   const config = {
