@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
-import { useLitAuthSig } from "../../context/LitAuthSig";
 import { 
   getCredentials,
   getProofMetadata,
@@ -92,7 +91,6 @@ export default function Profile(props) {
   const [proofMetadataLoading, setProofMetadataLoading] = useState(true);
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
-  const { litAuthSig } = useLitAuthSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -104,7 +102,7 @@ export default function Profile(props) {
   useEffect(() => {
     async function getAndSetCreds() {
       try {
-        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
         if (!sortedCreds) return;
         const formattedCreds = formatCreds(sortedCreds);
         setCreds(formattedCreds);
@@ -116,7 +114,7 @@ export default function Profile(props) {
     }
     async function getAndSetProofMetadata() {
       try {
-        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, true);
+        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, true);
         if (proofMetadataTemp) {
           const populatedData = populateProofMetadataDisplayDataAndRestructure(proofMetadataTemp)
           setProofMetadata(populatedData)

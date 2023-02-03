@@ -12,12 +12,6 @@ const Relayer = {
               zkp: <onAddLeaf proof's proof object >
               zkpInputs: <onAddLeaf proof's inputs object>
             },
-            credsToStore: {
-              sigDigest: <sigDigest from getLocalEncryptedUserCredentials() response>
-              encryptedCredentials: <encryptedCredentials from getLocalEncryptedUserCredentials() response>
-              encryptedSymmetricKey: <encryptedSymmetricKey from getLocalEncryptedUserCredentials() response>
-              encryptedCredentialsAES: <encryptedCredentials from getLocalEncryptedUserCredentials() response>
-            }
           }
     */
     mint : async function(args, onSuccess, onError) {

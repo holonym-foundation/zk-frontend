@@ -3,21 +3,12 @@ import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import RoundedWindow from "./RoundedWindow";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
-import { useLitAuthSig } from '../context/LitAuthSig';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import { holonymAuthMessage, holonymKeyGenMessage } from "../constants/misc";
 
 const SignatureContainer = ({ children }) => {
   const { data: account } = useAccount();
-  const { 
-    litAuthSig, 
-    litAuthSigIsError,
-    litAuthSigIsLoading,
-    litAuthSigIsSuccess,
-    signLitAuthMessage,
-    clearLitAuthSig,
-  } = useLitAuthSig();
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,
@@ -39,22 +30,16 @@ const SignatureContainer = ({ children }) => {
 
   useEffect(() => {
     if (!account?.address || !account?.connector) return;
-    if (!litAuthSig && !litAuthSigIsLoading && !litAuthSigIsSuccess) {
-      signLitAuthMessage().catch(err => console.error(err))
-    }
-    if (!litAuthSigIsLoading && !holoAuthSig && !holoAuthSigIsLoading && !holoAuthSigIsSuccess) {
+    if (!holoAuthSig && !holoAuthSigIsLoading && !holoAuthSigIsSuccess) {
       signHoloAuthMessage().catch(err => console.error(err))
     }
-    if (!holoAuthSigIsLoading && !litAuthSigIsLoading && !holoKeyGenSig && !holoKeyGenSigIsLoading && !holoKeyGenSigIsSuccess) {
+    if (!holoAuthSigIsLoading && !holoKeyGenSig && !holoKeyGenSigIsLoading && !holoKeyGenSigIsSuccess) {
       signHoloKeyGenMessage().catch(err => console.error(err))
     }
   }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       account,
-      litAuthSigIsError,
-      litAuthSigIsLoading,
-      litAuthSigIsSuccess,
       holoAuthSigIsError,
       holoAuthSigIsLoading,
       holoAuthSigIsSuccess,
@@ -67,11 +52,6 @@ const SignatureContainer = ({ children }) => {
   useEffect(() => {
     if (!account?.address || !account?.connector) return;
     // Check that sigs are from account. If they aren't, re-request them
-    if (litAuthSig && litAuthSig.address !== account.address) {
-      console.log('account changed. Re-retrieving litAuthSig');
-      clearLitAuthSig()
-      signLitAuthMessage().catch(err => console.error(err))
-    }
     if (holoAuthSig && ethers.utils.verifyMessage(holonymAuthMessage, holoAuthSig) !== account.address) {
       console.log('account changed. Re-retrieving holoAuthSig');
       clearHoloAuthSig()
@@ -101,7 +81,7 @@ const SignatureContainer = ({ children }) => {
         <RoundedWindow>
           <ConnectWalletScreen />
         </RoundedWindow>
-      ) : !litAuthSig || !holoAuthSigDigest || !holoKeyGenSigDigest ? (
+      ) : !holoAuthSigDigest || !holoKeyGenSigDigest ? (
         <RoundedWindow>
           <div style={mainDivStyles}>
             <h2>Please sign the messages in your wallet.</h2>

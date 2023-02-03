@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   encryptWithAES,
-  encryptObjectWithLit,
   setLocalUserCredentials,
   generateSecret,
   getCredentials,
@@ -12,15 +11,11 @@ import {
   issuerWhitelist,
 } from "../../constants/misc";
 import { ThreeDots } from "react-loader-spinner";
-import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { createLeaf } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
-
-// Comment:
-// LitJsSdk.disconnectWeb3()
 
 const StoreCredentials = (props) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,7 +23,6 @@ const StoreCredentials = (props) => {
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
 
-  const { litAuthSig } = useLitAuthSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -103,7 +97,7 @@ const StoreCredentials = (props) => {
     credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
 
     // Merge new creds with old creds
-    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig) ?? {};
+    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);
@@ -112,10 +106,8 @@ const StoreCredentials = (props) => {
     sortedCreds[credsTemp.creds.issuerAddress] = credsTemp;
 
     // Store creds. Encrypt with AES, using holoAuthSigDigest as the key.
-    // For backwards compatibility, we also encrypt with Lit.
     const encryptedCredentialsAES = encryptWithAES(sortedCreds, holoKeyGenSigDigest);
-    const { encryptedString, encryptedSymmetricKey } = await encryptObjectWithLit(sortedCreds, litAuthSig);
-    setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey, encryptedCredentialsAES);
+    setLocalUserCredentials(holoAuthSigDigest, encryptedCredentialsAES);
     window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`);
     if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.creds.issuerAddress]);
   }

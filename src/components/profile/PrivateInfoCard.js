@@ -7,7 +7,6 @@ import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { serverAddress } from "../../constants/misc";
-import { useLitAuthSig } from "../../context/LitAuthSig";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
@@ -81,15 +80,14 @@ export default function PrivateInfoCard({ creds, loading }) {
   const navigate = useNavigate();
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [authSigs, setAuthSigs] = useState(null);
-  const { litAuthSig } = useLitAuthSig();
   const { holoAuthSig } = useHoloAuthSig();
   const { holoKeyGenSig } = useHoloKeyGenSig();
 
   useEffect(() => {
-    if (!litAuthSig || !holoAuthSig || !holoKeyGenSig) return;
-    const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig, litAuthSig });
+    if (!holoAuthSig || !holoKeyGenSig) return;
+    const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig });
     setAuthSigs(authSigsTemp);
-  }, [litAuthSig, holoAuthSig, holoKeyGenSig])
+  }, [holoAuthSig, holoKeyGenSig])
 
   const exportButtonClasses = classNames({
     "export-private-info-button": true,
@@ -128,7 +126,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                   <div style={{ marginBottom: "12px", position: 'relative', top: '-4px', left: '-4px' }}>
                     <InfoButton
                       type="inPlace"
-                      text={`Data is stored locally and a backup is encrypted, split up, and stored in multiple locations access-gated by your wallet signature. Part of it is stored in the Lit protocol, and part of it is stored on a server that cannot read any of your data, since all your data is encrypted. This server may be replaced with decentralized storage. Nobody can see your data except you, even in the backups.`}
+                      text={`Data is stored locally and a backup is encrypted and stored in a backup server access-gated by your wallet signature. This server may be replaced with decentralized storage. Nobody can see your data except you.`}
                     />
                   </div>
                 </div>

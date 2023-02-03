@@ -6,7 +6,6 @@ import { idServerUrl } from "../../constants/misc";
 import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
-import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
@@ -15,7 +14,6 @@ import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 const MintButton = ({ creds, onSuccess }) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
-    const { litAuthSig } = useLitAuthSig();
     const { holoAuthSigDigest } = useHoloAuthSig();
     const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -25,8 +23,8 @@ const MintButton = ({ creds, onSuccess }) => {
         creds.creds.serializedAsNewPreimage.map(item => ethers.BigNumber.from(item || "0").toString()),
         creds.creds.newSecret
       );
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, false);
-      const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, proof);
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false);
+      const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, proof);
       if (!success) {
         setError('Error: Could not send credentials to server.')
       }

@@ -20,7 +20,6 @@ import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
-import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import Relayer from "../utils/relayer";
@@ -122,7 +121,6 @@ async function submitProofThenStoreMetadata(
 	contractName,
 	proofType,
 	actionId,
-	litAuthSig,
 	holoAuthSigDigest,
 	holoKeyGenSigDigest,
 ) {
@@ -136,7 +134,6 @@ async function submitProofThenStoreMetadata(
 		proof.inputs[1],
 		proofType,
 		actionId,
-		litAuthSig,
 		holoAuthSigDigest,
 		holoKeyGenSigDigest,
 	);
@@ -176,9 +173,7 @@ const Proofs = () => {
 	const [proof, setProof] = useState();
 	const [submissionConsent, setSubmissionConsent] = useState(false);
   const [proofSubmissionSuccess, setProofSubmissionSuccess] = useState(false);
-	const { litAuthSig } = useLitAuthSig();
 	const { data: account } = useAccount();
-	const { switchNetworkAsync } = useNetwork();
 	const { holoAuthSigDigest } = useHoloAuthSig();
 	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 	const accountReadyAddress = useMemo(
@@ -201,14 +196,14 @@ const Proofs = () => {
 
 	// Steps:
 	// 1. Ensure user's wallet is connected (i.e., get account)
-	// 2. Get & set holoAuthSigDigest and litAuthSig
+	// 2. Get & set holoAuthSigDigest
 	// 3. Get & set creds
 	// 4. Get & set proof
 	// 5. Submit proof tx
 
 	const getCredentialsQuery = useQuery(
 		["getCredentials", `${holoKeyGenSigDigest}${holoAuthSigDigest}`],
-		() => getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig),
+		() => getCredentials(holoKeyGenSigDigest, holoAuthSigDigest),
 		{
 			onSuccess: (sortedCredsTemp) => {
 				if (sortedCredsTemp) {
@@ -289,7 +284,6 @@ const Proofs = () => {
 				proofs[params.proofType].contractName,
 				params.proofType,
 				params.actionId,
-				litAuthSig,
 				holoAuthSigDigest,
 				holoKeyGenSigDigest,
 			),
