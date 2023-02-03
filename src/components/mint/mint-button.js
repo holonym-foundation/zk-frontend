@@ -27,6 +27,14 @@ const MintButton = ({ creds, onSuccess }) => {
       const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, proof);
       if (!success) {
         setError('Error: Could not send credentials to server.')
+      } else {
+        // Remove plaintext credentials from local storage now that they've been backed up
+        for (const key of Object.keys(window.localStorage)) {
+          if (key.startsWith('holoPlaintextCreds')) {
+            console.log('removing', key, 'from local storage')
+            window.localStorage.removeItem(key);
+          }
+        }
       }
     }
 
