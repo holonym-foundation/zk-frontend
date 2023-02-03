@@ -97,14 +97,11 @@ export function setLatestKolpProof(kolpProof) {
 
 /**
  * Set user credentials in localStorage
- * @param {string} sigDigest 
  * @param {string} encryptedCredentialsAES credentials encrypted with AES
  * @returns {boolean} True if successful, false otherwise
  */
-export function setLocalUserCredentials(sigDigest, encryptedCredentialsAES) {
-  // TODO: At some point, don't store sigDigest under "holoSigDigest". It is redundant since we store it under "holoAuthSigDigest"
+export function setLocalUserCredentials(encryptedCredentialsAES) {
   try {
-    window.localStorage.setItem('holoSigDigest', sigDigest)
     window.localStorage.setItem('holoEncryptedCredentialsAES', encryptedCredentialsAES)
     return true;
   } catch (err) {
@@ -117,14 +114,12 @@ export function setLocalUserCredentials(sigDigest, encryptedCredentialsAES) {
  * @returns {object} { sigDigest, encryptedCredentialsAES } if successful
  */
 export function getLocalEncryptedUserCredentials() {
-  const localSigDigest = window.localStorage.getItem('holoSigDigest')
   const localEncryptedCredentialsAES = window.localStorage.getItem('holoEncryptedCredentialsAES')
-  const varsAreDefined = localSigDigest && localEncryptedCredentialsAES;
-  const varsAreUndefinedStr = localSigDigest === 'undefined' || localEncryptedCredentialsAES === 'undefined'; 
+  const varsAreDefined = localEncryptedCredentialsAES;
+  const varsAreUndefinedStr = localEncryptedCredentialsAES === 'undefined'; 
   if (varsAreDefined && !varsAreUndefinedStr) {
       console.log('Found creds in localStorage')
       return {
-        sigDigest: localSigDigest,
         encryptedCredentialsAES: localEncryptedCredentialsAES,
       }
   }
@@ -245,7 +240,7 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
   // 1. Encrypt creds with AES
   const encryptedCredsAES = encryptWithAES(creds, holoKeyGenSigDigest);
   // 2. Store encrypted creds in localStorage
-  setLocalUserCredentials(holoAuthSigDigest, encryptedCredsAES);
+  setLocalUserCredentials(encryptedCredsAES);
   // 3. Store encrypted creds in remote backup
   try {
     let kolpProof = proof ?? getLatestKolpProof();
@@ -349,14 +344,12 @@ export function setLocalEncryptedProofMetadata(encryptedProofMetadataAES) {
 }
 
 export function getLocalProofMetadata() {
-  const localSigDigest = window.localStorage.getItem('holoSigDigest');
   const localEncryptedProofMetadataAES = window.localStorage.getItem('holoEncryptedProofMetadataAES')
-  const varsAreDefined = localSigDigest;
-  const varsAreUndefinedStr = localSigDigest === 'undefined'
+  const varsAreDefined = localEncryptedProofMetadataAES;
+  const varsAreUndefinedStr = localEncryptedProofMetadataAES === 'undefined'
   if (varsAreDefined && !varsAreUndefinedStr) {
       console.log('Found proof metadata in localStorage')
       return {
-        sigDigest: localSigDigest,
         encryptedProofMetadataAES: localEncryptedProofMetadataAES
       }
   }
