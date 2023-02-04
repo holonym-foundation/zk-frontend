@@ -1,6 +1,5 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { LitAuthSigProvider } from "./context/LitAuthSig";
 import { HoloAuthSigProvider } from "./context/HoloAuthSig";
 import { HoloKeyGenSigProvider } from "./context/HoloKeyGenSig";
 import { Provider as WagmiProvider } from "wagmi";
@@ -15,24 +14,22 @@ const connectWalletGateFn = (data) => {
 };
 
 const signMessagesGateFn = (data) => {
-	return !!data?.litAuthSig && !!data?.holoAuthSig && !!data?.holoAuthSigDigest && !!data?.holoKeyGenSig && !!data?.holoKeyGenSigDigest;
+	return !!data?.holoAuthSig && !!data?.holoAuthSigDigest && !!data?.holoKeyGenSig && !!data?.holoKeyGenSigDigest;
 };
 
 export function RootProvider({ children, connectWalletFallback, signMessagesFallback }) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<WagmiProvider client={wagmiClient}>
-				<LitAuthSigProvider>
-					<HoloAuthSigProvider>
-						<HoloKeyGenSigProvider>
-							<AccountConnectGate gate={connectWalletGateFn} fallback={connectWalletFallback}>
-								<SignatureGate gate={signMessagesGateFn} fallback={signMessagesFallback}>
-									{children}
-								</SignatureGate>
-							</AccountConnectGate>
-						</HoloKeyGenSigProvider>
-					</HoloAuthSigProvider>
-				</LitAuthSigProvider>
+				<HoloAuthSigProvider>
+					<HoloKeyGenSigProvider>
+						<AccountConnectGate gate={connectWalletGateFn} fallback={connectWalletFallback}>
+							<SignatureGate gate={signMessagesGateFn} fallback={signMessagesFallback}>
+								{children}
+							</SignatureGate>
+						</AccountConnectGate>
+					</HoloKeyGenSigProvider>
+				</HoloAuthSigProvider>
 			</WagmiProvider>
 		</QueryClientProvider>
 	);

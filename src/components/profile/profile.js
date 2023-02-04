@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
+import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
-import { useLitAuthSig } from "../../context/LitAuthSig";
 import { 
   getCredentials,
   getProofMetadata,
 } from '../../utils/secrets';
 import { 
   primeToCountryCode,
+  serverAddress
 } from "../../constants";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
@@ -29,13 +30,15 @@ function formatCreds(sortedCreds) {
   // For example, only one issuer will ever provide a 'firstName' field.
   const reshapedCreds = {}
   Object.entries(sortedCreds).reduce((acc, [issuer, cred]) => {
-    const rawCreds = sortedCreds[issuer].rawCreds ?? sortedCreds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12    
+    // Handle gov id creds
+    const rawCreds = sortedCreds[issuer]?.metadata?.rawCreds ?? sortedCreds[issuer]?.metadata ?? {};
     const newCreds = Object.entries(rawCreds).filter(([credName, credValue]) => credName !== 'completedAt').map(([credName, credValue]) => {
+      const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[issuer]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
       return {
         [credName]: {
           issuer,
           cred: credValue,
-          completedAt: rawCreds.completedAt,
+          iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
         }
       }
     })
@@ -61,6 +64,16 @@ function formatCreds(sortedCreds) {
       }
     })
   );
+  // Special case: phone number
+  const phoneNumber = sortedCreds[serverAddress['phone-v2']]?.creds?.customFields[0];
+  if (phoneNumber) {
+    const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[serverAddress['phone-v2']]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
+    formattedCreds['Phone Number'] = {
+      issuer: serverAddress['phone-v2'],
+      cred: phoneNumber ? ethers.BigNumber.from(phoneNumber).toString() : undefined,
+      iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
+    }
+  }
   return formattedCreds;
 }
 
@@ -89,7 +102,6 @@ export default function Profile(props) {
   const [proofMetadataLoading, setProofMetadataLoading] = useState(true);
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
-  const { litAuthSig } = useLitAuthSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -101,8 +113,9 @@ export default function Profile(props) {
   useEffect(() => {
     async function getAndSetCreds() {
       try {
-        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
         if (!sortedCreds) return;
+        console.log('sortedCreds', sortedCreds)
         const formattedCreds = formatCreds(sortedCreds);
         setCreds(formattedCreds);
       } catch (err) {
@@ -113,7 +126,7 @@ export default function Profile(props) {
     }
     async function getAndSetProofMetadata() {
       try {
-        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, true);
+        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, true);
         if (proofMetadataTemp) {
           const populatedData = populateProofMetadataDisplayDataAndRestructure(proofMetadataTemp)
           setProofMetadata(populatedData)

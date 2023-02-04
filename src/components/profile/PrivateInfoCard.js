@@ -7,7 +7,6 @@ import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { serverAddress } from "../../constants";
-import { useLitAuthSig } from "../../context/LitAuthSig";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
@@ -46,7 +45,7 @@ const ExportModal = ({ authSigs, visible, setVisible, blur = true, }) => {
     <>
       <Modal visible={visible} setVisible={setVisible} blur={blur}>
         <div style={{ textAlign: 'center' }}>
-          <h3>Export Private Info</h3>
+          <h3>Export Your Holo</h3>
           <p>Export your private info to the Holonym mobile app.</p>
           <p>Copy to clipboard or scan QR code.</p>
           <hr />
@@ -81,15 +80,14 @@ export default function PrivateInfoCard({ creds, loading }) {
   const navigate = useNavigate();
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [authSigs, setAuthSigs] = useState(null);
-  const { litAuthSig } = useLitAuthSig();
   const { holoAuthSig } = useHoloAuthSig();
   const { holoKeyGenSig } = useHoloKeyGenSig();
 
   useEffect(() => {
-    if (!litAuthSig || !holoAuthSig || !holoKeyGenSig) return;
-    const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig, litAuthSig });
+    if (!holoAuthSig || !holoKeyGenSig) return;
+    const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig });
     setAuthSigs(authSigsTemp);
-  }, [litAuthSig, holoAuthSig, holoKeyGenSig])
+  }, [holoAuthSig, holoKeyGenSig])
 
   const exportButtonClasses = classNames({
     "export-private-info-button": true,
@@ -122,13 +120,13 @@ export default function PrivateInfoCard({ creds, loading }) {
           <>
             <div className="card-header" style={{ display: "flex"}}>
               <div>
-                <h2 className="card-header-title">Private Info</h2>
+                <h2 className="card-header-title">Your Holo</h2>
                 <div style={{ display: 'flex' }}>
                   <p>This is kept locally and privately. Only you can see it.</p>
                   <div style={{ marginBottom: "12px", position: 'relative', top: '-4px', left: '-4px' }}>
                     <InfoButton
                       type="inPlace"
-                      text={`Data is stored locally and a backup is encrypted, split up, and stored in multiple locations access-gated by your wallet signature. Part of it is stored in the Lit protocol, and part of it is stored on a server that cannot read any of your data, since all your data is encrypted. This server may be replaced with decentralized storage. Nobody can see your data except you, even in the backups.`}
+                      text={`Data is stored locally and a backup is encrypted and stored in a backup server access-gated by your wallet signature. This server may be replaced with decentralized storage. Nobody can see your data except you.`}
                     />
                   </div>
                 </div>
@@ -158,7 +156,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                       <>
                         <div className="private-info-attribute-name">{credName}</div>
                         <div className="private-info-attribute-value">{creds[credName]?.cred}</div>
-                        <div className="private-info-attribute-date-issued">{creds[credName]?.completedAt}</div>
+                        <div className="private-info-attribute-date-issued">{creds[credName]?.iat}</div>
                         <div className="private-info-attribute-issuer">{issuerAddrToName[creds[credName]?.issuer] ?? creds[credName]?.issuer}</div>
                       </>
                     )
@@ -174,7 +172,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                   <>
                     <div className="private-info-attribute-name">Phone Number</div>
                     <div className="private-info-attribute-value">{creds['Phone Number']?.cred}</div>
-                    <div className="private-info-attribute-date-issued">{creds?.['Phone Number']?.completedAt}</div>
+                    <div className="private-info-attribute-date-issued">{creds?.['Phone Number']?.iat}</div>
                     <div className="private-info-attribute-issuer">{issuerAddrToName[creds?.['Phone Number']?.issuer] ?? creds?.['Phone Number']?.issuer}</div>
                   </>
                 ) : (

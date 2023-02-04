@@ -12,19 +12,13 @@ const Relayer = {
               zkp: <onAddLeaf proof's proof object >
               zkpInputs: <onAddLeaf proof's inputs object>
             },
-            credsToStore: {
-              sigDigest: <sigDigest from getLocalEncryptedUserCredentials() response>
-              encryptedCredentials: <encryptedCredentials from getLocalEncryptedUserCredentials() response>
-              encryptedSymmetricKey: <encryptedSymmetricKey from getLocalEncryptedUserCredentials() response>
-              encryptedCredentialsAES: <encryptedCredentials from getLocalEncryptedUserCredentials() response>
-            }
           }
     */
     mint : async function(args, onSuccess, onError) {
         let res;
         let error;
         try {
-          res = await axios.post(`${relayerUrl}/addLeaf`, args);
+          res = await axios.post(`${relayerUrl}/v2/addLeaf`, args);
           if (res.status == 200) {
             onSuccess(res);
           }
@@ -44,7 +38,7 @@ const Relayer = {
         let res;
         let error;
         try {
-          const response = await axios.get(`${relayerUrl}/getTree/${network}`)
+          const response = await axios.get(`${relayerUrl}/v2/getTree/`)
           res = response.data;
 
         } catch (e) {

@@ -5,7 +5,7 @@ import "react-phone-number-input/style.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
-import MintButton from "../atoms/mint-button";
+import MintButton from "./mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
 import MintContainer from "./MintContainer";
@@ -78,7 +78,7 @@ const MintPhoneNumber = () => {
     setCode(newCode);
     if (newCode.length === 6) {
       const country = parsePhoneNumber(phoneNumber).country;
-      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${newCode}/${country}`
+      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
       navigate(`/mint/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }

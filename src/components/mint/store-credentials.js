@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   encryptWithAES,
-  encryptObjectWithLit,
   setLocalUserCredentials,
   generateSecret,
   getCredentials,
@@ -12,22 +11,16 @@ import {
   issuerWhitelist,
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
-import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { createLeaf } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-// Comment:
-// LitJsSdk.disconnectWeb3()
-
 const StoreCredentials = (props) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [readyToLoadCreds, setReadyToLoadCreds] = useState(false);
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
-
-  const { litAuthSig } = useLitAuthSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -43,74 +36,104 @@ const StoreCredentials = (props) => {
   }
 
   async function loadCredentials() {
+    console.log('store-credentials: loading credentials')
     setError(undefined);
     const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
     storeJobID(retrievalEndpoint)
     console.log('retrievalEndpoint', retrievalEndpoint)
     const resp = await fetch(retrievalEndpoint)
 
-    // handle error from phone-number-server
     if (resp.status !== 200) {
+      try {
+        // These couple lines handle case where this component is rendered multiple times and the API is called multiple times,
+        // resulting in a state where the most recent query gets a not ok response, even though the initial query was successful.
+        // Note for later: Does using Next.js fix this?
+        // We try-catch in case data is for some reason not JSON parsable, in which case we want to return the server's error
+        const data = window.localStorage.getItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
+        if (data) {
+          console.log(`store-credentials: cached credentials from retrieval endpoint ${retrievalEndpoint} found in localStorage`)
+          return JSON.parse(data);
+        }
+      } catch (err) {}
+
+      // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
       throw new Error(await resp.text())
     }
 
     const data = await resp.json();
-    console.log('store-credentials: data', data)
     if (!data) {
       console.error(`Could not retrieve credentials.`);
       throw new Error(`Could not retrieve credentials.`);
-    } else if (data.error) {
-      // handle error from id-server
-      throw new Error(data.error);
     } else {
+      // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
+      window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
       return data;
     }
   }
 
+  async function checkIssuer(credsTemp) {
+    console.log('store-credentials: checking issuer');
+    const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
+    console.log("credsTemp", credsTemp);
+    if (!lowerCaseIssuerWhitelist.includes(credsTemp.creds.issuerAddress.toLowerCase())) {
+      console.log(`Issuer ${credsTemp.creds.issuerAddress} is not whitelisted.`)
+      throw new Error(`Issuer ${credsTemp.creds.issuerAddress} is not whitelisted.`);
+    }
+    console.log('store-credentials: Issuer is whitelisted')
+  }
+
+  async function addNewSecret(credsTemp) {
+    console.log('store-credentials: adding new secret and new leaf')
+    // Update the creds with the new secret
+    credsTemp.creds.newSecret = await generateSecret();
+    credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
+    credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
+    credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
+    console.log('store-credentials: new secret and new leaf added')
+    return credsTemp;
+  }
+
   function getCredsConfirmation(sortedCreds, credsTemp) {
+    console.log('store-credentials: getting creds confirmation')
     // Ask user for confirmation if they already have credentials from this issuer
-    if (sortedCreds?.[credsTemp.issuer]) {
+    if (sortedCreds?.[credsTemp.creds.issuerAddress]) {
       console.log('Issuer already in sortedCreds')
-      const credsToDisplay = sortedCreds[credsTemp.issuer]?.rawCreds ?? sortedCreds[credsTemp.issuer]
+      const credsToDisplay = sortedCreds[credsTemp.creds.issuerAddress]?.rawCreds ?? sortedCreds[credsTemp.creds.issuerAddress]
       const confirmation = window.confirm(
         `You already have credentials from this issuer. Would you like to overwrite them? ` +
         "You will not be able to undo this action. " +
         `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
       )
       if (confirmation) {
-        console.log(`User is overwriting creds from ${credsTemp.issuer}`)
+        console.log(`User is overwriting creds from ${credsTemp.creds.issuerAddress}`)
         return true
       } else {
-        console.log(`User is not overwriting creds from ${credsTemp.issuer}`)
+        console.log(`User is not overwriting creds from ${credsTemp.creds.issuerAddress}`)
         return false;
       }
     }
+    console.log('store-credentials: no creds confirmation needed')
     return true;
   }
 
   async function mergeAndSetCreds(credsTemp) {
-    const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
-    if (!lowerCaseIssuerWhitelist.includes(credsTemp.issuer.toLowerCase())) {
-      setError(`Error: Issuer ${credsTemp.issuer} is not whitelisted.`);
-      return;
-    }
-    credsTemp.newSecret = generateSecret();
     // Merge new creds with old creds
-    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig) ?? {};
+    console.log('store-credentials: merging creds')
+    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);
       return;
     }
-    sortedCreds[credsTemp.issuer] = credsTemp;
+    sortedCreds[credsTemp.creds.issuerAddress] = credsTemp;
 
-    // Store creds. Encrypt with AES, using holoAuthSigDigest as the key.
-    // For backwards compatibility, we also encrypt with Lit.
+    // Store creds. Encrypt with AES, using holoKeyGenSigDigest as the key.
+    console.log('store-credentials: setting creds')
     const encryptedCredentialsAES = encryptWithAES(sortedCreds, holoKeyGenSigDigest);
-    const { encryptedString, encryptedSymmetricKey } = await encryptObjectWithLit(sortedCreds, litAuthSig);
-    setLocalUserCredentials(holoAuthSigDigest, encryptedString, encryptedSymmetricKey, encryptedCredentialsAES);
-    window.localStorage.removeItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`);
-    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.issuer]);
+    // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
+    window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
+    setLocalUserCredentials(encryptedCredentialsAES);
+    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.creds.issuerAddress]);
   }
   
   // Steps:
@@ -119,24 +142,25 @@ const StoreCredentials = (props) => {
   // 3. Call callback with merged creds
 
   useEffect(() => {
-    // using readyToLoadCreds as a temporary workaround to avoid querying id-server twice
-    setReadyToLoadCreds(true);
-  }, [])
-
-  useEffect(() => {
-    if (!readyToLoadCreds) return;
     (async () => {
       try {
         const credsTemp = await loadCredentials();
-        window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
         if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
-        await mergeAndSetCreds(credsTemp)
+        if (credsTemp?.newLeaf) {
+          // If creds already has new leaf, then they must have been restored from localStorage
+          // and we just need to merge and return them
+          await mergeAndSetCreds(credsTemp);
+        } else {
+          await checkIssuer(credsTemp);
+          await addNewSecret(credsTemp);
+          await mergeAndSetCreds(credsTemp);
+        }
       } catch (err) {
         console.error(err);
         setError(`Error loading credentials: ${err.message}`);
       }
     })()
-  }, [readyToLoadCreds])
+  }, [])
 
   return (
     <>

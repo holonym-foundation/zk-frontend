@@ -6,7 +6,6 @@ import { idServerUrl } from "../../constants";
 import { onAddLeafProof, proveKnowledgeOfLeafPreimage } from "../../utils/proofs";
 import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
-import { useLitAuthSig } from '../../context/LitAuthSig';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
@@ -15,45 +14,44 @@ import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 const MintButton = ({ creds, onSuccess }) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
-    const { litAuthSig } = useLitAuthSig();
     const { holoAuthSigDigest } = useHoloAuthSig();
     const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
     async function sendCredsToServer() {
       console.log('generating proof of knowledge of leaf preimage')
       const proof = await proveKnowledgeOfLeafPreimage(
-        creds.serializedCreds.map(item => ethers.BigNumber.from(item || "0").toString()),
-        creds.newSecret
+        creds.creds.serializedAsNewPreimage.map(item => ethers.BigNumber.from(item || "0").toString()),
+        creds.creds.newSecret
       );
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, false);
-      const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig, proof);
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false);
+      const success = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, proof);
       if (!success) {
         setError('Error: Could not send credentials to server.')
+      } else {
+        // Remove plaintext credentials from local storage now that they've been backed up
+        for (const key of Object.keys(window.localStorage)) {
+          if (key.startsWith('holoPlaintextCreds')) {
+            console.log('removing', key, 'from local storage')
+            window.localStorage.removeItem(key);
+          }
+        }
       }
     }
 
     async function addLeaf() {
         setMinting(true);
-        const newSecret = creds.newSecret;
-        const oalProof = await onAddLeafProof(
-          creds.serializedCreds.map(x=>ethers.BigNumber.from(x || "0").toString()),
-          newSecret
+        const circomProof = await onAddLeafProof(creds);
+        console.log("circom proooooof", circomProof);
+        const result = await Relayer.mint(
+          circomProof, 
+          async () => {
+            await sendCredsToServer();
+            onSuccess();
+          }, 
+          () => {
+            setError('Error: An error occurred while minting.')
+          }
         );
-        // let abc = [...creds.serializedCreds]
-        // abc[2] = newSecret;
-        // console.log("creds2", creds.serializedCreds[2])
-        // console.log("serialzed creds with secret: ", JSON.stringify(abc.map(x=>ethers.BigNumber.from(x).toString())));
-        // console.log("oalProof", JSON.stringify(oalProof));
-        const mintingArgs = {
-          issuer: creds.issuer,
-          signature: ethers.utils.splitSignature(creds.signature),
-          proof: oalProof
-      }
-      // console.log("minting args", JSON.stringify(mintingArgs))
-        const result = await Relayer.mint(mintingArgs, async () => {
-          await sendCredsToServer();
-          onSuccess();
-        });
     }
 
     return <div style={{ textAlign: "center" }}>

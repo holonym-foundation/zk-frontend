@@ -22,7 +22,6 @@ import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
-import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import Relayer from "../utils/relayer";
@@ -72,9 +71,7 @@ const Proofs = () => {
   const [proof, setProof] = useState();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [readyToLoadCreds, setReadyToLoadCreds] = useState();
-  const { litAuthSig } = useLitAuthSig();
   const { data: account } = useAccount();
-  const { switchNetworkAsync } = useNetwork()
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const sessionQuery = useQuery({
@@ -175,7 +172,7 @@ const Proofs = () => {
   // 1. Ensure user's wallet is connected (i.e., get account)
   // 2. Ensure sessionId and callback params are present
   // 3. Ensure sessionId is valid
-  // 4. Get & set holoAuthSigDigest and litAuthSig
+  // 4. Get & set holoAuthSigDigest
   // 5. Get & set creds
   // 6. Get & set proof
   // 7. Redirect user to callback URL & include proof in query params
@@ -214,7 +211,7 @@ const Proofs = () => {
     if (!readyToLoadCreds) return;
     async function loadCreds() {
       console.log('Loading creds')
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig);
+      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
       if (sortedCreds) {
         setCreds(sortedCreds)
       } else {

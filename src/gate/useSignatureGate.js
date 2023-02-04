@@ -1,16 +1,12 @@
 import { useEffect } from "react";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
-import { useLitAuthSig } from '../context/LitAuthSig';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import { holonymAuthMessage, holonymKeyGenMessage } from "../constants";
 
 export default function useSignatureGate(gate) {
 	const { data: account } = useAccount();
-	const {
-		litAuthSig, litAuthSigIsError, litAuthSigIsLoading, litAuthSigIsSuccess, signLitAuthMessage, clearLitAuthSig,
-	} = useLitAuthSig();
 	const {
 		signHoloAuthMessage, holoAuthSigIsError, holoAuthSigIsLoading, holoAuthSigIsSuccess, holoAuthSig, holoAuthSigDigest, clearHoloAuthSig,
 	} = useHoloAuthSig();
@@ -22,17 +18,12 @@ export default function useSignatureGate(gate) {
 		() => {
 			if (!account?.address || !account?.connector)
 				return;
-			if (!litAuthSig && !litAuthSigIsLoading && !litAuthSigIsSuccess) {
-				signLitAuthMessage().catch((err) => console.error(err));
-			}
-			if (!litAuthSigIsLoading &&
-				!holoAuthSig &&
+			if (!holoAuthSig &&
 				!holoAuthSigIsLoading &&
 				!holoAuthSigIsSuccess) {
 				signHoloAuthMessage().catch((err) => console.error(err));
 			}
 			if (!holoAuthSigIsLoading &&
-				!litAuthSigIsLoading &&
 				!holoKeyGenSig &&
 				!holoKeyGenSigIsLoading &&
 				!holoKeyGenSigIsSuccess) {
@@ -42,9 +33,6 @@ export default function useSignatureGate(gate) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
 			account,
-			litAuthSigIsError,
-			litAuthSigIsLoading,
-			litAuthSigIsSuccess,
 			holoAuthSigIsError,
 			holoAuthSigIsLoading,
 			holoAuthSigIsSuccess,
@@ -58,11 +46,6 @@ export default function useSignatureGate(gate) {
 		if (!account?.address || !account?.connector)
 			return;
 		// Check that sigs are from account. If they aren't, re-request them
-		if (litAuthSig && litAuthSig.address !== account.address) {
-			console.log("account changed. Re-retrieving litAuthSig");
-			clearLitAuthSig();
-			signLitAuthMessage().catch((err) => console.error(err));
-		}
 		if (holoAuthSig &&
 			ethers.utils.verifyMessage(holonymAuthMessage, holoAuthSig) !==
 			account.address) {
@@ -79,5 +62,5 @@ export default function useSignatureGate(gate) {
 		}
 	}, [account]);
 
-	return gate({ litAuthSig, holoAuthSig, holoAuthSigDigest, holoKeyGenSig, holoKeyGenSigDigest });
+	return gate({ holoAuthSig, holoAuthSigDigest, holoKeyGenSig, holoKeyGenSigDigest });
 }

@@ -5,7 +5,7 @@ import { preprocEndpoint, defaultChainToProveOn } from "../constants";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 import Relayer from "./relayer";
-
+import { groth16 } from "snarkjs";
 let zokProvider;
 let artifacts = {};
 let provingKeys = {};
@@ -99,7 +99,7 @@ export async function getMerkleProofParams(leaf) {
   const leaves = tree._nodes[0];
   if (leaves.indexOf(leaf) === -1) {
     console.error(
-      `Could not find leaf ${leaf} from querying on-chain list of leaves ${leaves}`
+      `Could not find leaf ${leaf} in leaves ${leaves}`
     );
   }
 
@@ -195,46 +195,65 @@ export async function createLeaf(serializedCreds) {
   return output.replaceAll('"', "");
 }
 
-/**
- * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
- * @param {Array<string>} customFields All other values in the leaf's preimage, as an array of strings
- * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
- * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
- */
-export async function onAddLeafProof(serializedCreds, newSecret) {
-  if (!zokProvider) {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
-    await sleep(5000);
+// TODO: document what data parameter is
+export async function onAddLeafProof (data) {
+  const params = {
+    pubKeyX: data.pubkey.x,
+    pubKeyY: data.pubkey.y,
+    R8x: data.signature.R8.x,
+    R8y: data.signature.R8.y,
+    S: data.signature.S,
+    signedLeaf: data.leaf,
+    newLeaf: data.newLeaf,
+    signedLeafSecret: data.creds.secret,
+    newLeafSecret: data.creds.newSecret,
+    iat: data.creds.iat,
+    customFields: data.creds.customFields,
+    scope: data.creds.scope
   }
-
-  const signedPreimage = serializedCreds;
-  // Replace the server-created secret with a secret only the user knows
-  const newPreimage = [serializedCreds[0], newSecret, ...serializedCreds.slice(2,6)];
-  const signedLeaf = await createLeaf(signedPreimage);
-  console.log("signed leaf", signedLeaf, signedPreimage);
-  const newLeaf = await createLeaf(newPreimage);
-  // When ordering the inputs to the circuit, i didn't think about how annoying this step will be if the orders are different! For now, much easier to keep it this way:
-  const reorderedSerializedCreds = [serializedCreds[0], serializedCreds[2], serializedCreds[3], serializedCreds[4], serializedCreds[5], serializedCreds[1]];
-  const args = [
-    ethers.BigNumber.from(signedLeaf).toString(),
-    ethers.BigNumber.from(newLeaf).toString(),
-    ...reorderedSerializedCreds,
-    ethers.BigNumber.from(newSecret).toString(),
-  ];
-  // onAddLeafArtifacts = onAddLeafArtifacts ? onAddLeafArtifacts : zokProvider.compile(onAddLeafArtifacts);
-  await loadArtifacts("onAddLeaf");
-  await loadProvingKey("onAddLeaf");
-
-  const { witness, output } = zokProvider.computeWitness(artifacts.onAddLeaf, args);
-
-  const proof = zokProvider.generateProof(
-    artifacts.onAddLeaf.program,
-    witness,
-    provingKeys.onAddLeaf
-  );
-  return proof;
+  return await groth16.fullProve(params, "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_js/onAddLeaf.wasm", "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_0001.zkey");
 }
+
+// /**
+//  * @param {string} issuer Represents the issuer, at position 0 in the leaf's preimage
+//  * @param {Array<string>} customFields All other values in the leaf's preimage, as an array of strings
+//  * @param {string} oldSecret Represents the 16-byte secret, at position 5 in the old leaf's preimage. This is known by the user and issuer
+//  * @param {string} newSecret Represents the 16-byte secret, at position 5 in the new leaf's preimage. This is known by the user (and not issuer)
+//  */
+// export async function onAddLeafProof(serializedCreds, newSecret) {
+//   if (!zokProvider) {
+//     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+//     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
+//     await sleep(5000);
+//   }
+
+//   const signedPreimage = serializedCreds;
+//   // Replace the server-created secret with a secret only the user knows
+//   const newPreimage = [serializedCreds[0], newSecret, ...serializedCreds.slice(2,6)];
+//   const signedLeaf = await createLeaf(signedPreimage);
+//   console.log("signed leaf", signedLeaf, signedPreimage);
+//   const newLeaf = await createLeaf(newPreimage);
+//   // When ordering the inputs to the circuit, i didn't think about how annoying this step will be if the orders are different! For now, much easier to keep it this way:
+//   const reorderedSerializedCreds = [serializedCreds[0], serializedCreds[2], serializedCreds[3], serializedCreds[4], serializedCreds[5], serializedCreds[1]];
+//   const args = [
+//     ethers.BigNumber.from(signedLeaf).toString(),
+//     ethers.BigNumber.from(newLeaf).toString(),
+//     ...reorderedSerializedCreds,
+//     ethers.BigNumber.from(newSecret).toString(),
+//   ];
+//   // onAddLeafArtifacts = onAddLeafArtifacts ? onAddLeafArtifacts : zokProvider.compile(onAddLeafArtifacts);
+//   await loadArtifacts("onAddLeaf");
+//   await loadProvingKey("onAddLeaf");
+
+//   const { witness, output } = zokProvider.computeWitness(artifacts.onAddLeaf, args);
+
+//   const proof = zokProvider.generateProof(
+//     artifacts.onAddLeaf.program,
+//     witness,
+//     provingKeys.onAddLeaf
+//   );
+//   return proof;
+// }
 
 /**
  * @param {string} issuer Hex string

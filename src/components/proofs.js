@@ -20,7 +20,6 @@ import { Success } from "./success";
 import { Oval } from "react-loader-spinner";
 import { truncateAddress } from "../utils/ui-helpers";
 import RoundedWindow from "./RoundedWindow";
-import { useLitAuthSig } from "../context/LitAuthSig";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import Relayer from "../utils/relayer";
@@ -56,8 +55,7 @@ const LoadingProofsButton = (props) => (
 	</button>
 );
 
-async function loadAntiSybil(
-	{ newSecret, serializedCreds },
+async function loadAntiSybil(newSecret, serializedAsNewPreimage,
 	address,
 	actionId,
 ) {
@@ -74,7 +72,7 @@ async function loadAntiSybil(
 		nameCitySubdivisionZipStreetHash_,
 		completedAt_,
 		scope,
-	] = serializedCreds;
+	] = serializedAsNewPreimage;
 
 	return await antiSybil(
 		address,
@@ -89,7 +87,7 @@ async function loadAntiSybil(
 	);
 }
 
-async function loadPoR({ newSecret, serializedCreds }, address) {
+async function loadPoR(newSecret, serializedAsNewPreimage, address) {
 	const salt =
 		"18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
 	const footprint = await poseidonTwoInputs([
@@ -104,7 +102,7 @@ async function loadPoR({ newSecret, serializedCreds }, address) {
 		nameCitySubdivisionZipStreetHash_,
 		completedAt_,
 		scope,
-	] = serializedCreds;
+	] = serializedAsNewPreimage;
 	return await proofOfResidency(
 		address,
 		issuer_,
@@ -123,7 +121,6 @@ async function submitProofThenStoreMetadata(
 	contractName,
 	proofType,
 	actionId,
-	litAuthSig,
 	holoAuthSigDigest,
 	holoKeyGenSigDigest,
 ) {
@@ -137,7 +134,6 @@ async function submitProofThenStoreMetadata(
 		proof.inputs[1],
 		proofType,
 		actionId,
-		litAuthSig,
 		holoAuthSigDigest,
 		holoKeyGenSigDigest,
 	);
@@ -177,9 +173,7 @@ const Proofs = () => {
 	const [proof, setProof] = useState();
 	const [submissionConsent, setSubmissionConsent] = useState(false);
   const [proofSubmissionSuccess, setProofSubmissionSuccess] = useState(false);
-	const { litAuthSig } = useLitAuthSig();
 	const { data: account } = useAccount();
-	const { switchNetworkAsync } = useNetwork();
 	const { holoAuthSigDigest } = useHoloAuthSig();
 	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 	const accountReadyAddress = useMemo(
@@ -190,24 +184,26 @@ const Proofs = () => {
 	const proofs = {
 		"us-residency": {
 			name: "US Residency",
-			contractName: "IsUSResident",
+			// contractName: "IsUSResident",
+			contractName: "IsUSResidentV2",
 		},
 		uniqueness: {
 			name: "Uniqueness",
-			contractName: "SybilResistance",
+			// contractName: "SybilResistance",
+			contractName: "SybilResistanceV2",
 		},
 	};
 
 	// Steps:
 	// 1. Ensure user's wallet is connected (i.e., get account)
-	// 2. Get & set holoAuthSigDigest and litAuthSig
+	// 2. Get & set holoAuthSigDigest
 	// 3. Get & set creds
 	// 4. Get & set proof
 	// 5. Submit proof tx
 
 	const getCredentialsQuery = useQuery(
 		["getCredentials", `${holoKeyGenSigDigest}${holoAuthSigDigest}`],
-		() => getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, litAuthSig),
+		() => getCredentials(holoKeyGenSigDigest, holoAuthSigDigest),
 		{
 			onSuccess: (sortedCredsTemp) => {
 				if (sortedCredsTemp) {
@@ -233,7 +229,7 @@ const Proofs = () => {
 	const loadProofQuery = useQuery(
 		["loadProof"],
 		async () => {
-			const creds = sortedCreds[serverAddress["idgov"]];
+			const creds = sortedCreds[serverAddress["idgov-v2"]];
 			if (!creds) {
 				throw new Error({
           type: NOGOV_ERROR_TYPE
@@ -241,14 +237,15 @@ const Proofs = () => {
 			}
 			console.log("Loading proof");
 			if (params.proofType === "us-residency") {
-				return loadPoR(creds, accountReadyAddress);
+				return loadPoR(creds.creds.newSecret, creds.creds.serializedAsNewPreimage, accountReadyAddress);
 			} else if (params.proofType === "uniqueness") {
 				if (!params.actionId)
 					console.error(
 						`Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`,
 					);
 				return loadAntiSybil(
-					creds,
+					creds.creds.newSecret,
+					creds.creds.serializedAsNewPreimage,
 					accountReadyAddress,
 					params.actionId || defaultActionId,
 				);
@@ -287,7 +284,6 @@ const Proofs = () => {
 				proofs[params.proofType].contractName,
 				params.proofType,
 				params.actionId,
-				litAuthSig,
 				holoAuthSigDigest,
 				holoKeyGenSigDigest,
 			),
