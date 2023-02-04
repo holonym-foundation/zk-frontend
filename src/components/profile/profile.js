@@ -9,6 +9,7 @@ import {
 } from '../../utils/secrets';
 import { 
   primeToCountryCode,
+  serverAddress
 } from "../../constants/misc";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
@@ -63,6 +64,16 @@ function formatCreds(sortedCreds) {
       }
     })
   );
+  // Special case: phone number
+  const phoneNumber = sortedCreds[serverAddress['phone-v2']]?.creds?.customFields[0];
+  if (phoneNumber) {
+    const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[serverAddress['phone-v2']]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
+    formattedCreds['Phone Number'] = {
+      issuer: serverAddress['phone-v2'],
+      cred: phoneNumber ? ethers.BigNumber.from(phoneNumber).toString() : undefined,
+      iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
+    }
+  }
   return formattedCreds;
 }
 
@@ -104,6 +115,7 @@ export default function Profile(props) {
       try {
         const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
         if (!sortedCreds) return;
+        console.log('sortedCreds', sortedCreds)
         const formattedCreds = formatCreds(sortedCreds);
         setCreds(formattedCreds);
       } catch (err) {
