@@ -362,6 +362,7 @@ const Proofs = () => {
 								<code> {truncateAddress(account.address)} </code>, a{" "}
 								<a
 									target="_blank"
+									rel="noreferrer"
 									href="https://cointelegraph.com/news/what-are-soulbound-tokens-sbts-and-how-do-they-work"
 									style={{ color: "#fdc094" }}
 								>
