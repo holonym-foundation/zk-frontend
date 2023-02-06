@@ -45,8 +45,7 @@ export const holonymKeyGenMessage = "Holonym keygen"
 
 export const defaultActionId = "123456789"
 
-// TODO: Change to "optimism" for production once we deploy v2 to mainnet
-export const defaultChainToProveOn = process.env.NODE_ENV === 'development' ? 'optimism-goerli' : 'optimism-goerli';
+export const defaultChainToProveOn = process.env.NODE_ENV === 'development' ? 'optimism-goerli' : 'optimism';
 
 export const maxDailyVouchedJobCount = 5000;
 
