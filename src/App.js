@@ -3,6 +3,7 @@ import "./normalize.css";
 import "./webflow.css";
 import "./holo-wtf.webflow.css";
 import React, { Suspense, useEffect, useState } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
 import WebFont from "webfontloader";
 import LoadingElement from "./components/loading-element";
 import { isMobile } from "react-device-detect";
@@ -10,8 +11,7 @@ import RoundedWindow from "./components/RoundedWindow";
 import ConnectWalletScreen from "./components/atoms/connect-wallet-screen";
 import { RootProvider } from "./RootProvider";
 import { Layout } from "./Layout";
-import { AppRouter } from "./Router";
-
+import { AppRoutes } from "./AppRoutes";
 
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
@@ -32,7 +32,7 @@ const SignMessagesFallback = () => {
   return (
     <Layout>
       <RoundedWindow>
-        <div 
+        <div
           style={{
             position: "relative",
             paddingTop: "100px",
@@ -72,13 +72,15 @@ function App() {
 
   if (isMobile) return <NotDesktop />
   return (
-    <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
-      <Suspense fallback={<LoadingElement />}>
-        <Layout>
-          <AppRouter />
-        </Layout>
-      </Suspense>
-    </RootProvider>
+    <Router>
+      <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
+        <Suspense fallback={<LoadingElement />}>
+          <Layout>
+            <AppRoutes />
+          </Layout>
+        </Suspense>
+      </RootProvider>
+    </Router>
   );
 }
 

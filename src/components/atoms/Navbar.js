@@ -5,8 +5,10 @@ import UserImage from '../../img/User.svg';
 import { truncateAddress, udReverseResolution } from "../../utils/ui-helpers";
 import WalletModal from "./WalletModal";
 import AnnouncementBanner from "./AnnouncementBanner";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar(props) {
+  const navigate = useNavigate();
   const { data: account } = useAccount();
   const [udDomain, setUdDomain] = useState();
   const [walletModalShowing, setWalletModalShowing] = useState(false);
@@ -16,6 +18,11 @@ export default function Navbar(props) {
       udReverseResolution(account.address).then((domain) => setUdDomain(domain));
     }
   }, [account])
+
+  function handleNavigate(e) {
+    e.preventDefault();
+    navigate(e.target.href.replace(e.target.origin, ''));
+  }
 
   return (
     <>
@@ -49,9 +56,9 @@ export default function Navbar(props) {
           <img src={HolonymLogo} loading="lazy" alt="" sizes="200px" className="logo" />
           </a>
           <nav role="navigation" className="nav-menu flex w-nav-menu" style={{ fontSize: "1rem" }}>
-            <a href="/mint" className="nav-link w-nav-link">Mint</a>
-            <a href="/prove" className="nav-link w-nav-link">Prove</a>
-            <a href="/profile" className="nav-link w-nav-link">Profile</a>
+            <a href="/mint" onClick={handleNavigate} className="nav-link w-nav-link">Mint</a>
+            <a href="/prove" onClick={handleNavigate} className="nav-link w-nav-link">Prove</a>
+            <a href="/profile" onClick={handleNavigate} className="nav-link w-nav-link">Profile</a>
             <div className="nav-wallet" style={{ backgroundColor: 'var(--dark-card-background)' }}>
               <img src={UserImage} loading="lazy" alt="" className="nav-wallet-img" />
               {account?.address && account?.connector ? (
