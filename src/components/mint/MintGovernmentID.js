@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../../vouched-css-customization.css";
 import "react-phone-number-input/style.css";
 import loadVouched from "../../load-vouched";
@@ -111,6 +111,7 @@ function useMintGovernmentIDState() {
 }
 
 const MintGovernmentID = () => {
+  const navigate = useNavigate();
   const {
     success,
     setSuccess,
@@ -125,6 +126,12 @@ const MintGovernmentID = () => {
     phoneNumber,
     setPhoneNumber,
   } = useMintGovernmentIDState();
+
+  useEffect(() => {
+    if (success && window.localStorage.getItem('register-credentialType')) {
+			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
+    }
+  }, [success]);
 
   return (
     <MintContainer steps={steps} currentIdx={currentIdx}>

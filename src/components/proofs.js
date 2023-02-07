@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useNetwork, useQuery } from "wagmi";
 import { getCredentials, addProofMetadataItem } from "../utils/secrets";
@@ -166,6 +166,7 @@ async function testMetamask(account) {
 
 const Proofs = () => {
 	const params = useParams();
+	const navigate = useNavigate();
 	const [sortedCreds, setSortedCreds] = useState();
 
 	const [error, setError] = useState();
@@ -318,6 +319,9 @@ const Proofs = () => {
   // submitProofThenStoreMetadataQuery.isSuccess was being set to true before the proof was actually submitted
 	if (proofSubmissionSuccess) {
 		if (params.callback) window.location.href = `https://${params.callback}`;
+		if (window.localStorage.getItem('register-proofType')) {
+			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
+		}
 		return <Success title="Success" />;
 	}
 	if (error && "type" in error) {

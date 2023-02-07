@@ -68,6 +68,12 @@ const MintPhoneNumber = () => {
   } = useMintPhoneNumberState();
 
   useEffect(() => {
+    if (success && window.localStorage.getItem('register-credentialType')) {
+			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
+    }
+  }, [success]);
+  
+  useEffect(() => {
     if (!phoneNumber) return;
     console.log("sending code to ", phoneNumber);
     sendCode(phoneNumber);

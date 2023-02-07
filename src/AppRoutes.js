@@ -8,6 +8,7 @@ import MintGovernmentID from "./components/mint/MintGovernmentID";
 import MintPhoneNumber from './components/mint/MintPhoneNumber';
 import MintExternal from "./components/mint/MintExternal";
 import { Proofs } from "./App";
+import Register from './components/register';
 
 export function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export function AppRoutes() {
       <Route exact path={"/profile"} element={<Profile />} />
       {/* <Route path={"/chainswitchertest"} element={<ChainSwitcher />} /> */}
       {/* <Route path={"/chainswitchermodaltest"} element={<ChainSwitcherModal />} /> */}
+      <Route exact path={"/register"} element={<Register />} />
     </Routes>
   );
 }
