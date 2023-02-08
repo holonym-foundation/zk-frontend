@@ -15,9 +15,57 @@ import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import { getCredentials, getProofMetadata } from "../utils/secrets";
 import { serverAddress } from '../constants';
 
+const proofTypeToString = {
+  uniqueness: "uniqueness",
+  'us-residency': "US residency",
+}
+
+
+const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
+  if (!hasCreds) {
+    return (
+      <ol>
+        <li>Verify your government ID.</li>
+        <li>Generate a proof of {proofTypeToString[proofType]}.</li>
+      </ol>
+    )
+  }
+  if (hasCreds && !hasProofMetadata) {
+    return (
+      <ol>
+        <li>
+          <s>Verify your government ID.</s>
+          <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
+        </li>
+        <li>
+          Generate a proof of {proofTypeToString[proofType]}.
+        </li>
+      </ol>
+    )
+  }
+  if (hasCreds && hasProofMetadata) {
+    return (
+      <ol>
+        <li>
+          <s>Verify your government ID.</s>
+          <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
+        </li>
+        <li>
+          <s>Generate a proof of {proofTypeToString[proofType]}.</s>
+          <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
+        </li>
+      </ol>
+    )
+  }
+};
+
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [hostname, setHostname] = useState();
+  const [hasCreds, setHasCreds] = useState(false);
+  const [proofMetadataForSBT, setProofMetadataForSBT] = useState();
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { holoAuthSigDigest } = useHoloAuthSig();
@@ -58,40 +106,50 @@ const Register = () => {
         return;
       }
       try {
-        new URL(window.atob(callback));
+        setHostname(new URL(window.atob(callback)).hostname)
       } catch (err) {
         setError("Invalid callback URL. Callback is invalid.");
         return;
       }
 
-      // Check whether the user has creds of credentialType and whether they have a proof of proofType
       const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
       const userHasCreds = sortedCreds?.[serverAddress[`${credentialType}-v2`]];
+      setHasCreds(userHasCreds);
       const proofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest);
-      const proofMetadataForSBT = proofMetadata?.filter(metadata => metadata.proofType === proofType);
-      if (proofMetadataForSBT?.length > 0) {
-        // Clear relevant localStorage items.
-        window.localStorage.removeItem('register-credentialType');
-        window.localStorage.removeItem('register-proofType');
-        window.localStorage.removeItem('register-callback');
-        // Send user to the callback URL. Include address that owns the proof SBT
-        window.location.href = `${window.atob(callback)}?address=${proofMetadataForSBT[0].address}`;
-      }
-      else if (userHasCreds) {
-        // TODO: Add support for off-chain proofs (see off-chain-proofs component.)
-        // Send user to proof generation page. User gets redirected back here after submitting their proof
-        navigate(`/prove/${proofType}`)
-      }
-      else {
-        // Send user to minting page for credentialType
-        navigate(`/mint/${credentialType}`)
-      }
-
-      window.localStorage.setItem('register-credentialType', credentialType);
-      window.localStorage.setItem('register-proofType', proofType);
-      window.localStorage.setItem('register-callback', callback);
+      const proofMetadataForSBTTemp = proofMetadata?.filter(metadata => metadata.proofType === proofType);
+      setProofMetadataForSBT(proofMetadataForSBTTemp);
+      setLoading(false);
     })();
   }, [])
+
+  async function handleClick() {
+    const credentialType = searchParams.get("credentialType");
+    const proofType = searchParams.get("proofType");
+    const callback = searchParams.get("callback");
+
+    // Check whether the user has creds of credentialType and whether they have a proof of proofType
+    if (proofMetadataForSBT?.length > 0) {
+      // Clear relevant localStorage items.
+      window.localStorage.removeItem('register-credentialType');
+      window.localStorage.removeItem('register-proofType');
+      window.localStorage.removeItem('register-callback');
+      // Send user to the callback URL. Include address that owns the proof SBT
+      window.location.href = `${window.atob(callback)}?address=${proofMetadataForSBT[0].address}`;
+    }
+    else if (hasCreds) {
+      // TODO: Add support for off-chain proofs (see off-chain-proofs component.)
+      // Send user to proof generation page. User gets redirected back here after submitting their proof
+      navigate(`/prove/${proofType}`)
+    }
+    else {
+      // Send user to minting page for credentialType
+      navigate(`/mint/${credentialType}`)
+    }
+
+    window.localStorage.setItem('register-credentialType', credentialType);
+    window.localStorage.setItem('register-proofType', proofType);
+    window.localStorage.setItem('register-callback', callback);
+  }
 
   const mainDivStyles = {
     position: "relative",
@@ -104,11 +162,6 @@ const Register = () => {
     flexDirection: "column",
   }
 
-  // TODO: Maybe display a message telling the user what they are going to do?
-  // E.g., "A proof of uniqueness has been requested by ${callback.origin}. 
-  // To fulfill this request, you need to verify your government ID and generate a 
-  // proof of uniqueness. Click OK to continue."
-
   return (
     <>
       <RoundedWindow>
@@ -117,7 +170,7 @@ const Register = () => {
             <>
               <p style={{ color: 'red', fontSize: '1rem' }}>{error}</p>
             </>
-          ) : (
+          ) : loading ? (
             <Oval
               height={100}
               width={100}
@@ -130,6 +183,20 @@ const Register = () => {
               strokeWidth={2}
               strokeWidthSecondary={2}
             />
+          ) : (
+            <>
+              <p>
+                <code>{hostname}</code> has requested a proof of {proofTypeToString[searchParams.get("proofType")]} from you. To fulfill this request, you need to
+              </p>
+              <div style={{ lineHeight: "1.5rem", fontFamily: "Montserrat", fontSize: "small" }}>
+                <InstructionsList proofType={searchParams.get("proofType")} hasCreds={hasCreds} hasProofMetadata={proofMetadataForSBT?.length > 0} />
+              </div>
+              <p>You will be guided through the process. Once you have generated the proof, you will be sent back to <code>{hostname}</code>.</p>
+              <p>Click OK to continue.</p>
+              <button type="button" className="x-button primary" onClick={handleClick}>
+                OK
+              </button>
+            </>
           )}
         </div>
       </RoundedWindow>
