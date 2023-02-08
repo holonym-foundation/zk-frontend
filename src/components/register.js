@@ -135,6 +135,7 @@ const Register = () => {
       window.localStorage.removeItem('register-callback');
       // Send user to the callback URL. Include address that owns the proof SBT
       window.location.href = `${window.atob(callback)}?address=${proofMetadataForSBT[0].address}`;
+      return;
     }
     else if (hasCreds) {
       // TODO: Add support for off-chain proofs (see off-chain-proofs component.)
