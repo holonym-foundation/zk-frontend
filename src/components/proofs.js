@@ -394,7 +394,7 @@ const Proofs = () => {
 									className="x-button"
 									onClick={() => setSubmissionConsent(true)}
 								>
-									{submitProofThenStoreMetadataQuery.isFetching
+									{submissionConsent && submitProofThenStoreMetadataQuery.isFetching
 										? "Submitting..."
 										: "Submit proof"}
 								</button>
