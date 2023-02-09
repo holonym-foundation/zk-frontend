@@ -12,11 +12,40 @@ let provingKeys = {};
 let verifyingKeys = {};
 
 const knowPreimageSrc = `import "hashes/poseidon/poseidon" as poseidon;
-def main(field leaf, field address, private field countryCode, private field nameCitySubdivisionZipStreetHash, private field completedAt, private field scope, private field secret) {
-    field[6] preimage = [address, secret, countryCode, nameCitySubdivisionZipStreetHash, completedAt, scope];
+def main(field leaf, field address, private field countryCode, private field nameDobCitySubdivisionZipStreetExpireHash, private field completedAt, private field scope, private field secret) {
+    field[6] preimage = [address, secret, countryCode, nameDobCitySubdivisionZipStreetExpireHash, completedAt, scope];
     assert(poseidon(preimage) == leaf);
     return;
 }`;
+
+// TODO: Compile this and store it in AWS
+const govIdFirstNameLastNameSrc = `import "hashes/poseidon/poseidon" as poseidon;
+const u32 DEPTH = 14;
+const u32 ARITY=5; // Quinary tree
+// root - public so that we can verify Merkle proof
+// issuerAddr - public so that we can check that these creds were issued by trusted issuer
+// firstName - public so that we can verify the user's name
+// lastName - public so that we can verify the user's name
+def main(field root, field issuerAddr, field firstName, field lastName, private field leaf, private field middleName, private field countryCode, private field birthdate, private field addressHash, private field expirationDate, private field iat, private field scope, private field secret, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
+    // Construct leaf. Derive nameHash from name fields and nameDobCitySubdivisionZipStreetExpireHashPreimage from nameHash and other fields
+    // to ensure that the names are correct.
+    field[3] nameHashPreimage = [firstName, middleName, lastName];
+    field nameHash = poseidon(nameHashPreimage);
+    field nameDobCitySubdivisionZipStreetExpireHash = poseidon([nameHash, birthdate, addressHash, expirationDate]);
+    field[6] leafPreimage = [issuerAddr, secret, countryCode, nameDobCitySubdivisionZipStreetExpireHash, iat, scope];
+    // assert valid leaf preimage
+    assert(poseidon(leafPreimage) == leaf);
+    // Merkle proof
+    field mut digest = leaf;
+    for u32 i in 0..DEPTH {
+        // At each step, check for the digest in the next level of path, then calculate the new digest
+        assert(path[i][indices[i]] == digest);
+        digest = poseidon(path[i]);
+    }
+    assert(digest == root);
+    return;
+}
+`
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -421,7 +450,7 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     serializedCreds[0], // issuer
     newSecret,
     serializedCreds[2], // countryCode
-    serializedCreds[3], // nameCitySubdivisionZipStreetHash
+    serializedCreds[3], // nameDobCitySubdivisionZipStreetExpireHash
     serializedCreds[4], // completedAt
     serializedCreds[5], // scope
   ].map((x) => ethers.BigNumber.from(x).toString())
@@ -431,7 +460,7 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     leaf,
     serializedCreds[0], // issuer
     serializedCreds[2], // countryCode
-    serializedCreds[3], // nameCitySubdivisionZipStreetHash
+    serializedCreds[3], // nameDobCitySubdivisionZipStreetExpireHash
     serializedCreds[4], // completedAt
     serializedCreds[5], // scope
     newSecret,
@@ -442,5 +471,43 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
   const provingKey = new Uint8Array(provingKeyBuffer);
   const proof = zokProvider.generateProof(knowPreimageArtifacts.program, witness, provingKey);
   console.log('proveKnowledgeOfLeafPreimage proof', proof);
+  return proof;
+}
+
+/**
+ * @param govIdCreds - object issued from id-server
+ */
+export async function proveGovIdFirstNameLastName(govIdCreds) {
+  console.log("proveGovIdFirstNameLastName called")
+  if (!zokProvider) {
+    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
+    await sleep(5000);
+  }
+  const mp = await getMerkleProofParams(govIdCreds.newLeaf);
+  const encoder = new TextEncoder();
+  const proofArgs = [
+    mp.root,
+    ethers.BigNumber.from(govIdCreds.creds.issuerAddress).toString(),
+    ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.firstName)).toString(),
+    ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.lastName)).toString(),
+    govIdCreds.newLeaf,
+    ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.middleName)).toString(),
+    ethers.BigNumber.from(govIdCreds.metadata.rawCreds.countryCode).toString(),
+    ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.birthdate)).toString(),
+    govIdCreds.metadata.derivedCreds.addressHash.value,
+    ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.expirationDate ?? 0)).toString(),
+    ethers.BigNumber.from(govIdCreds.creds.iat).toString(),
+    ethers.BigNumber.from(govIdCreds.creds.scope).toString(),
+    ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+    mp.path,
+    mp.indices,
+  ];
+  console.log('proofArgs', proofArgs)
+
+  await loadArtifacts("govIdFirstNameLastName");
+  await loadProvingKey("govIdFirstNameLastName");
+  const { witness, output } = zokProvider.computeWitness(artifacts.govIdFirstNameLastName, proofArgs);
+  const proof = zokProvider.generateProof(artifacts.govIdFirstNameLastName.program, witness, provingKeys.govIdFirstNameLastName);
+  console.log('proveGovIdFirstNameLastName proof', proof);
   return proof;
 }
