@@ -402,7 +402,31 @@ const Proofs = () => {
 									onClick={() => setSubmissionConsent(true)}
 								>
 									{submissionConsent && submitProofThenStoreMetadataQuery.isFetching
-										? "Submitting..."
+										? (
+											<>
+												<div
+													style={{
+														display: "flex",
+														justifyContent: "center",
+														alignItems: "center",
+													}}
+												>
+													Submitting
+													<Oval
+														height={10}
+														width={10}
+														color="#464646"
+														wrapperStyle={{ marginLeft: "5px" }}
+														wrapperClass=""
+														visible={true}
+														ariaLabel="oval-loading"
+														secondaryColor="#01010c"
+														strokeWidth={2}
+														strokeWidthSecondary={2}
+													/>
+												</div>
+											</>
+											)
 										: "Submit proof"}
 								</button>
 							) : (
