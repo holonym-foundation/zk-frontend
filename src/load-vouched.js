@@ -1,4 +1,4 @@
-import { idServerUrl } from "./constants/misc";
+import { idServerUrl } from "./constants";
 
 const loadVouched = (phoneNumber) => {
   const config = {
@@ -43,7 +43,7 @@ const loadVouched = (phoneNumber) => {
 
         // Redirect to the next page based on the job success
         if( job.result.success){
-          const retrievalEndpoint = `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${job.id}`
+          const retrievalEndpoint = `${idServerUrl}/v2/registerVouched/vouchedCredentials?jobID=${job.id}`
           const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
           console.log('jobID is', job.id)
           window.location.href=(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);

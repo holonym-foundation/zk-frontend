@@ -1,22 +1,18 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { formatPhoneNumberIntl } from "react-phone-number-input";
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
-import { InfoButton } from "../info-button";
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
-import { useLitAuthSig } from "../../context/LitAuthSig";
 import { 
-  getLocalEncryptedUserCredentials,
-  getLocalProofMetadata,
-  decryptObjectWithLit,
+  getCredentials,
+  getProofMetadata,
 } from '../../utils/secrets';
 import { 
-  idServerUrl,
   primeToCountryCode,
-  chainUsedForLit,
-} from "../../constants/misc";
+  serverAddress
+} from "../../constants";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
 const credsFieldsToIgnore = [
   'completedAt',
@@ -34,13 +30,15 @@ function formatCreds(sortedCreds) {
   // For example, only one issuer will ever provide a 'firstName' field.
   const reshapedCreds = {}
   Object.entries(sortedCreds).reduce((acc, [issuer, cred]) => {
-    const rawCreds = sortedCreds[issuer].rawCreds ?? sortedCreds[issuer]; // This check is for backwards compatibility with the schema used before 2022-12-12    
+    // Handle gov id creds
+    const rawCreds = sortedCreds[issuer]?.metadata?.rawCreds ?? sortedCreds[issuer]?.metadata ?? {};
     const newCreds = Object.entries(rawCreds).filter(([credName, credValue]) => credName !== 'completedAt').map(([credName, credValue]) => {
+      const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[issuer]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
       return {
         [credName]: {
           issuer,
           cred: credValue,
-          completedAt: rawCreds.completedAt,
+          iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
         }
       }
     })
@@ -66,6 +64,16 @@ function formatCreds(sortedCreds) {
       }
     })
   );
+  // Special case: phone number
+  const phoneNumber = sortedCreds[serverAddress['phone-v2']]?.creds?.customFields[0];
+  if (phoneNumber) {
+    const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[serverAddress['phone-v2']]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
+    formattedCreds['Phone Number'] = {
+      issuer: serverAddress['phone-v2'],
+      cred: phoneNumber ? ethers.BigNumber.from(phoneNumber).toString() : undefined,
+      iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
+    }
+  }
   return formattedCreds;
 }
 
@@ -88,72 +96,45 @@ function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
 }
 
 export default function Profile(props) {
-  const navigate = useNavigate();
   const [creds, setCreds] = useState();
+  const [credsLoading, setCredsLoading] = useState(true);
   const [proofMetadata, setProofMetadata] = useState();
+  const [proofMetadataLoading, setProofMetadataLoading] = useState(true);
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
-  const { getLitAuthSig, signLitAuthMessage } = useLitAuthSig();
-  const {
-    signHoloAuthMessage,
-    holoAuthSigIsError,
-    holoAuthSigIsLoading,
-    holoAuthSigIsSuccess,
-    getHoloAuthSigDigest
-  } = useHoloAuthSig();
+  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
   useEffect(() => {
     if (!account?.address) return;
-    (async () => {
-      if (!getLitAuthSig()) {
-        await signLitAuthMessage();
-      }
-      if (!getHoloAuthSigDigest()) {
-        await signHoloAuthMessage();
-      }
-      setReadyToLoadCredsAndProofs(true);
-    })()
+    setReadyToLoadCredsAndProofs(true);
   }, [account])
 
   useEffect(() => {
     async function getAndSetCreds() {
       try {
-        let encryptedCredsObj = getLocalEncryptedUserCredentials()
-        if (!encryptedCredsObj) {
-          const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${getHoloAuthSigDigest()}`)
-          encryptedCredsObj = await resp.json();
-        }
-        if (encryptedCredsObj) {
-          const plaintextCreds = await decryptObjectWithLit(
-            encryptedCredsObj.encryptedCredentials, 
-            encryptedCredsObj.encryptedSymmetricKey, 
-            getLitAuthSig()
-          )
-          const formattedCreds = formatCreds(plaintextCreds);
-          setCreds(formattedCreds);
-        }
+        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
+        if (!sortedCreds) return;
+        console.log('sortedCreds', sortedCreds)
+        const formattedCreds = formatCreds(sortedCreds);
+        setCreds(formattedCreds);
       } catch (err) {
         console.log(err)
+      } finally {
+        setCredsLoading(false)
       }
     }
     async function getAndSetProofMetadata() {
       try {
-        let encryptedProofMetadata = getLocalProofMetadata()
-        if (!encryptedProofMetadata) {
-          const resp = await fetch(`${idServerUrl}/proof-metadata?sigDigest=${getHoloAuthSigDigest()}`)
-          encryptedProofMetadata = await resp.json();
-        }
-        if (encryptedProofMetadata) {
-          const decryptedProofMetadata = await decryptObjectWithLit(
-            encryptedProofMetadata.encryptedProofMetadata,
-            encryptedProofMetadata.encryptedSymmetricKey,
-            getLitAuthSig()
-          )
-          const populatedData = populateProofMetadataDisplayDataAndRestructure(decryptedProofMetadata)
+        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, true);
+        if (proofMetadataTemp) {
+          const populatedData = populateProofMetadataDisplayDataAndRestructure(proofMetadataTemp)
           setProofMetadata(populatedData)
         }
       } catch (err) {
         console.log(err)
+      } finally {
+        setProofMetadataLoading(false)
       }
     }
     getAndSetCreds()
@@ -164,9 +145,9 @@ export default function Profile(props) {
     <>
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
-        <PublicInfoCard proofMetadata={proofMetadata} />
+        <PublicInfoCard proofMetadata={proofMetadata} loading={proofMetadataLoading} />
         <div className="spacer-large"></div>
-        <PrivateInfoCard creds={creds} />
+        <PrivateInfoCard creds={creds} loading={credsLoading} />
       </div>
     </div>
   </>

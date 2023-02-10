@@ -4,8 +4,8 @@ import { parsePhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
-import { zkPhoneEndpoint } from "../../constants/misc";
-import MintButton from "../atoms/mint-button";
+import { zkPhoneEndpoint } from "../../constants";
+import MintButton from "./mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
 import MintContainer from "./MintContainer";
@@ -23,7 +23,6 @@ function useMintPhoneNumberState() {
 
   const steps = ["Phone#", "Verify", "Store", "Mint"];
 
-  // const currentStep = useMemo(() => steps[currentIdx], [steps, currentIdx]);
   const currentStep = useMemo(() => {
     if (!phoneNumber && !store && !creds) return "Phone#";
     if (phoneNumber && !store && !creds) return "Verify";
@@ -69,6 +68,12 @@ const MintPhoneNumber = () => {
   } = useMintPhoneNumberState();
 
   useEffect(() => {
+    if (success && window.localStorage.getItem('register-credentialType')) {
+			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
+    }
+  }, [success]);
+  
+  useEffect(() => {
     if (!phoneNumber) return;
     console.log("sending code to ", phoneNumber);
     sendCode(phoneNumber);
@@ -79,7 +84,7 @@ const MintPhoneNumber = () => {
     setCode(newCode);
     if (newCode.length === 6) {
       const country = parsePhoneNumber(phoneNumber).country;
-      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${newCode}/${country}`
+      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
       navigate(`/mint/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }

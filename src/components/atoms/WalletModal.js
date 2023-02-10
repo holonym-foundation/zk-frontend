@@ -7,7 +7,7 @@ import walletconnectLogo from "../../img/walletConnect.svg";
 
 const walletMetadata = {
   walletConnect : {
-    name: 'Other',
+    name: 'Wallet Connect',
     description: 'Other mobile and desktop wallets',
     logo: walletconnectLogo,
   },
@@ -22,12 +22,12 @@ const walletMetadata = {
     logo: coinbaseLogo,
   },
   injected : {
-    name: 'Default',
-    description: 'Your default wallet (already connected, click to confirm)',
+    name: 'Injected',
+    description: 'E.g., Brave Wallet or other browser wallets',
     logo: null,
-  },
-  
-} 
+  }, 
+}
+
 const WalletModal = (props) => {
   const { connect, connectors, error, isConnecting, pendingConnector } = useConnect();
   return (
@@ -36,50 +36,51 @@ const WalletModal = (props) => {
       <div className="x-wrapper small-center" style={{ padding: "0px", minWidth: "285px", maxWidth: "400px"  }}>
         <h2 className="h2-small">Select Wallet</h2>
         <p className="p-2 white">Connect to the site below with one of our available wallet providers.</p>
-          {connectors.map((connector) => {
+          {connectors.sort((a, b) => a.id === "injected" ? 1 : b.id === "injected" ? -1 : 0).map((connector) => {
             if(!connector.ready){return null}
             // console.log(connector.id)
             return (
-              <div key={connector.id} >
-                <div
-                  onClick={() => {connect(connector); props.setVisible(false)}}
-                >
-                  <WalletOption 
-                    logo={walletMetadata[connector.id].logo} 
-                    name={walletMetadata[connector.id].name}
-                    description={walletMetadata[connector.id].description}
-                    />
-                    {/* {isConnecting &&
-                      connector.id === pendingConnector?.id &&
-                      ' (connecting)'} */}
-                </div>
-                <div className="spacer-small" />
-              </div>
-            )})}
+              <WalletOption 
+                connector={connector}
+                connect={connect}
+                setVisible={props.setVisible}
+                logo={walletMetadata[connector.id].logo} 
+                name={walletMetadata[connector.id].name}
+                description={walletMetadata[connector.id].description}
+              />
+            )}
+          )}
 
         {error && <p>{error.message}</p>}
       </div>
     </Modal>
   )
 }
-const WalletOption = (props) =>  (
-  <div className="x-card">
-    <a style={{ textDecoration: "none" }}>
-      <div className="id-card profile" style={{maxWidth: "100%"}}>
-        <div className="id-card-1">
-          <img src={props.logo} loading="lazy" alt="" className="id-img" style={{height:"69px", width:"69px", maxWidth:"200%",marginRight:"30px"}} />
-        </div>
-        <div className="id-card-2">
-          <div className="id-profile-name-div">
-            <h3 className="h3 no-margin">
-              {props.name}
-            </h3>
+const WalletOption = ({ connector, connect, setVisible, logo, name, description }) =>  (
+  <div key={connector.id} >
+    <div
+      onClick={() => {connect(connector); setVisible(false)}}
+    >
+      <div className="x-card">
+        <a style={{ textDecoration: "none" }}>
+          <div className="id-card profile" style={{maxWidth: "100%"}}>
+            <div className="id-card-1">
+              <img src={logo} loading="lazy" alt="" className="id-img" style={{height:"69px", width:"69px", maxWidth:"200%",marginRight:"30px"}} />
+            </div>
+            <div className="id-card-2">
+              <div className="id-profile-name-div">
+                <h3 className="h3 no-margin">
+                  {name}
+                </h3>
+              </div>
+              <div className="spacer-xx-small"></div>
+              <p className="id-designation">{description}</p>
+            </div>
           </div>
-          <div className="spacer-xx-small"></div>
-          <p className="id-designation">{props.description}</p>
-        </div>
+        </a>
       </div>
-    </a>
+    </div>
+    <div className="spacer-small" />
   </div>
 )
 export default WalletModal
