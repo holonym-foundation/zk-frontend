@@ -305,6 +305,13 @@ const Proofs = () => {
           setProofSubmissionSuccess(true);
         }
 			},
+			onError: (error) => {
+				console.log("error", error);
+				setError({
+					type: SUBMIT_PROOF,
+					message: error?.response?.data?.error?.reason || error?.message,
+				});
+			}
 		},
 	);
 
