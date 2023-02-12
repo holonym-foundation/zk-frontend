@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useAccount } from "wagmi";
-import ConnectWalletScreen from "./atoms/connect-wallet-screen";
-import { truncateAddress } from "../utils/ui-helpers";
+import ConnectWalletScreen from "../atoms/connect-wallet-screen";
+import { truncateAddress } from "../../utils/ui-helpers";
 // import { InfoButton } from "./info-button";
-import RoundedWindow from "./RoundedWindow";
+import RoundedWindow from "../RoundedWindow";
 
 const ProofMenu = ()=>{
     const { data: account } = useAccount();

@@ -3,29 +3,29 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useNetwork } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getCredentials } from "../utils/secrets";
+import { getCredentials } from "../../utils/secrets";
 import {
   getDateAsInt,
   poseidonTwoInputs,
   proofOfResidency,
   antiSybil,
-} from "../utils/proofs";
+} from "../../utils/proofs";
 import { 
   serverAddress, 
   idServerUrl, 
   defaultActionId,
-} from "../constants";
+} from "../../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 
-import { Success } from "./success";
+import { Success } from "../success";
 import { Oval } from "react-loader-spinner";
-import { truncateAddress } from "../utils/ui-helpers";
-import RoundedWindow from "./RoundedWindow";
-import { useHoloAuthSig } from "../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import Relayer from "../utils/relayer";
-import ConnectWalletScreen from "./atoms/connect-wallet-screen";
+import { truncateAddress } from "../../utils/ui-helpers";
+import RoundedWindow from "../RoundedWindow";
+import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import Relayer from "../../utils/relayer";
+import ConnectWalletScreen from "../atoms/connect-wallet-screen";
 
 const ErrorScreen = ({children}) => (
   <div className="x-container w-container">

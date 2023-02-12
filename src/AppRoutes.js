@@ -1,9 +1,9 @@
-import ProofMenu from "./components/proof-menu";
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Profile from './components/profile/profile';
 import MintOptions from "./components/mint/mint-options.js";
-import OffChainProofs from './components/off-chain-proofs';
+import ProofMenu from "./components/prove/proof-menu";
+import OffChainProofs from './components/prove/off-chain-proofs';
 import MintGovernmentID from "./components/mint/MintGovernmentID";
 import MintPhoneNumber from './components/mint/MintPhoneNumber';
 import MintExternal from "./components/mint/MintExternal";
