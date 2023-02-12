@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useQuery } from "wagmi";
@@ -119,6 +119,7 @@ const useProofsState = () => {
 	// 2. Get & set proof
 	// 3. Submit proof tx
 
+  // eslint-disable-next-line no-unused-vars
 	const getCredentialsQuery = useQuery(
 		["getCredentials", `${holoKeyGenSigDigest}${holoAuthSigDigest}`],
 		() => getCredentials(holoKeyGenSigDigest, holoAuthSigDigest),
@@ -144,6 +145,7 @@ const useProofsState = () => {
 		},
 	);
 
+  // eslint-disable-next-line no-unused-vars
 	const loadProofQuery = useQuery(
 		["loadProof"],
 		async () => {
