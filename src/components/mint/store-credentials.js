@@ -28,7 +28,7 @@ const StoreCredentials = (props) => {
     // TODO: check for sessionId and id-server veriff endpoint once we migrate to Veriff
     if (
       retrievalEndpoint.includes('jobID') && 
-      retrievalEndpoint.includes(`${idServerUrl}/registerVouched/vouchedCredentials`)
+      retrievalEndpoint.includes(`${idServerUrl}/v2/registerVouched/vouchedCredentials`)
     ) {
       const jobID = retrievalEndpoint.split('jobID=')[1]
       localStorage.setItem('jobID', jobID);
