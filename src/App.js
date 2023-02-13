@@ -5,8 +5,8 @@ import "./holo-wtf.webflow.css";
 import React, { Suspense, useEffect, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import WebFont from "webfontloader";
-import { Banana, Chains } from '@rize-labs/banana-wallet-sdk';
-// import { Banana, Chains } from 'banana-wallet-sdk'
+import { Chains } from '@rize-labs/banana-wallet-sdk/dist/Constants';
+import { Banana } from "@rize-labs/banana-wallet-sdk/dist/BananaProvider"
 import LoadingElement from "./components/loading-element";
 import { isMobile } from "react-device-detect";
 import RoundedWindow from "./components/RoundedWindow";

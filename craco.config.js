@@ -1,5 +1,6 @@
 const path = require('path');
 const { when, whenDev, whenProd, whenTest, ESLINT_MODES, POSTCSS_MODES } = require("@craco/craco");
+const { ProvidePlugin }= require("webpack")
 
 module.exports = {
     reactScriptsVersion: "react-scripts" /* (default value) */,
@@ -48,6 +49,35 @@ module.exports = {
           //     asyncWebAssembly: true,
           //   };
           // }
+
+          // Banana wallet config
+          webpackConfig.module.rules = webpackConfig.module.rules.map(rule => {
+            if (rule.oneOf instanceof Array) {
+              rule.oneOf[rule.oneOf.length - 1].exclude = [/\.(js|mjs|jsx|cjs|ts|tsx)$/, /\.html$/, /\.json$/];
+            }
+            return rule;
+          });
+          webpackConfig.resolve.fallback = {
+            ...webpackConfig.resolve.fallback,
+            stream: require.resolve("stream-browserify"),
+            buffer: require.resolve("buffer"),
+            crypto: require.resolve("crypto-browserify"),
+            process: require.resolve("process"),
+            os: require.resolve("os-browserify"),
+            path: require.resolve("path-browserify"),
+            constants: require.resolve("constants-browserify"), 
+            fs: false
+          }
+          webpackConfig.resolve.extensions = [...webpackConfig.resolve.extensions, ".ts", ".js"]
+          webpackConfig.plugins = [
+            ...webpackConfig.plugins,
+            new ProvidePlugin({
+              Buffer: ["buffer", "Buffer"],
+            }),
+            new ProvidePlugin({
+                process: ["process"]
+            }),
+          ]
 
           return webpackConfig; 
         }
