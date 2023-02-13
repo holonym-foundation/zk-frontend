@@ -1,6 +1,7 @@
 const path = require('path');
 const { when, whenDev, whenProd, whenTest, ESLINT_MODES, POSTCSS_MODES } = require("@craco/craco");
 const { ProvidePlugin }= require("webpack")
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = {
     reactScriptsVersion: "react-scripts" /* (default value) */,
@@ -59,6 +60,7 @@ module.exports = {
           });
           webpackConfig.resolve.fallback = {
             ...webpackConfig.resolve.fallback,
+            // polyfills for banana wallet
             stream: require.resolve("stream-browserify"),
             buffer: require.resolve("buffer"),
             crypto: require.resolve("crypto-browserify"),
@@ -66,7 +68,9 @@ module.exports = {
             os: require.resolve("os-browserify"),
             path: require.resolve("path-browserify"),
             constants: require.resolve("constants-browserify"), 
-            fs: false
+            fs: false,
+            // polyfills for the rest of the app
+            assert: require.resolve("assert"),
           }
           webpackConfig.resolve.extensions = [...webpackConfig.resolve.extensions, ".ts", ".js"]
           webpackConfig.plugins = [
@@ -77,6 +81,7 @@ module.exports = {
             new ProvidePlugin({
                 process: ["process"]
             }),
+            new NodePolyfillPlugin(),
           ]
 
           return webpackConfig; 
