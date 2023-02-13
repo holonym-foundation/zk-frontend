@@ -60,7 +60,6 @@ module.exports = {
           });
           webpackConfig.resolve.fallback = {
             ...webpackConfig.resolve.fallback,
-            // polyfills for banana wallet
             stream: require.resolve("stream-browserify"),
             buffer: require.resolve("buffer"),
             crypto: require.resolve("crypto-browserify"),
@@ -69,8 +68,6 @@ module.exports = {
             path: require.resolve("path-browserify"),
             constants: require.resolve("constants-browserify"), 
             fs: false,
-            // polyfills for the rest of the app
-            assert: require.resolve("assert"),
           }
           webpackConfig.resolve.extensions = [...webpackConfig.resolve.extensions, ".ts", ".js"]
           webpackConfig.plugins = [
@@ -81,7 +78,9 @@ module.exports = {
             new ProvidePlugin({
                 process: ["process"]
             }),
-            new NodePolyfillPlugin(),
+            new NodePolyfillPlugin({
+              excludeAliases: ["console"]
+            }),
           ]
 
           return webpackConfig; 
