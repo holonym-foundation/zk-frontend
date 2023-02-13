@@ -5,6 +5,8 @@ import "./holo-wtf.webflow.css";
 import React, { Suspense, useEffect, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import WebFont from "webfontloader";
+import { Banana, Chains } from '@rize-labs/banana-wallet-sdk';
+// import { Banana, Chains } from 'banana-wallet-sdk'
 import LoadingElement from "./components/loading-element";
 import { isMobile } from "react-device-detect";
 import RoundedWindow from "./components/RoundedWindow";
@@ -54,6 +56,17 @@ const SignMessagesFallback = () => {
 function App() {
   const [read, setReady] = useState(false);
   useEffect(() => {
+
+    // creating chain specific instance of banana module
+    const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
+    const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
+
+    bananaInstance.getWalletName().then((walletName) => {
+      console.log('walletName', walletName)
+    }).catch((e) => {
+      console.log('error', e)
+    });
+
     Promise.all([
       WebFont.load({
         google: {
