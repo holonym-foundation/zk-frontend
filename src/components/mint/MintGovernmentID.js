@@ -61,7 +61,7 @@ const ConfirmRetry = ({ setRetry }) => (
         }}
         onClick={() => {
           // TODO: Change URL when we migrate to Veriff
-          const retrievalEndpoint = `${idServerUrl}/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
+          const retrievalEndpoint = `${idServerUrl}/v2/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
           const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
           window.location.href=(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
         }}
