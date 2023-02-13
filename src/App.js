@@ -54,6 +54,20 @@ const SignMessagesFallback = () => {
 function App() {
   const [read, setReady] = useState(false);
   useEffect(() => {
+    // Load web worker
+    // (async () => {
+    //   if (window.Worker) {
+    //     const worker = new Worker("./web-workers/load-proofs.js");
+    //     console.log('sending message to worker')
+    //     worker.postMessage("Hello from main thread");
+    //     worker.postMessage({ type: "proofs", payload: { proofs: [] } });
+    //     // TODO: Maybe store proofs in context?
+    //     worker.onmessage = (e) => {
+    //       console.log("Worker said: ", e.data);
+    //     };
+    //     worker.postMessage("Hello from main thread");
+    //   }
+    // })();
     Promise.all([
       WebFont.load({
         google: {

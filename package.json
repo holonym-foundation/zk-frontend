@@ -50,6 +50,7 @@
   "scripts": {
     "start": "PORT=3002 craco start",
     "start:cached-preproc": "PORT=3002 PREPROC_CACHED_LOCALLY=true craco start",
+    "build:web-worker": "BUILD_WEB_WORKER=true craco build",
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject"
@@ -82,6 +83,9 @@
     ]
   },
   "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/plugin-transform-modules-commonjs": "^7.20.11",
+    "@babel/preset-env": "^7.20.2",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
