@@ -26,64 +26,75 @@ module.exports = {
 
           webpackConfig.module.rules.forEach(rule => {
             (rule.oneOf || []).forEach(oneOf => {
-              if (oneOf.loader && oneOf.loader.indexOf('file-loader') >= 0) {
-                // make file-loader ignore WASM files
-                oneOf.exclude.push(wasmExtensionRegExp);
-              }
+              (oneOf.use || []).forEach(use => {
+                if (use.loader && use.loader.indexOf('file-loader') >= 0) {
+                  // make file-loader ignore WASM files
+                  if (oneOf.exclude)
+                    oneOf.exclude.push(wasmExtensionRegExp);
+                  else
+                    oneOf.exclude = [wasmExtensionRegExp];
+                }
+              })
+              // if (oneOf.loader && oneOf.loader.indexOf('file-loader') >= 0) {
+              //   // make file-loader ignore WASM files
+              //   oneOf.exclude.push(wasmExtensionRegExp);
+              // }
             });
           });
 
-          // add a dedicated loader for WASM
-          webpackConfig.module.rules.push({
-            test: wasmExtensionRegExp,
-            include: path.resolve(__dirname, 'src'),
-            use: [{ loader: require.resolve('wasm-loader'), options: {} }]
-          });
+          // // add a dedicated loader for WASM // webpack v4
+          // webpackConfig.module.rules.push({
+          //   test: wasmExtensionRegExp,
+          //   include: path.resolve(__dirname, 'src'),
+          //   use: [{ loader: require.resolve('wasm-loader'), options: {} }]
+          // });
 
-          // // Add web assembly support
-          // if (webpackConfig.module.experiments) {
-          //   webpackConfig.module.experiments.push({
-          //     asyncWebAssembly: true,
-          //   });
-          // } else {
-          //   webpackConfig.module.experiments= {
-          //     asyncWebAssembly: true,
-          //   };
-          // }
+          // Add web assembly support
+          if (webpackConfig.experiments) {
+            webpackConfig.experiments.push({
+              futureDefaults: true,
+              syncWebAssembly: true,
+            });
+          } else {
+            webpackConfig.experiments = {
+              futureDefaults: true,
+              syncWebAssembly: true,
+            };
+          }
 
           // Banana wallet config
-          webpackConfig.module.rules = webpackConfig.module.rules.map(rule => {
-            if (rule.oneOf instanceof Array) {
-              rule.oneOf[rule.oneOf.length - 1].exclude = [/\.(js|mjs|jsx|cjs|ts|tsx)$/, /\.html$/, /\.json$/];
-            }
-            return rule;
-          });
+          // webpackConfig.module.rules = webpackConfig.module.rules.map(rule => {
+          //   if (rule.oneOf instanceof Array) {
+          //     rule.oneOf[rule.oneOf.length - 1].exclude = [/\.(js|mjs|jsx|cjs|ts|tsx)$/, /\.html$/, /\.json$/];
+          //   }
+          //   return rule;
+          // });
           webpackConfig.resolve.fallback = {
-            ...webpackConfig.resolve.fallback,
-            stream: require.resolve("stream-browserify"),
-            buffer: require.resolve("buffer"),
-            crypto: require.resolve("crypto-browserify"),
-            process: require.resolve("process"),
-            os: require.resolve("os-browserify"),
-            path: require.resolve("path-browserify"),
-            constants: require.resolve("constants-browserify"), 
-            fs: false,
+          //   ...webpackConfig.resolve.fallback,
+          //   stream: require.resolve("stream-browserify"),
+          //   buffer: require.resolve("buffer"),
+          //   crypto: require.resolve("crypto-browserify"),
+          //   process: require.resolve("process"),
+          //   os: require.resolve("os-browserify"),
+            // path: require.resolve("path-browserify"),
+          //   constants: require.resolve("constants-browserify"), 
+            // fs: false,
           }
-          webpackConfig.resolve.extensions = [...webpackConfig.resolve.extensions, ".ts", ".js"]
+          // webpackConfig.resolve.extensions = [...webpackConfig.resolve.extensions, ".ts", ".js"]
           webpackConfig.plugins = [
             ...webpackConfig.plugins,
-            new ProvidePlugin({
-              Buffer: ["buffer", "Buffer"],
-            }),
-            new ProvidePlugin({
-                process: ["process"]
-            }),
+            // new ProvidePlugin({
+            //   Buffer: ["buffer", "Buffer"],
+            // }),
+            // new ProvidePlugin({
+            //     process: ["process"]
+            // }),
             new NodePolyfillPlugin({
               excludeAliases: ["console"]
             }),
           ]
 
-          return webpackConfig; 
+          return webpackConfig;
         }
     },
     plugins: [
