@@ -61,11 +61,8 @@ function App() {
     const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
     const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
 
-    bananaInstance.getWalletName().then((walletName) => {
-      console.log('walletName', walletName)
-    }).catch((e) => {
-      console.log('error', e)
-    });
+    const walletName = bananaInstance.getWalletName()
+    console.log('walletName', walletName)
 
     Promise.all([
       WebFont.load({
