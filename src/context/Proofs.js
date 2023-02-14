@@ -20,6 +20,8 @@ function ProofsProvider({ children }) {
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
+  // TODO: Load all proofs in here. Need to add onAddLeafProof and proofOfKnowledgeOfLeafPreimage
+
   useEffect(() => {
     proofsWorker.onmessage = (event) => {
       if (event?.data?.proofType === "us-residency") {
