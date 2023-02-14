@@ -20,6 +20,16 @@ def main(field leaf, field address, private field countryCode, private field nam
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * @param timeout Time in ms to wait for zokProvider to be initialized
+ */
+async function waitForZokProvider(timeout = 5000) {
+  const start = Date.now();
+  while (!zokProvider && Date.now() - start < timeout) {
+    await sleep(100);
+  }
+}
+
 async function loadArtifacts(circuitName) {
   if (circuitName in artifacts) {
     console.log(
@@ -143,14 +153,15 @@ export function serializeProof(proof, hash) {
 
 /**
  * @param {Array<string>} input length-2 Array of numbers represented as strings.
- * @returns {string}
+ * @returns {Promise<string>}
  */
-export function poseidonTwoInputs(input) {
+export async function poseidonTwoInputs(input) {
   if (input.length !== 2 || !Array.isArray(input)) {
     throw new Error("input must be an array of length 2");
   }
   if (!zokProvider) {
-    throw new Error("zokProvider has not been initialized");
+    // throw new Error("zokProvider has not been initialized");
+    await waitForZokProvider(7500);
   }
   if (!("poseidonTwoInputs" in artifacts)) {
     throw new Error("Poseidon hash for two inputs has not been loaded");
@@ -279,9 +290,7 @@ export async function proofOfResidency(
   secret
 ) {
   if (!zokProvider) {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
-    await sleep(5000);
+    await waitForZokProvider(5000);
   }
   console.log("PROOF starting");
   const leaf = await createLeaf(
@@ -363,9 +372,7 @@ export async function antiSybil(
 ) {
   console.log("antiSybil called")
   if (!zokProvider) {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
-    await sleep(5000);
+    await waitForZokProvider(5000);
   }
 
   const leaf = await createLeaf(

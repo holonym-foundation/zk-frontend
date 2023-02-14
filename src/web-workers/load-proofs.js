@@ -81,24 +81,23 @@ async function loadPoR(newSecret, serializedAsNewPreimage, address) {
 }
 
 onmessage = async (event) => {
-  console.log('Message received from main script');
-  console.log('event.data', event.data)
-  if (event.data && event.data.message === "loadAntiSybil") {
+  console.log('[Worker] event.data:', event.data)
+  if (event.data && event.data.message === "uniqueness") {
     const antiSybilProof = await loadAntiSybil(
       event.data.newSecret,
       event.data.serializedAsNewPreimage,
-      event.data.address,
+      event.data.issuerAddress,
       event.data.actionId,
     )
-    postMessage({ error: null, proof: antiSybilProof });
-  } else if (event.data && event.data.message === "loadPoR") {
+    postMessage({ error: null, proofType: "uniqueness", proof: antiSybilProof });
+  } else if (event.data && event.data.message === "us-residency") {
     const proofOfResidencyProof = await loadPoR(
       event.data.newSecret,
       event.data.serializedAsNewPreimage,
-      event.data.address,
+      event.data.issuerAddress,
     )
-    postMessage({ error: null, proof: proofOfResidencyProof});
+    postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof});
   } else {
-    postMessage({ error: "Unknown message", proof: null });
+    postMessage({ error: "Unknown message", proofType: null, proof: null });
   }
 }

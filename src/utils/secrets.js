@@ -149,9 +149,10 @@ export async function getRemoteEncryptedUserCredentials(holoAuthSigDigest) {
  * before returning them.
  * @param {string} holoKeyGenSigDigest Used as key for AES encryption/decryption
  * @param {string} holoAuthSigDigest 
+ * @param {boolean} restore If true, will re-store credentials in localStorage and remote backup
  * @returns A sortedCreds object if credentials are found, null if not.
  */
-export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) {
+export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, restore = true) {
   // 1. Get encrypted creds from localStorage (if they are there)
   const localEncryptedCreds = getLocalEncryptedUserCredentials();
   // 2. Get encrypted creds from remote backup (if they are there)
@@ -183,6 +184,7 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) {
   if (decryptedRemoteCredsAES) allCreds.push(decryptedRemoteCredsAES);
   if (decryptedLocalCredsAES) allCreds.push(decryptedLocalCredsAES);
   let mergedCreds = {};
+  console.log('allCreds', allCreds)
   for (const issuer of issuerWhitelist) {
     const credsFromIssuer = allCreds.filter(sortedCredsTemp => sortedCredsTemp[issuer]);
     if (credsFromIssuer.length === 1) {
@@ -217,9 +219,14 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) {
       }
     }
   }
+  console.log('mergedCreds', mergedCreds)
   // 5. Store merged creds in case there is a difference between local and remote
-  if (Object.keys(mergedCreds).length > 0) {
+  console.log('getCredentials: restore:', restore)
+  console.log('getCredentials: Object.keys(mergedCreds).length > 0:', Object.keys(mergedCreds).length > 0)
+  if (restore) {
     storeCredentials(mergedCreds, holoKeyGenSigDigest, holoAuthSigDigest);
+  }
+  if (Object.keys(mergedCreds).length > 0) {
     return mergedCreds;
   }
   return null;
@@ -257,7 +264,7 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
     }
     setLatestKolpProof(kolpProof);
     // This request will fail if the user does not have a valid proof. Hence the try-catch.
-    console.log('sending encrypted creds to remote backup');
+    console.log('sending encrypted creds to remote backup', creds);
     const resp = await fetch(`${idServerUrl}/credentials`, {
       method: 'POST',
       headers: {
