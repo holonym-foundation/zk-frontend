@@ -5,7 +5,8 @@
  */
 import React, { createContext, useContext, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
-import { serverAddress } from '../constants';
+import { useAccount } from 'wagmi';
+import { serverAddress, defaultActionId } from '../constants';
 import { getCredentials, getProofMetadata } from "../utils/secrets";
 import { useHoloAuthSig } from './HoloAuthSig';
 import { useHoloKeyGenSig } from './HoloKeyGenSig';
@@ -17,6 +18,7 @@ const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-pro
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null)
   const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null)
+  const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -66,8 +68,9 @@ function ProofsProvider({ children }) {
           loadUniquenessProof(
             govIdCreds.creds.newSecret, 
             govIdCreds.creds.serializedAsNewPreimage, 
-            govIdCreds.creds.issuerAddress, 
-            "123456789"
+            // govIdCreds.creds.issuerAddress, 
+            account?.address,
+            defaultActionId
           );
         }
         if (missingProofs['us-residency']) {
@@ -75,7 +78,8 @@ function ProofsProvider({ children }) {
           loadUSResidencyProof(
             govIdCreds.creds.newSecret, 
             govIdCreds.creds.serializedAsNewPreimage, 
-            govIdCreds.creds.issuerAddress, 
+            // govIdCreds.creds.issuerAddress, 
+            account?.address,
           );
         }
       }
@@ -85,14 +89,14 @@ function ProofsProvider({ children }) {
   /**
    * Use web worker to load anti-sybil proof into context and session storage.
    */
-  function loadUniquenessProof(newSecret, serializedAsNewPreimage, issuerAddress, actionId) {
+  function loadUniquenessProof(newSecret, serializedAsNewPreimage, userAddress, actionId) {
     if (proofsWorker) {
       console.log('[Main] Main script requesting uniqueness proof from worker')
       proofsWorker.postMessage({ 
         message: "uniqueness", 
         newSecret, 
         serializedAsNewPreimage, 
-        issuerAddress, 
+        userAddress, 
         actionId
       });
     } else {
@@ -103,14 +107,14 @@ function ProofsProvider({ children }) {
   /**
    * Use web worker to load proof of residency proof into context and session storage.
    */
-  function loadUSResidencyProof(newSecret, serializedAsNewPreimage, issuerAddress) {
+  function loadUSResidencyProof(newSecret, serializedAsNewPreimage, userAddress) {
     if (proofsWorker) {
       console.log('[Main] Main script requesting us-residency proof from worker')
       proofsWorker.postMessage({ 
         message: "us-residency", 
         newSecret, 
         serializedAsNewPreimage, 
-        issuerAddress
+        userAddress
       });
     } else {
       // TODO: Call the function directly

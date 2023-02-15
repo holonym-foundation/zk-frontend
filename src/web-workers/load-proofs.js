@@ -18,6 +18,11 @@ import {
 	antiSybil,
 } from "../utils/proofs";
 
+let generatingProof = {
+	'uniqueness': false,
+	'us-residency': false,
+}
+
 async function loadAntiSybil(
 	newSecret, 
 	serializedAsNewPreimage,
@@ -51,7 +56,7 @@ async function loadAntiSybil(
 	);
 }
 
-async function loadPoR(newSecret, serializedAsNewPreimage, address) {
+async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
 	const salt =
 		"18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
 	const footprint = await poseidonTwoInputs([
@@ -68,7 +73,7 @@ async function loadPoR(newSecret, serializedAsNewPreimage, address) {
 		scope,
 	] = serializedAsNewPreimage;
 	return await proofOfResidency(
-		address,
+		userAddress,
 		issuer_,
 		salt,
 		footprint,
@@ -83,20 +88,34 @@ async function loadPoR(newSecret, serializedAsNewPreimage, address) {
 onmessage = async (event) => {
   console.log('[Worker] event.data:', event.data)
   if (event.data && event.data.message === "uniqueness") {
-    const antiSybilProof = await loadAntiSybil(
-      event.data.newSecret,
-      event.data.serializedAsNewPreimage,
-      event.data.issuerAddress,
-      event.data.actionId,
-    )
-    postMessage({ error: null, proofType: "uniqueness", proof: antiSybilProof });
+		try {
+			if (generatingProof['uniqueness']) return;
+			generatingProof['uniqueness'] = true;
+			const antiSybilProof = await loadAntiSybil(
+				event.data.newSecret,
+				event.data.serializedAsNewPreimage,
+				event.data.userAddress,
+				event.data.actionId,
+			)
+			generatingProof['uniqueness'] = false;
+			postMessage({ error: null, proofType: "uniqueness", proof: antiSybilProof });
+		} catch (err) {
+			console.log('[Worker] Error generating uniqueness proof', err)
+		}
   } else if (event.data && event.data.message === "us-residency") {
-    const proofOfResidencyProof = await loadPoR(
-      event.data.newSecret,
-      event.data.serializedAsNewPreimage,
-      event.data.issuerAddress,
-    )
-    postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof});
+		try {
+			if (generatingProof['us-residency']) return;	
+			generatingProof['us-residency'] = true;
+			const proofOfResidencyProof = await loadPoR(
+				event.data.newSecret,
+				event.data.serializedAsNewPreimage,
+				event.data.userAddress,
+			)
+			generatingProof['us-residency'] = false;
+			postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof});
+		} catch (err) {
+			console.log('[Worker] Error generating us-residency proof', err)
+		}
   } else {
     postMessage({ error: "Unknown message", proofType: null, proof: null });
   }
