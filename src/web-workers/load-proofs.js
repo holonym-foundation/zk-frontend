@@ -4,13 +4,7 @@
  * allows us to load proofs before the user navigates to the proof
  * page, which in turn decreases the time the user spends waiting for
  * a proof to load.
- * 
- * IMPORTANT: If you modify this file, run `yarn <web-worker-build-script-name>`
- * to rebuild the web worker. The script will bundle this file and put
- * the bundle in the `public` folder.
  */
-
-// TODO: Can't import from here. Use a bundler to bundle these dependencies into a single file.
 import { ethers } from "ethers";
 import {
 	poseidonTwoInputs,

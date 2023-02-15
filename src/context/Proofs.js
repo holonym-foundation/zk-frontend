@@ -58,12 +58,9 @@ function ProofsProvider({ children }) {
       if (!sortedCreds) {
         return;
       }
-      console.log('[PROOFS] sortedCreds:', sortedCreds)
       // Load proofs requiring gov ID creds
       const govIdCreds = sortedCreds[serverAddress['idgov-v2']]
       if (govIdCreds) {
-        console.log('[PROOFS] govIdCreds exist')
-        console.log('[PROOFS] missingProofs', missingProofs)
         if (missingProofs.uniqueness) {
           loadUniquenessProof(
             govIdCreds.creds.newSecret, 
@@ -73,7 +70,6 @@ function ProofsProvider({ children }) {
           );
         }
         if (missingProofs['us-residency']) {
-          console.log('govIdCreds right before calling loadUSResidencyProof', govIdCreds)
           loadUSResidencyProof(
             govIdCreds.creds.newSecret, 
             govIdCreds.creds.serializedAsNewPreimage, 
