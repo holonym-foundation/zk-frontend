@@ -68,8 +68,7 @@ function ProofsProvider({ children }) {
           loadUniquenessProof(
             govIdCreds.creds.newSecret, 
             govIdCreds.creds.serializedAsNewPreimage, 
-            // govIdCreds.creds.issuerAddress, 
-            account?.address,
+            account.address,
             defaultActionId
           );
         }
@@ -78,8 +77,7 @@ function ProofsProvider({ children }) {
           loadUSResidencyProof(
             govIdCreds.creds.newSecret, 
             govIdCreds.creds.serializedAsNewPreimage, 
-            // govIdCreds.creds.issuerAddress, 
-            account?.address,
+            account.address,
           );
         }
       }
