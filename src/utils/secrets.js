@@ -184,7 +184,6 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, res
   if (decryptedRemoteCredsAES) allCreds.push(decryptedRemoteCredsAES);
   if (decryptedLocalCredsAES) allCreds.push(decryptedLocalCredsAES);
   let mergedCreds = {};
-  console.log('allCreds', allCreds)
   for (const issuer of issuerWhitelist) {
     const credsFromIssuer = allCreds.filter(sortedCredsTemp => sortedCredsTemp[issuer]);
     if (credsFromIssuer.length === 1) {
@@ -219,10 +218,7 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, res
       }
     }
   }
-  console.log('mergedCreds', mergedCreds)
   // 5. Store merged creds in case there is a difference between local and remote
-  console.log('getCredentials: restore:', restore)
-  console.log('getCredentials: Object.keys(mergedCreds).length > 0:', Object.keys(mergedCreds).length > 0)
   if (restore) {
     storeCredentials(mergedCreds, holoKeyGenSigDigest, holoAuthSigDigest);
   }

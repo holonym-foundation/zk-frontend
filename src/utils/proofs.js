@@ -292,7 +292,7 @@ export async function proofOfResidency(
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
-  console.log("PROOF starting");
+  console.log("PROOF: us-residency: starting");
   const leaf = await createLeaf(
     [
       issuer,
@@ -304,10 +304,10 @@ export async function proofOfResidency(
     ]
   );
 
-  console.log("PROOF leaf created");
+  console.log("PROOF: us-residency: leaf created");
 
   const mp = await getMerkleProofParams(leaf);
-  console.log("PROOF Merkle params done");
+  console.log("PROOF: us-residency: Merkle params done");
 
   const args = [
     mp.root,
@@ -325,25 +325,25 @@ export async function proofOfResidency(
     mp.indices,
   ];
     
-  console.log("PROOF loading artifacts");
+  console.log("PROOF: us-residency: loading artifacts");
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
-  console.log("PROOF loaded artifacts");
+  console.log("PROOF: us-residency: loaded artifacts");
 
-  console.log("PROOF computing witness");
+  console.log("PROOF: us-residency: computing witness");
   const { witness, output } = zokProvider.computeWitness(
     artifacts.proofOfResidency,
     args
   );
-  console.log("PROOF computed witness");
+  console.log("PROOF: us-residency: computed witness");
 
-  console.log("PROOF generating proof");
+  console.log("PROOF: us-residency: generating proof");
   const proof = zokProvider.generateProof(
     artifacts.proofOfResidency.program,
     witness,
     provingKeys.proofOfResidency
   );
-  console.log("PROOF generated proof");
+  console.log("PROOF: us-residency: generated proof");
   return proof;
 }
 

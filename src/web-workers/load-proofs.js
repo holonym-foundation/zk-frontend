@@ -80,11 +80,11 @@ async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
 }
 
 onmessage = async (event) => {
-  console.log('[Worker] event.data:', event.data)
   if (event.data && event.data.message === "uniqueness") {
 		try {
 			if (generatingProof['uniqueness']) return;
 			generatingProof['uniqueness'] = true;
+			console.log('[Worker] Generating uniqueness proof. Received params:', event.data)
 			const antiSybilProof = await loadAntiSybil(
 				event.data.newSecret,
 				event.data.serializedAsNewPreimage,
@@ -100,6 +100,7 @@ onmessage = async (event) => {
 		try {
 			if (generatingProof['us-residency']) return;	
 			generatingProof['us-residency'] = true;
+			console.log('[Worker] Generating us-residency proof. Params:', event.data)
 			const proofOfResidencyProof = await loadPoR(
 				event.data.newSecret,
 				event.data.serializedAsNewPreimage,
