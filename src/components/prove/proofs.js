@@ -46,6 +46,7 @@ const Proofs = () => {
 	const {
     params,
     proofs,
+		alreadyHasSBT,
     accountReadyAddress,
     sortedCreds,
     proof,
@@ -82,6 +83,10 @@ const Proofs = () => {
 				<br />
 				{error?.message ? (
 					<p>Error: {error.message}</p>
+				) : alreadyHasSBT ? (
+					<p>
+						You already have a soul-bound token (SBT) for this attribute.
+					</p>
 				) : sortedCreds ? (
 					<p>
 						This will give you,
@@ -110,7 +115,7 @@ const Proofs = () => {
 				)}
 				<div className="spacer-med" />
 				<br />
-				{sortedCreds ? (
+				{!alreadyHasSBT && sortedCreds ? (
 					proof ? (
 						<button
 							className="x-button"

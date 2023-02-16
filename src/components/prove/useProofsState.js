@@ -99,8 +99,10 @@ const useProofsState = () => {
 	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 	const { 
 		uniquenessProof,
+		alreadyHasUniquenessSBT, // TODO: See note in context/Proofs.js about proofMetadata
 		loadUniquenessProof,
 		usResidencyProof,
+		alreadyHasUSResidencySBT, // TODO: See note in context/Proofs.js about proofMetadata
 		loadUSResidencyProof
 	} = useProofs();
 	const accountReadyAddress = useMemo(
@@ -271,6 +273,7 @@ const useProofsState = () => {
   return {
     params,
     proofs,
+		alreadyHasSBT: (params.proofType === 'uniqueness' && alreadyHasUniquenessSBT) || (params.proofType === 'us-residency' && alreadyHasUSResidencySBT),
     accountReadyAddress,
     sortedCreds,
     proof,

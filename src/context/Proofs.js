@@ -3,7 +3,7 @@
  * NOTE: This provider must be a child of the signature providers because this
  * provider relies on the user's signatures.
  */
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
 import { serverAddress, defaultActionId } from '../constants';
@@ -16,8 +16,12 @@ const Proofs = createContext(null);
 const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-proofs.js', import.meta.url)) : null;
 
 function ProofsProvider({ children }) {
-  const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null)
-  const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null)
+  const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
+  // TODO: Don't use alreadyHas<proof>. Store proofMetadata into context, and within the proof page,
+  // check proofMetadata directly for the proof in question. No need to store this derivation of proofMetadata.
+  const [alreadyHasUniquenessSBT, setAlreadyHasUniquenessSBT] = useState(false);
+  const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
+  const [alreadyHasUSResidencySBT, setAlreadyHasUSResidencySBT] = useState(false);
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
@@ -44,8 +48,10 @@ function ProofsProvider({ children }) {
         for (const proofMetadataItem of proofMetadata) {
           if (proofMetadataItem?.proofType === "us-residency") {
             missingProofs['us-residency'] = false;
+            setAlreadyHasUSResidencySBT(true);
           } else if (proofMetadataItem?.proofType === "uniqueness") {
             missingProofs['uniqueness'] = false;
+            setAlreadyHasUniquenessSBT(true);
           }
         }
       }
@@ -118,8 +124,10 @@ function ProofsProvider({ children }) {
   return (
     <Proofs.Provider value={{
       uniquenessProof,
+      alreadyHasUniquenessSBT,
       loadUniquenessProof,
       usResidencyProof,
+      alreadyHasUSResidencySBT,
       loadUSResidencyProof
     }}>
       {children}
