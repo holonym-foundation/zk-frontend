@@ -55,8 +55,8 @@
     "zustand": "3.7.2"
   },
   "scripts": {
-    "start": "PORT=3002 craco start",
-    "start:cached-preproc": "PORT=3002 PREPROC_CACHED_LOCALLY=true craco start",
+    "start": "GENERATE_SOURCEMAP=false PORT=3002 craco start",
+    "start:cached-preproc": "GENERATE_SOURCEMAP=false PORT=3002 PREPROC_CACHED_LOCALLY=true craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject"
