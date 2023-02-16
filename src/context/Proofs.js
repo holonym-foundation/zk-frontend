@@ -7,9 +7,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
 import { serverAddress, defaultActionId } from '../constants';
-import { getCredentials, getProofMetadata } from "../utils/secrets";
+import { getCredentials } from "../utils/secrets";
 import { useHoloAuthSig } from './HoloAuthSig';
 import { useHoloKeyGenSig } from './HoloKeyGenSig';
+import { useProofMetadata } from './ProofMetadata';
 
 const Proofs = createContext(null);
 
@@ -17,14 +18,11 @@ const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-pro
 
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
-  // TODO: Don't use alreadyHas<proof>. Store proofMetadata into context, and within the proof page,
-  // check proofMetadata directly for the proof in question. No need to store this derivation of proofMetadata.
-  const [alreadyHasUniquenessSBT, setAlreadyHasUniquenessSBT] = useState(false);
   const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
-  const [alreadyHasUSResidencySBT, setAlreadyHasUSResidencySBT] = useState(false);
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof and proofOfKnowledgeOfLeafPreimage
 
@@ -38,20 +36,20 @@ function ProofsProvider({ children }) {
         console.error(event.data.error);
       }
     };
+
+    if (loadingProofMetadata) return;
+
     // TODO: Use useQuery for this so that you only call this function once
     (async () => {
       // Figure out which proofs the user doesn't already have. Then load them
       // if the user has the credentials to do so.
       const missingProofs = { 'uniqueness': true, 'us-residency': true };
-      const proofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest);
       if (proofMetadata) {
         for (const proofMetadataItem of proofMetadata) {
           if (proofMetadataItem?.proofType === "us-residency") {
             missingProofs['us-residency'] = false;
-            setAlreadyHasUSResidencySBT(true);
           } else if (proofMetadataItem?.proofType === "uniqueness") {
             missingProofs['uniqueness'] = false;
-            setAlreadyHasUniquenessSBT(true);
           }
         }
       }
@@ -84,7 +82,7 @@ function ProofsProvider({ children }) {
         }
       }
     })();
-  }, [])
+  }, [proofMetadata, loadingProofMetadata])
   
   /**
    * Use web worker to load anti-sybil proof into context and session storage.
@@ -124,10 +122,8 @@ function ProofsProvider({ children }) {
   return (
     <Proofs.Provider value={{
       uniquenessProof,
-      alreadyHasUniquenessSBT,
       loadUniquenessProof,
       usResidencyProof,
-      alreadyHasUSResidencySBT,
       loadUSResidencyProof
     }}>
       {children}
