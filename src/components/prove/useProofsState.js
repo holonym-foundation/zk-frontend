@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useQuery } from "wagmi";
@@ -17,6 +17,7 @@ import {
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { useProofs } from "../../context/Proofs";
 import Relayer from "../../utils/relayer";
 
 async function loadAntiSybil(newSecret, serializedAsNewPreimage,
@@ -96,6 +97,12 @@ const useProofsState = () => {
 	const { data: account } = useAccount();
 	const { holoAuthSigDigest } = useHoloAuthSig();
 	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+	const { 
+		uniquenessProof,
+		loadUniquenessProof,
+		usResidencyProof,
+		loadUSResidencyProof
+	} = useProofs();
 	const accountReadyAddress = useMemo(
 		() => account?.connector.ready && account?.address && account.address,
     [account]
@@ -118,6 +125,22 @@ const useProofsState = () => {
 	// 1. Get & set creds
 	// 2. Get & set proof
 	// 3. Submit proof tx
+
+	useEffect(() => {
+		if (params.proofType === "us-residency") {
+			if (!usResidencyProof) {
+				// loadUSResidencyProof();
+			} else {
+				setProof(usResidencyProof)
+			}
+		} else if (params.proofType === "uniqueness") {
+			if (!uniquenessProof) {
+				// loadUniquenessProof();
+			} else {
+				setProof(uniquenessProof)
+			}
+		}
+	}, [uniquenessProof, usResidencyProof])
 
   // eslint-disable-next-line no-unused-vars
 	const getCredentialsQuery = useQuery(
@@ -146,60 +169,60 @@ const useProofsState = () => {
 	);
 
   // eslint-disable-next-line no-unused-vars
-	const loadProofQuery = useQuery(
-		["loadProof"],
-		async () => {
-			const creds = sortedCreds[serverAddress["idgov-v2"]];
-			if (!creds) {
-				throw new Error({
-          type: NOGOV_ERROR_TYPE
-        });
-			}
-			console.log("Loading proof");
-			if (params.proofType === "us-residency") {
-				return loadPoR(creds.creds.newSecret, creds.creds.serializedAsNewPreimage, accountReadyAddress);
-			} else if (params.proofType === "uniqueness") {
-				if (!params.actionId)
-					console.error(`Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`);
-				return loadAntiSybil(
-					creds.creds.newSecret,
-					creds.creds.serializedAsNewPreimage,
-					accountReadyAddress,
-					params.actionId || defaultActionId,
-				);
-			}
-		},
-		{
-			enabled: !!accountReadyAddress && !!sortedCreds && params.proofType in proofs,
-			onError: (error) => {
-				if ("type" in error && error.type === NOGOV_ERROR_TYPE) {
-					setCustomError(
-						<p>
-							To do this proof, your Holo must have government ID credentials. Please{" "}
-							<a 
-                href="/mint/idgov" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(e.target.href.replace(e.target.origin, ''));
-                }} 
-                style={{ color: "#fdc094" }}
-              >
-								add government ID credentials to your holo.
-							</a>
-						</p>
-					);
-				} else {
-					setError({
-            type: LOAD_PROOF_TYPE,
-            message: String(error)
-          });
-				}
-			},
-			onSuccess: (data) => {
-				setProof(data);
-			},
-		},
-	);
+	// const loadProofQuery = useQuery(
+	// 	["loadProof"],
+	// 	async () => {
+	// 		const creds = sortedCreds[serverAddress["idgov-v2"]];
+	// 		if (!creds) {
+	// 			throw new Error({
+  //         type: NOGOV_ERROR_TYPE
+  //       });
+	// 		}
+	// 		console.log("Loading proof");
+	// 		if (params.proofType === "us-residency") {
+	// 			return loadPoR(creds.creds.newSecret, creds.creds.serializedAsNewPreimage, accountReadyAddress);
+	// 		} else if (params.proofType === "uniqueness") {
+	// 			if (!params.actionId)
+	// 				console.error(`Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`);
+	// 			return loadAntiSybil(
+	// 				creds.creds.newSecret,
+	// 				creds.creds.serializedAsNewPreimage,
+	// 				accountReadyAddress,
+	// 				params.actionId || defaultActionId,
+	// 			);
+	// 		}
+	// 	},
+	// 	{
+	// 		enabled: !!accountReadyAddress && !!sortedCreds && params.proofType in proofs,
+	// 		onError: (error) => {
+	// 			if ("type" in error && error.type === NOGOV_ERROR_TYPE) {
+	// 				setCustomError(
+	// 					<p>
+	// 						To do this proof, your Holo must have government ID credentials. Please{" "}
+	// 						<a 
+  //               href="/mint/idgov" 
+  //               onClick={(e) => {
+  //                 e.preventDefault();
+  //                 navigate(e.target.href.replace(e.target.origin, ''));
+  //               }} 
+  //               style={{ color: "#fdc094" }}
+  //             >
+	// 							add government ID credentials to your holo.
+	// 						</a>
+	// 					</p>
+	// 				);
+	// 			} else {
+	// 				setError({
+  //           type: LOAD_PROOF_TYPE,
+  //           message: String(error)
+  //         });
+	// 			}
+	// 		},
+	// 		onSuccess: (data) => {
+	// 			setProof(data);
+	// 		},
+	// 	},
+	// );
 
 	const submitProofThenStoreMetadataQuery = useQuery(
 		["submitProofThenStoreMetadata"],
