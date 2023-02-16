@@ -55,15 +55,26 @@ const SignMessagesFallback = () => {
 
 function App() {
   const [read, setReady] = useState(false);
+  // TODO: Move banana wallet stuff into wallet component. This is just for testing
+  const [walletName, setWalletName] = useState('')
+  const [isWalletNameUnique, setIsWalletNameUnique] = useState(false)
+  const [walletAddress, setWalletAddress] = useState('')
+  const [AAProvider, setAAProvider] = useState('')
+
   useEffect(() => {
 
-    // creating chain specific instance of banana module
+    // TODO: Move banana wallet stuff into wallet component. This is just for testing
     const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
     const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
-
-    const walletName = bananaInstance.getWalletName()
-    console.log('walletName', walletName)
-
+    const walletNameTemp = bananaInstance.getWalletName()
+    setWalletName(walletNameTemp)
+    const isWalletNameUniqueTemp = bananaInstance.isWalletNameUnique(walletNameTemp)
+    setIsWalletNameUnique(isWalletNameUniqueTemp)
+    const walletAddressTemp = bananaInstance.getWalletAddress(walletNameTemp)
+    setWalletAddress(walletAddressTemp)
+    const AAProviderTemp = bananaInstance.getAAProvider(walletAddressTemp)
+    setAAProvider(AAProviderTemp)
+    
     Promise.all([
       WebFont.load({
         google: {
@@ -86,6 +97,13 @@ function App() {
       <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
         <Suspense fallback={<LoadingElement />}>
           <Layout>
+            <div style={{ margin: '20px' }}>
+              <h1>Banana wallet stuff</h1>
+              <p>walletName: {walletName}</p>
+              <p>isWalletNameUnique: {isWalletNameUnique ? 'true' : 'false'}</p>
+              <p>JSON.stringify(walletAddress): {JSON.stringify(walletAddress ?? {})}</p>
+              <p>JSON.stringify(AAProvider): {JSON.stringify(AAProvider)}</p>
+            </div>
             <AppRoutes />
           </Layout>
         </Suspense>
