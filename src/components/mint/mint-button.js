@@ -8,6 +8,7 @@ import { getCredentials, storeCredentials } from "../../utils/secrets";
 import Relayer from "../../utils/relayer";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { useCreds } from "../../context/Creds";
 /* This function generates the leaf and adds it to the smart contract via the relayer.*/
 
 
@@ -16,6 +17,7 @@ const MintButton = ({ creds, onSuccess }) => {
     const [error, setError] = useState();
     const { holoAuthSigDigest } = useHoloAuthSig();
     const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+    const { sortedCreds, loadingCreds } = useCreds();
 
     async function sendCredsToServer() {
       console.log('generating proof of knowledge of leaf preimage')

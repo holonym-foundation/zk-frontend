@@ -10,6 +10,7 @@ import {
 } from "../../constants";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { useCreds } from "../../context/Creds";
 
 const credsFieldsToIgnore = [
   'completedAt',
@@ -75,34 +76,14 @@ function formatCreds(sortedCreds) {
 }
 
 export default function Profile(props) {
-  const [creds, setCreds] = useState();
-  const [credsLoading, setCredsLoading] = useState(true);
-  const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
-  const { data: account } = useAccount();
-  const { holoAuthSigDigest } = useHoloAuthSig();
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const [formattedCreds, setFormattedCreds] = useState();
+  const { sortedCreds, loadingCreds } = useCreds();
 
   useEffect(() => {
-    if (!account?.address) return;
-    setReadyToLoadCredsAndProofs(true);
-  }, [account])
-
-  useEffect(() => {
-    async function getAndSetCreds() {
-      try {
-        const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
-        if (!sortedCreds) return;
-        console.log('sortedCreds', sortedCreds)
-        const formattedCreds = formatCreds(sortedCreds);
-        setCreds(formattedCreds);
-      } catch (err) {
-        console.log(err)
-      } finally {
-        setCredsLoading(false)
-      }
-    }
-    getAndSetCreds()
-  }, [readyToLoadCredsAndProofs])
+    if (!sortedCreds) return;
+    const formattedCreds = formatCreds(sortedCreds);
+    setFormattedCreds(formattedCreds);
+  }, []);
 
   return (
     <>
@@ -110,7 +91,7 @@ export default function Profile(props) {
       <div className="x-container dashboard w-container">
         <PublicInfoCard />
         <div className="spacer-large"></div>
-        <PrivateInfoCard creds={creds} loading={credsLoading} />
+        <PrivateInfoCard creds={formattedCreds} loading={loadingCreds} />
       </div>
     </div>
   </>
