@@ -64,16 +64,22 @@ function App() {
   useEffect(() => {
 
     // TODO: Move banana wallet stuff into wallet component. This is just for testing
-    const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
-    const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
-    const walletNameTemp = bananaInstance.getWalletName()
-    setWalletName(walletNameTemp)
-    const isWalletNameUniqueTemp = bananaInstance.isWalletNameUnique(walletNameTemp)
-    setIsWalletNameUnique(isWalletNameUniqueTemp)
-    const walletAddressTemp = bananaInstance.getWalletAddress(walletNameTemp)
-    setWalletAddress(walletAddressTemp)
-    const AAProviderTemp = bananaInstance.getAAProvider(walletAddressTemp)
-    setAAProvider(AAProviderTemp)
+    // try {
+      const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
+      const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
+      // const walletNameTemp = bananaInstance.getWalletName()
+      // setWalletName(walletNameTemp)
+      const walletNameTemp = 'onejudochop@gmail.com';
+      console.log('walletNameTemp', walletNameTemp)
+      const isWalletNameUniqueTemp = bananaInstance.isWalletNameUnique(walletNameTemp)
+      setIsWalletNameUnique(isWalletNameUniqueTemp)
+      const walletAddressTemp = bananaInstance.getWalletAddress(walletNameTemp)
+      setWalletAddress(walletAddressTemp)
+      const AAProviderTemp = bananaInstance.getAAProvider(walletAddressTemp)
+      setAAProvider(AAProviderTemp)
+    // } catch (err) {
+    //   console.log('errr', err)
+    // }
     
     Promise.all([
       WebFont.load({
@@ -94,16 +100,17 @@ function App() {
   if (isMobile) return <NotDesktop />
   return (
     <Router>
+      {/* TODO: Displaying this banana wallet stuff is just for testing. Delete it. */}
+      <div style={{ margin: '20px', color: '#fff' }}>
+        <h1>Banana wallet stuff</h1>
+        <p>walletName: {walletName}</p>
+        <p>isWalletNameUnique: {isWalletNameUnique ? 'true' : 'false'}</p>
+        <p>JSON.stringify(walletAddress): {JSON.stringify(walletAddress ?? {})}</p>
+        <p>JSON.stringify(AAProvider): {JSON.stringify(AAProvider)}</p>
+      </div>
       <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
         <Suspense fallback={<LoadingElement />}>
           <Layout>
-            <div style={{ margin: '20px' }}>
-              <h1>Banana wallet stuff</h1>
-              <p>walletName: {walletName}</p>
-              <p>isWalletNameUnique: {isWalletNameUnique ? 'true' : 'false'}</p>
-              <p>JSON.stringify(walletAddress): {JSON.stringify(walletAddress ?? {})}</p>
-              <p>JSON.stringify(AAProvider): {JSON.stringify(AAProvider)}</p>
-            </div>
             <AppRoutes />
           </Layout>
         </Suspense>
