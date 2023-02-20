@@ -93,7 +93,7 @@ const VerificationRequestForm = () => {
       <div style={{ fontFamily: "Montserrat", fontWeight: "100", fontSize: "14px", marginBottom: "30px",  }}>
         <form>
           <div style={{ margin: "20px" }}>
-            <label for="first-name">First name</label>
+            <label htmlFor="first-name">First name</label>
             <input 
               type="text" 
               name="firstName" 
@@ -103,7 +103,7 @@ const VerificationRequestForm = () => {
             />
           </div>
           <div style={{ margin: "20px" }}>
-            <label for="last-name">Last name</label>
+            <label htmlFor="last-name">Last name</label>
             <input 
               type="text"
               name="lastName" 
@@ -114,7 +114,7 @@ const VerificationRequestForm = () => {
           </div>
           <div style={{ margin: "20px" }}>
             {/* TODO: Add validation. NPI number must be 10 digits. */}
-            <label for="npi-number">NPI number</label>
+            <label htmlFor="npi-number">NPI number</label>
             <input 
               type="text" 
               name="npiNumber"
