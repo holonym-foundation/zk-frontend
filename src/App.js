@@ -5,8 +5,6 @@ import "./holo-wtf.webflow.css";
 import React, { Suspense, useEffect, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import WebFont from "webfontloader";
-import { Chains } from '@rize-labs/banana-wallet-sdk/dist/Constants';
-import { Banana } from "@rize-labs/banana-wallet-sdk/dist/BananaProvider"
 import LoadingElement from "./components/loading-element";
 import { isMobile } from "react-device-detect";
 import RoundedWindow from "./components/RoundedWindow";
@@ -54,42 +52,8 @@ const SignMessagesFallback = () => {
 }
 
 function App() {
-  const [read, setReady] = useState(false);
-  // TODO: Move banana wallet stuff into wallet component. This is just for testing
-  const [walletName, setWalletName] = useState('')
-  const [isWalletNameUnique, setIsWalletNameUnique] = useState(false)
-  const [walletAddress, setWalletAddress] = useState('')
-  const [AAProvider, setAAProvider] = useState('')
-
+  // const [read, setReady] = useState(false);
   useEffect(() => {
-
-    (async () => {
-      // TODO: Move banana wallet stuff into wallet component. This is just for testing
-      // try {
-        const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
-        const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
-        // const walletNameTemp = bananaInstance.getWalletName()
-        // setWalletName(walletNameTemp)
-        const walletNameTemp = 'onejudochop@gmail.com';
-        console.log('walletNameTemp', walletNameTemp)
-        const isWalletNameUniqueTemp = bananaInstance.isWalletNameUnique(walletNameTemp)
-        setIsWalletNameUnique(isWalletNameUniqueTemp)
-        const walletAddressTemp = await bananaInstance.getWalletAddress(walletNameTemp)
-        console.log('walletAddressTemp', walletAddressTemp)
-        setWalletAddress(walletAddressTemp)
-        const AAProviderTemp = await bananaInstance.getAAProvider(walletAddressTemp)
-        console.log('AAProviderTemp', AAProviderTemp)
-        setAAProvider(AAProviderTemp)
-        const signer = AAProviderTemp.getSigner();
-        console.log('signer', signer)
-        // const signer = AAProviderTemp.signer;
-        const signature = await signer.signMessage('hello world')
-        console.log('signature', signature)
-      // } catch (err) {
-      //   console.log('errr', err)
-      // }
-    })();
-    
     Promise.all([
       WebFont.load({
         google: {
@@ -109,14 +73,6 @@ function App() {
   if (isMobile) return <NotDesktop />
   return (
     <Router>
-      {/* TODO: Displaying this banana wallet stuff is just for testing. Delete it. */}
-      <div style={{ margin: '20px', color: '#fff' }}>
-        <h1>Banana wallet stuff</h1>
-        <p>walletName: {walletName}</p>
-        <p>isWalletNameUnique: {isWalletNameUnique ? 'true' : 'false'}</p>
-        <p>JSON.stringify(walletAddress): {JSON.stringify(walletAddress ?? {})}</p>
-        {/* <p>JSON.stringify(AAProvider): {JSON.stringify(AAProvider)}</p> */}
-      </div>
       <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
         <Suspense fallback={<LoadingElement />}>
           <Layout>
