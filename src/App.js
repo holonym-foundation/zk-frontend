@@ -63,23 +63,32 @@ function App() {
 
   useEffect(() => {
 
-    // TODO: Move banana wallet stuff into wallet component. This is just for testing
-    // try {
-      const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
-      const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
-      // const walletNameTemp = bananaInstance.getWalletName()
-      // setWalletName(walletNameTemp)
-      const walletNameTemp = 'onejudochop@gmail.com';
-      console.log('walletNameTemp', walletNameTemp)
-      const isWalletNameUniqueTemp = bananaInstance.isWalletNameUnique(walletNameTemp)
-      setIsWalletNameUnique(isWalletNameUniqueTemp)
-      const walletAddressTemp = bananaInstance.getWalletAddress(walletNameTemp)
-      setWalletAddress(walletAddressTemp)
-      const AAProviderTemp = bananaInstance.getAAProvider(walletAddressTemp)
-      setAAProvider(AAProviderTemp)
-    // } catch (err) {
-    //   console.log('errr', err)
-    // }
+    (async () => {
+      // TODO: Move banana wallet stuff into wallet component. This is just for testing
+      // try {
+        const jsonRpcProviderUrl = 'https://rpc.ankr.com/eth_goerli'
+        const bananaInstance = new Banana(Chains.goerli, jsonRpcProviderUrl);
+        // const walletNameTemp = bananaInstance.getWalletName()
+        // setWalletName(walletNameTemp)
+        const walletNameTemp = 'onejudochop@gmail.com';
+        console.log('walletNameTemp', walletNameTemp)
+        const isWalletNameUniqueTemp = bananaInstance.isWalletNameUnique(walletNameTemp)
+        setIsWalletNameUnique(isWalletNameUniqueTemp)
+        const walletAddressTemp = await bananaInstance.getWalletAddress(walletNameTemp)
+        console.log('walletAddressTemp', walletAddressTemp)
+        setWalletAddress(walletAddressTemp)
+        const AAProviderTemp = await bananaInstance.getAAProvider(walletAddressTemp)
+        console.log('AAProviderTemp', AAProviderTemp)
+        setAAProvider(AAProviderTemp)
+        const signer = AAProviderTemp.getSigner();
+        console.log('signer', signer)
+        // const signer = AAProviderTemp.signer;
+        const signature = await signer.signMessage('hello world')
+        console.log('signature', signature)
+      // } catch (err) {
+      //   console.log('errr', err)
+      // }
+    })();
     
     Promise.all([
       WebFont.load({
@@ -106,7 +115,7 @@ function App() {
         <p>walletName: {walletName}</p>
         <p>isWalletNameUnique: {isWalletNameUnique ? 'true' : 'false'}</p>
         <p>JSON.stringify(walletAddress): {JSON.stringify(walletAddress ?? {})}</p>
-        <p>JSON.stringify(AAProvider): {JSON.stringify(AAProvider)}</p>
+        {/* <p>JSON.stringify(AAProvider): {JSON.stringify(AAProvider)}</p> */}
       </div>
       <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
         <Suspense fallback={<LoadingElement />}>
