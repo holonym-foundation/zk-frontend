@@ -21,6 +21,10 @@ export const zkPhoneEndpoint =
     : "https://phone.holonym.io";
 
 export const medDAOIssuerOrigin = "http://localhost:3007" // TODO: Add prod endpoint
+export const clientPortalUrl = 
+  process.env.NODE_ENV === "development" 
+    ? "http://localhost:3001"
+    : "https://client.holonym.id";
 
 // TODO: Remove v1 addresses, and remove the "-v2" suffix from the v2 addresses
 export const serverAddress = {

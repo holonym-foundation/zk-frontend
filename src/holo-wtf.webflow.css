@@ -1841,14 +1841,14 @@ input[type="checkbox"].checkbox:checked::before {
 }
 
 @media screen and (max-width: 991px) {
-  .nav-wallet {
+  /* .nav-wallet {
     margin-right: auto;
     margin-left: auto;
     padding: 20px;
     border-style: none;
     border-radius: 10px;
     background-color: #0b0742;
-  }
+  } */
 
   .dash-display-text {
     font-size: 60px;
@@ -1923,13 +1923,13 @@ input[type="checkbox"].checkbox:checked::before {
     background-color: #0e2433;
   }
 
-  .nav-link {
+  /* .nav-link {
     margin-bottom: 5px;
     border-radius: 10px;
     background-color: #0b0742;
     font-family: 'Clover Semibold', sans-serif;
     color: #fff;
-  }
+  } */
 
   .h1 {
     font-size: 60px;
