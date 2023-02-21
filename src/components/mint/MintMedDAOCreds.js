@@ -61,6 +61,7 @@ const VerificationRequestForm = () => {
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
         navigate(`/mint/meddao/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
       }
+      // TODO: If user receives 400 with data.message === 'Unsupported specialty', display message saying that the user's specialty is not supported yet.
     } catch (err) {
       console.log(err)
     }
