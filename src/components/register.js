@@ -106,7 +106,7 @@ const Register = () => {
         return;
       }
       try {
-        setHostname(new URL(window.atob(callback)).hostname)
+        setHostname(new URL(callback).hostname)
       } catch (err) {
         setError("Invalid callback URL. Callback is invalid.");
         return;
@@ -134,7 +134,7 @@ const Register = () => {
       window.localStorage.removeItem('register-proofType');
       window.localStorage.removeItem('register-callback');
       // Send user to the callback URL. Include address that owns the proof SBT
-      window.location.href = `${window.atob(callback)}?address=${proofMetadataForSBT[0].address}`;
+      window.location.href = `${callback}?address=${proofMetadataForSBT[0].address}`;
       return;
     }
     else if (hasCreds) {
