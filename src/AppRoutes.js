@@ -6,6 +6,7 @@ import ProofMenu from "./components/prove/proof-menu";
 import OffChainProofs from './components/prove/off-chain-proofs';
 import MintGovernmentID from "./components/mint/MintGovernmentID";
 import MintPhoneNumber from './components/mint/MintPhoneNumber';
+import MintMedicalCredentials from './components/mint/MintMedicalCredentials';
 import MintExternal from "./components/mint/MintExternal";
 import { Proofs } from "./App";
 import Register from './components/register';
@@ -19,6 +20,9 @@ export function AppRoutes() {
       <Route exact path={"/mint/idgov/:store"} element={<MintGovernmentID />} />
       <Route exact path={"/mint/phone"} element={<MintPhoneNumber />} />
       <Route exact path={"/mint/phone/:store"} element={<MintPhoneNumber />} />
+      {/* TODO: Maybe: Rename meddao route name */}
+      <Route exact path={"/mint/meddao"} element={<MintMedicalCredentials />} />
+      <Route exact path={"/mint/meddao/:store"} element={<MintMedicalCredentials />} />
       <Route exact path={"/mint/external/:store"} element={<MintExternal />} />
       <Route exact path={"/prove"} element={<ProofMenu />} />
       {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}

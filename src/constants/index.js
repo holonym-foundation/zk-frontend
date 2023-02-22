@@ -20,6 +20,11 @@ export const zkPhoneEndpoint =
     ? "http://localhost:3030" // http://ec2-13-59-84-72.us-east-2.compute.amazonaws.com:3030"
     : "https://phone.holonym.io";
 
+export const medDAOIssuerOrigin = 
+  process.env.NODE_ENV === "development"
+  ? "http://localhost:3007" 
+  : "medical-credentials-issuer.holonym-internal.net";
+
 export const clientPortalUrl = 
   process.env.NODE_ENV === "development" 
     ? "http://localhost:3001"
@@ -42,7 +47,8 @@ export const issuerWhitelist = [
   // EdDSA signer 'address' format:
   '0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993',
   '0x2998cab3d07a64315f1e8399ecef60a19f478231663f8740703bd30a42a91ed4',
-  "0x0040b8810cbaed9647b54d18cc98b720e1e8876be5d8e7089d3c079fc61c30a4"
+  "0x0040b8810cbaed9647b54d18cc98b720e1e8876be5d8e7089d3c079fc61c30a4",
+  '0x198c8c83f3e3dfab87ce363bcc2e5587dcda7dfcf56d24fc0bfa5c82454812ba', // MedDAO issuer
 ]
 
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
