@@ -20,7 +20,11 @@ export const zkPhoneEndpoint =
     ? "http://localhost:3030" // http://ec2-13-59-84-72.us-east-2.compute.amazonaws.com:3030"
     : "https://phone.holonym.io";
 
-export const medDAOIssuerOrigin = "http://localhost:3007" // TODO: Add prod endpoint
+export const medDAOIssuerOrigin = 
+  process.env.NODE_ENV === "development"
+  ? "http://localhost:3007" 
+  : "medical-credentials-issuer.holonym-internal.net";
+
 export const clientPortalUrl = 
   process.env.NODE_ENV === "development" 
     ? "http://localhost:3001"
