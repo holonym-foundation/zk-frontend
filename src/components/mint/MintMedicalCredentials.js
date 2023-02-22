@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import MintButton from "./mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
@@ -10,9 +12,23 @@ import MintContainer from "./MintContainer";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
+const initialFormValues = {
+  firstName: "",
+  lastName: "",
+  npiNumber: "",
+};
+const validationSchema = Yup.object({
+  firstName: Yup.string().required("Required"),
+  lastName: Yup.string().required("Required"),
+  npiNumber: Yup.string()
+    .required("Required")
+    .matches(/^\d{10}$/, "NPI number must be 10 digits"),
+});
+
 const VerificationRequestForm = () => {
   const navigate = useNavigate();
   const [govIdCreds, setGovIdCreds] = useState(); 
+  const [error, setError] = useState();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
@@ -25,25 +41,13 @@ const VerificationRequestForm = () => {
     })();
   }, [])
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    npiNumber: "",
-  });
-
-  function handleTextInputChange(event) {
-    const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function onSubmit(values, { setSubmitting }) {
     try {
       const govIdFirstNameLastNameProof = await proveGovIdFirstNameLastName(govIdCreds);
       const body = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        npiNumber: formData.npiNumber,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        npiNumber: values.npiNumber,
         proof: govIdFirstNameLastNameProof
       };
       const resp = await fetch(`${medDAOIssuerOrigin}/verification`, {
@@ -60,13 +64,29 @@ const VerificationRequestForm = () => {
         const retrievalEndpoint = `${medDAOIssuerOrigin}/verification/credentials?id=${data.id}`;
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
         navigate(`/mint/meddao/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+      } else if (data.error && data.message) {
+        if (data.message.includes('Unsupported specialty')) {
+          setError('This specialty is not supported yet but is in development.');
+        } else {
+          setError(data.message);
+        }
       }
-      // TODO: If user receives 400 with data.message === 'Unsupported specialty', display message saying that the user's specialty is not supported yet.
     } catch (err) {
       console.log(err)
+    } finally {
+      setSubmitting(false);
     }
   }
 
+  if (error) {
+    return (
+      <>
+        <div>
+          <p style={{ color: 'red' }}>Error: {error}</p>
+        </div>
+      </>
+    );
+  }
   if (!govIdCreds) {
     return (
       <>
@@ -92,54 +112,57 @@ const VerificationRequestForm = () => {
         Request Verification
       </h3>
       <div style={{ fontFamily: "Montserrat", fontWeight: "100", fontSize: "14px", marginBottom: "30px",  }}>
-        <form>
-          <div style={{ margin: "20px" }}>
-            <label htmlFor="first-name">First name</label>
-            <input 
-              type="text" 
-              name="firstName" 
-              className="text-field short-y long-x"
-              value={formData.firstName}
-              onChange={handleTextInputChange}
-            />
-          </div>
-          <div style={{ margin: "20px" }}>
-            <label htmlFor="last-name">Last name</label>
-            <input 
-              type="text"
-              name="lastName" 
-              className="text-field short-y long-x"
-              value={formData.lastName}
-              onChange={handleTextInputChange}
-            />
-          </div>
-          <div style={{ margin: "20px" }}>
-            {/* TODO: Add validation. NPI number must be 10 digits. */}
-            <label htmlFor="npi-number">NPI number</label>
-            <input 
-              type="text" 
-              name="npiNumber"
-              className="text-field short-y long-x"
-              value={formData.npiNumber}
-              onChange={handleTextInputChange}
-            />
-          </div>
-          {/* TODO: Disable submit button and display "submitting" while submission is in progress */}
-          <button
-            className="x-button secondary outline"
-            style={{ width: "100%", marginLeft: 'auto' }}
-            type="submit"
-            onClick={handleSubmit}
-          >
-            Submit
-          </button>
-        </form>
+        <Formik
+          initialValues={initialFormValues}
+          validationSchema={validationSchema}
+          onSubmit={onSubmit}
+        >
+          {({ isSubmitting }) => (
+            <Form>
+              <div style={{ margin: "20px" }}>
+                <label htmlFor="first-name">First name</label>
+                <Field
+                  type="text"
+                  name="firstName"
+                  className="text-field short-y long-x"
+                />
+                <ErrorMessage name="firstName" style={{ color: "red" }} />
+              </div>
+              <div style={{ margin: "20px" }}>
+                <label htmlFor="last-name">Last name</label>
+                <Field
+                  type="text"
+                  name="lastName"
+                  className="text-field short-y long-x"
+                />
+                <ErrorMessage name="lastName" style={{ color: "red" }} />
+              </div>
+              <div style={{ margin: "20px" }}>
+                <label htmlFor="npi-number">NPI number</label>
+                <Field
+                  type="text"
+                  name="npiNumber"
+                  className="text-field short-y long-x"
+                />
+                <ErrorMessage name="npiNumber" style={{ color: "red" }} />
+              </div>
+              <button
+                className="x-button secondary outline"
+                style={{ width: "100%", marginLeft: "auto" }}
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
+            </Form>
+          )}
+        </Formik>
       </div>
     </>
   )
 }
 
-function useMintMedDAOCreds() {
+function useMintMedicalCredentials() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [creds, setCreds] = useState();
@@ -170,8 +193,7 @@ function useMintMedDAOCreds() {
   };
 }
 
-// TODO: Rename this to something better
-const MintMedDAOCreds = () => {
+const MintMedicalCredentials = () => {
   const navigate = useNavigate();
   const {
     success,
@@ -182,7 +204,7 @@ const MintMedDAOCreds = () => {
     setCurrentIdx,
     steps,
     currentStep,
-  } = useMintMedDAOCreds();
+  } = useMintMedicalCredentials();
 
   useEffect(() => {
     if (success && window.localStorage.getItem('register-credentialType')) {
@@ -205,4 +227,4 @@ const MintMedDAOCreds = () => {
   );
 };
 
-export default MintMedDAOCreds;
+export default MintMedicalCredentials;
