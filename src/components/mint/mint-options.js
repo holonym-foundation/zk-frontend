@@ -5,6 +5,7 @@ import { useAccount, useNetwork } from 'wagmi'
 import RoundedWindow from "../RoundedWindow";
 import phoneImg from "../../img/phone.png";
 import idImg from "../../img/id.png";
+import stethoscopeImg from "../../img/stethoscope-emoji.png";
 import moneyImg from "../../img/money.png";
 import questionImg from "../../img/question.png";
 
@@ -16,12 +17,20 @@ const opts = [
         description: "This adds a phone number to your Holo if it's a real number / not a burner. It lets you to prove you're not a bot, for Sybil resistance.", 
         disabled: false 
     },
-    { name: 
-        "ID + Phone Number", 
+    { 
+        name: "ID + Phone Number", 
         url: "/mint/idgov", 
         image: idImg, 
         description: "This verifies your government ID. You can prove you're not a bot for Sybil resistance. You can prove facts about your age, jurisdiction, and KYC/AML checks", 
-        disabled: false },
+        disabled: false 
+    },
+    {
+        name: "Medical Credentials", 
+        url: "/mint/med", 
+        image: stethoscopeImg, 
+        description: "This adds medical credentials to your Holo. It lets you prove that you are a doctor and what specialty you are in.", 
+        disabled: false 
+    },
     { 
         name: "Accredited Investor Status", 
         url: "/", image: moneyImg, 
