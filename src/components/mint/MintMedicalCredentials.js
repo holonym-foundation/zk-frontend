@@ -63,7 +63,7 @@ const VerificationRequestForm = () => {
       if (resp.status === 200 && data.id) {
         const retrievalEndpoint = `${medDAOIssuerOrigin}/verification/credentials?id=${data.id}`;
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-        navigate(`/mint/meddao/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+        navigate(`/mint/med/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
       } else if (data.error && data.message) {
         if (data.message.includes('Unsupported specialty')) {
           setError('This specialty is not supported yet but is in development.');

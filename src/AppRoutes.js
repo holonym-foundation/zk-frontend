@@ -20,9 +20,8 @@ export function AppRoutes() {
       <Route exact path={"/mint/idgov/:store"} element={<MintGovernmentID />} />
       <Route exact path={"/mint/phone"} element={<MintPhoneNumber />} />
       <Route exact path={"/mint/phone/:store"} element={<MintPhoneNumber />} />
-      {/* TODO: Maybe: Rename meddao route name */}
-      <Route exact path={"/mint/meddao"} element={<MintMedicalCredentials />} />
-      <Route exact path={"/mint/meddao/:store"} element={<MintMedicalCredentials />} />
+      <Route exact path={"/mint/med"} element={<MintMedicalCredentials />} />
+      <Route exact path={"/mint/med/:store"} element={<MintMedicalCredentials />} />
       <Route exact path={"/mint/external/:store"} element={<MintExternal />} />
       <Route exact path={"/prove"} element={<ProofMenu />} />
       {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
