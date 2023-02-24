@@ -3,7 +3,7 @@
  * NOTE: This provider must be a child of the signature providers because this
  * provider relies on the user's signatures.
  */
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
 import { serverAddress, defaultActionId } from '../constants';
@@ -11,10 +11,15 @@ import { getCredentials } from "../utils/secrets";
 import { useHoloAuthSig } from './HoloAuthSig';
 import { useHoloKeyGenSig } from './HoloKeyGenSig';
 import { useProofMetadata } from './ProofMetadata';
+import ProofsWorker from "../web-workers/proofs.worker.js"; // Use worker in Webpack 4
 
 const Proofs = createContext(null);
 
-const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-proofs.js', import.meta.url)) : null;
+// Use worker in Webpack 5
+// const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-proofs.js', import.meta.url)) : null;
+
+// Use worker in Webpack 4
+const proofsWorker = new ProofsWorker();
 
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
