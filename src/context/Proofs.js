@@ -30,7 +30,7 @@ function ProofsProvider({ children }) {
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
-  // TODO: Load all proofs in here. Need to add onAddLeafProof and proofOfKnowledgeOfLeafPreimage
+  // TODO: Load all proofs in here. Need to add onAddLeafProof, proofOfKnowledgeOfLeafPreimage, and proveGovIdFirstNameLastName
 
   useEffect(() => {
     proofsWorker.onmessage = (event) => {
