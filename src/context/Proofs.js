@@ -98,8 +98,8 @@ function ProofsProvider({ children }) {
       if (medicalCreds) {
         if (missingProofs['medical-specialty']) {
           loadMedicalSpecialtyProof(
-            govIdCreds.creds.newSecret, 
-            govIdCreds.creds.serializedAsNewPreimage, 
+            medicalCreds.creds.newSecret, 
+            medicalCreds.creds.serializedAsNewPreimage, 
             account.address,
           );
         }

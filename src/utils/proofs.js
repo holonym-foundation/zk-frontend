@@ -59,6 +59,13 @@ async function waitForZokProvider(timeout = 5000) {
   }
 }
 
+export async function waitForArtifacts(circuitName, timeout = 5000) {
+  const start = Date.now();
+  while (!(circuitName in artifacts) && Date.now() - start < timeout) {
+    await sleep(100);
+  }
+}
+
 async function loadArtifacts(circuitName) {
   if (circuitName in artifacts) {
     console.log(
