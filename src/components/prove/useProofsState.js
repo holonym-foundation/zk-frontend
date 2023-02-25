@@ -102,7 +102,9 @@ const useProofsState = () => {
 		uniquenessProof,
 		loadUniquenessProof,
 		usResidencyProof,
-		loadUSResidencyProof
+		loadUSResidencyProof,
+		medicalSpecialtyProof,
+		loadMedicalSpecialtyProof
 	} = useProofs();
 	const { proofMetadata, addProofMetadataItem } = useProofMetadata();
 	const accountReadyAddress = useMemo(
@@ -125,6 +127,10 @@ const useProofsState = () => {
 			// contractName: "SybilResistance",
 			contractName: "SybilResistanceV2",
 		},
+		"medical-specialty": {
+			name: "Medical Specialty",
+			contractName: "MedicalSpecialty",
+		},
 	};
 
 	// Steps:
@@ -144,6 +150,12 @@ const useProofsState = () => {
 				// loadUniquenessProof();
 			} else {
 				setProof(uniquenessProof)
+			}
+		} else if (params.proofType === "medical-specialty") {
+			if (!medicalSpecialtyProof) {
+				// loadMedicalSpecialtyProof();
+			} else {
+				setProof(medicalSpecialtyProof)
 			}
 		}
 	}, [uniquenessProof, usResidencyProof])
