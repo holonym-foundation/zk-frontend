@@ -158,7 +158,7 @@ const useProofsState = () => {
 				setProof(medicalSpecialtyProof)
 			}
 		}
-	}, [uniquenessProof, usResidencyProof])
+	}, [uniquenessProof, usResidencyProof, medicalSpecialtyProof])
 
   // eslint-disable-next-line no-unused-vars
 	const getCredentialsQuery = useQuery(
