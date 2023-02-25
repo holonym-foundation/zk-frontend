@@ -582,14 +582,8 @@ export async function proveGovIdFirstNameLastName(govIdCreds) {
 
   await loadArtifacts("govIdFirstNameLastName");
   await loadProvingKey("govIdFirstNameLastName");
-  const artifacts = zokProvider.compile(govIdFirstNameLastNameSrc);
-  console.log('artifacts.abi', artifacts.abi)
-  const { witness, output } = zokProvider.computeWitness(artifacts, proofArgs);
-  const proof = zokProvider.generateProof(artifacts.program, witness, provingKeys.govIdFirstNameLastName);
-
-  // TOOD: Get this to work
-  // const { witness, output } = zokProvider.computeWitness(artifacts.govIdFirstNameLastName, proofArgs);
-  // const proof = zokProvider.generateProof(artifacts.govIdFirstNameLastName.program, witness, provingKeys.govIdFirstNameLastName);
+  const { witness, output } = zokProvider.computeWitness(artifacts.govIdFirstNameLastName, proofArgs);
+  const proof = zokProvider.generateProof(artifacts.govIdFirstNameLastName.program, witness, provingKeys.govIdFirstNameLastName);
   console.log('proveGovIdFirstNameLastName proof', proof);
   return proof;
 }
