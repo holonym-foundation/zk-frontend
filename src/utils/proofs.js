@@ -447,6 +447,75 @@ export async function antiSybil(
   return proof;
 }
 
+export async function proofOfMedicalSpecialty(
+  sender,
+  issuer,
+  salt,
+  hashbrowns,
+  specialty,
+  npiNumLicenseMedCredsHash,
+  iat,
+  scope,
+  secret
+) {
+  if (!zokProvider) {
+    await waitForZokProvider(5000);
+  }
+  console.log("PROOF: medical-specialty: starting");
+  const leaf = await createLeaf(
+    [
+      issuer,
+      secret,
+      specialty,
+      npiNumLicenseMedCredsHash,
+      iat,
+      scope
+    ]
+  );
+
+  console.log("PROOF: medical-specialty: leaf created");
+
+  const mp = await getMerkleProofParams(leaf);
+  console.log("PROOF: medical-specialty: Merkle params done");
+
+  const args = [
+    mp.root,
+    ethers.BigNumber.from(sender).toString(),
+    ethers.BigNumber.from(issuer).toString(),
+    ethers.BigNumber.from(specialty).toString(),
+    salt,
+    hashbrowns,
+    leaf,
+    ethers.BigNumber.from(npiNumLicenseMedCredsHash).toString(),
+    ethers.BigNumber.from(iat).toString(),
+    ethers.BigNumber.from(scope).toString(),
+    ethers.BigNumber.from(secret).toString(),
+    mp.path,
+    mp.indices,
+  ];
+    
+  console.log("PROOF: medical-specialty: loading artifacts");
+  await loadArtifacts("medicalSpecialty");
+  await loadProvingKey("medicalSpecialty");
+  console.log("PROOF: medical-specialty: loaded artifacts");
+
+  console.log("PROOF: medical-specialty: computing witness");
+  const { witness, output } = zokProvider.computeWitness(
+    artifacts.medicalSpecialty,
+    args
+  );
+  console.log("PROOF: medical-specialty: computed witness");
+
+  console.log("PROOF: medical-specialty: generating proof");
+  const proof = zokProvider.generateProof(
+    artifacts.medicalSpecialty.program,
+    witness,
+    provingKeys.medicalSpecialty
+  );
+  console.log("PROOF: medical-specialty: generated proof");
+  return proof;
+}
+
 export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
   console.log("proveKnowledgeOfLeafPreimage called")
   if (!zokProvider) {
@@ -502,7 +571,7 @@ export async function proveGovIdFirstNameLastName(govIdCreds) {
     ethers.BigNumber.from(govIdCreds.metadata.rawCreds.countryCode).toString(),
     ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.birthdate)).toString(),
     govIdCreds.metadata.derivedCreds.addressHash.value,
-    ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.expirationDate ?? 0)).toString(),
+    govIdCreds.metadata.rawCreds.expirationDate ? ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.expirationDate)).toString() : "0",
     ethers.BigNumber.from(govIdCreds.creds.iat).toString(),
     ethers.BigNumber.from(govIdCreds.creds.scope).toString(),
     ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),

@@ -10,6 +10,7 @@ import {
 	poseidonTwoInputs,
 	proofOfResidency,
 	antiSybil,
+	proofOfMedicalSpecialty,
 } from "../utils/proofs";
 
 let generatingProof = {
@@ -79,6 +80,35 @@ async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
 	);
 }
 
+async function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
+	const salt =
+		"320192098064396900878317978103229380372186908085604549333845693700248653086"; // this number is poseidon("MedicalSpecialty")
+	const hashbrowns = await poseidonTwoInputs([
+		salt,
+		ethers.BigNumber.from(newSecret).toString(),
+	]);
+	const [
+		issuer_,
+		// eslint-disable-next-line no-unused-vars
+		_,
+		specialty,
+		npiNumLicenseMedCredsHash,
+		iat,
+		scope,
+	] = serializedAsNewPreimage;
+	return await proofOfMedicalSpecialty(
+		userAddress,
+		issuer_,
+		salt,
+		hashbrowns,
+		specialty,
+		npiNumLicenseMedCredsHash,
+		iat,
+		scope,
+		newSecret,
+	);
+}
+
 onmessage = async (event) => {
   if (event.data && event.data.message === "uniqueness") {
 		try {
@@ -110,6 +140,21 @@ onmessage = async (event) => {
 			postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof});
 		} catch (err) {
 			console.log('[Worker] Error generating us-residency proof', err)
+		}
+  } else if (event.data && event.data.message === "medical-specialty") {
+		try {
+			if (generatingProof['medical-specialty']) return;	
+			generatingProof['medical-specialty'] = true;
+			console.log('[Worker] Generating medical-specialty proof. Params:', event.data)
+			const medicalSpecialtyProof = await loadMedicalSpecialtyProof(
+				event.data.newSecret,
+				event.data.serializedAsNewPreimage,
+				event.data.userAddress,
+			)
+			generatingProof['medical-specialty'] = false;
+			postMessage({ error: null, proofType: "medical-specialty", proof: medicalSpecialtyProof});
+		} catch (err) {
+			console.log('[Worker] Error generating medical-specialty proof', err)
 		}
   } else {
     postMessage({ error: "Unknown message", proofType: null, proof: null });

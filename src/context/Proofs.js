@@ -24,6 +24,7 @@ const proofsWorker = new ProofsWorker();
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
   const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
+  const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useSessionStorage('medical-specialty-proof', null);
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
@@ -37,6 +38,9 @@ function ProofsProvider({ children }) {
         setUSResidencyProof(event.data.proof);
       } else if (event?.data?.proofType === "uniqueness") {
         setUniquenessProof(event.data.proof);
+      } else if (event?.data?.proofType === "medical-specialty") {
+        console.log('medical-specialty proof', event.data.proof)
+        setMedicalSpecialtyProof(event.data.proof);
       } else if (event?.data?.error) {
         console.error(event.data.error);
       }
@@ -48,13 +52,15 @@ function ProofsProvider({ children }) {
     (async () => {
       // Figure out which proofs the user doesn't already have. Then load them
       // if the user has the credentials to do so.
-      const missingProofs = { 'uniqueness': true, 'us-residency': true };
+      const missingProofs = { 'uniqueness': true, 'us-residency': true, 'medical-specialty': true };
       if (proofMetadata) {
         for (const proofMetadataItem of proofMetadata) {
           if (proofMetadataItem?.proofType === "us-residency") {
             missingProofs['us-residency'] = false;
           } else if (proofMetadataItem?.proofType === "uniqueness") {
             missingProofs['uniqueness'] = false;
+          } else if (proofMetadataItem?.proofType === "medical-specialty") {
+            missingProofs['medical-specialty'] = false;
           }
         }
       }
@@ -64,6 +70,7 @@ function ProofsProvider({ children }) {
       // in the newly (locally) stored creds to be overwritten by the old ones. So we set
       // restore to false here.
       const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false);
+      console.log('creds', sortedCreds)
       if (!sortedCreds) {
         return;
       }
@@ -80,6 +87,17 @@ function ProofsProvider({ children }) {
         }
         if (missingProofs['us-residency']) {
           loadUSResidencyProof(
+            govIdCreds.creds.newSecret, 
+            govIdCreds.creds.serializedAsNewPreimage, 
+            account.address,
+          );
+        }
+      }
+      // Load proofs requiring medical creds
+      const medicalCreds = sortedCreds[serverAddress['med']]
+      if (medicalCreds) {
+        if (missingProofs['medical-specialty']) {
+          loadMedicalSpecialtyProof(
             govIdCreds.creds.newSecret, 
             govIdCreds.creds.serializedAsNewPreimage, 
             account.address,
@@ -124,12 +142,31 @@ function ProofsProvider({ children }) {
     }
   }
 
+  /**
+   * Use web worker to load medical specialty proof into context and session storage.
+   */
+  function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
+    if (proofsWorker) {
+      console.log('Main script requesting medical-specialty proof from worker')
+      proofsWorker.postMessage({ 
+        message: "medical-specialty", 
+        newSecret, 
+        serializedAsNewPreimage, 
+        userAddress
+      });
+    } else {
+      // TODO: Call the function directly
+    }
+  }
+
   return (
     <Proofs.Provider value={{
       uniquenessProof,
       loadUniquenessProof,
       usResidencyProof,
-      loadUSResidencyProof
+      loadUSResidencyProof,
+      medicalSpecialtyProof,
+      loadMedicalSpecialtyProof
     }}>
       {children}
     </Proofs.Provider>
