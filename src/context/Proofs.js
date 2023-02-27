@@ -25,13 +25,14 @@ function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
   const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
   const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useSessionStorage('medical-specialty-proof', null);
+  const [govIdFirstNameLastNameProof, setGovIdFirstNameLastNameProof] = useSessionStorage('gov-id-firstname-lastname-proof', null);
   const [kolpProof, setKOLPProof] = useSessionStorage('kolp', null);
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
-  // TODO: Load all proofs in here. Need to add onAddLeafProof, proofOfKnowledgeOfLeafPreimage, and proveGovIdFirstNameLastName
+  // TODO: Load all proofs in here. Need to add onAddLeafProof and proveGovIdFirstNameLastName
 
   useEffect(() => {
     proofsWorker.onmessage = (event) => {
@@ -41,6 +42,8 @@ function ProofsProvider({ children }) {
         setUniquenessProof(event.data.proof);
       } else if (event?.data?.proofType === "medical-specialty") {
         setMedicalSpecialtyProof(event.data.proof);
+      } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
+        setGovIdFirstNameLastNameProof(event.data.proof);
       } else if (event?.data?.proofType === "kolp") {
         setKOLPProof(event.data.proof);
       } else if (event?.data?.error) {
@@ -58,7 +61,8 @@ function ProofsProvider({ children }) {
         'uniqueness': true, 
         'us-residency': true, 
         'medical-specialty': true,
-        'kolp': true, // kolp is always needed
+        'gov-id-firstname-lastname': true, // Not an SBT. No good way to determine whether user needs it, so always generate
+        'kolp': true, // Not an SBT. Always needed
       };
       if (proofMetadata) {
         for (const proofMetadataItem of proofMetadata) {
@@ -103,6 +107,7 @@ function ProofsProvider({ children }) {
           govIdCreds.creds.newSecret,
           govIdCreds.creds.serializedAsNewPreimage,
         )
+        loadGovIdFirstNameLastNameProof(govIdCreds);
       }
       // Load proofs requiring medical creds
       const medicalCreds = sortedCreds[serverAddress['med']]
@@ -170,6 +175,18 @@ function ProofsProvider({ children }) {
     }
   }
 
+  function loadGovIdFirstNameLastNameProof(govIdCreds) {
+    if (proofsWorker) {
+      console.log('Main script requesting kolp proof from worker')
+      proofsWorker.postMessage({ 
+        message: "gov-id-firstname-lastname", 
+        govIdCreds, 
+      });
+    } else {
+      // TODO: Call the function directly
+    }
+  }
+
   function loadKOLPProof(newSecret, serializedAsNewPreimage) {
     if (proofsWorker) {
       console.log('Main script requesting kolp proof from worker')
@@ -191,6 +208,8 @@ function ProofsProvider({ children }) {
       loadUSResidencyProof,
       medicalSpecialtyProof,
       loadMedicalSpecialtyProof,
+      govIdFirstNameLastNameProof,
+      loadGovIdFirstNameLastNameProof,
       kolpProof,
       loadKOLPProof,
     }}>

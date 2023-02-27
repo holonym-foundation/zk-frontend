@@ -12,6 +12,7 @@ import {
 	proofOfResidency,
 	antiSybil,
 	proofOfMedicalSpecialty,
+	proveGovIdFirstNameLastName,
 	proveKnowledgeOfLeafPreimage
 } from "../utils/proofs";
 
@@ -19,6 +20,7 @@ let generatingProof = {
 	'uniqueness': false,
 	'us-residency': false,
 	'medical-specialty': false,
+	'gov-id-firstname-lastname': false,
 	'kolp': false, // == "Knowlege of Leaf Preimage"
 }
 
@@ -143,7 +145,7 @@ onmessage = async (event) => {
 				event.data.serializedAsNewPreimage,
 				event.data.userAddress,
 			)
-			postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof});
+			postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof });
 		} catch (err) {
 			console.log('[Worker] Error generating us-residency proof', err)
 			generatingProof['us-residency'] = false;
@@ -159,10 +161,22 @@ onmessage = async (event) => {
 				event.data.userAddress,
 			)
 			generatingProof['medical-specialty'] = false;
-			postMessage({ error: null, proofType: "medical-specialty", proof: medicalSpecialtyProof});
+			postMessage({ error: null, proofType: "medical-specialty", proof: medicalSpecialtyProof });
 		} catch (err) {
 			console.log('[Worker] Error generating medical-specialty proof', err)
 			generatingProof['medical-specialty'] = false;
+		}
+  } else if (event.data && event.data.message === "gov-id-firstname-lastname") {
+		try {
+			if (generatingProof['gov-id-firstname-lastname']) return;	
+			generatingProof['gov-id-firstname-lastname'] = true;
+			console.log('[Worker] Generating gov-id-firstname-lastname proof. Params:', event.data)
+      const govIdFirstNameLastNameProof = await proveGovIdFirstNameLastName(event.data.govIdCreds);
+			generatingProof['gov-id-firstname-lastname'] = false;
+			postMessage({ error: null, proofType: "gov-id-firstname-lastname", proof: govIdFirstNameLastNameProof });
+		} catch (err) {
+			console.log('[Worker] Error generating gov-id-firstname-lastname proof', err)
+			generatingProof['gov-id-firstname-lastname'] = false;
 		}
   } else if (event.data && event.data.message === "kolp") {
 		try {

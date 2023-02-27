@@ -7,10 +7,10 @@ import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
 import { medDAOIssuerOrigin, serverAddress } from "../../constants";
 import { getCredentials } from '../../utils/secrets';
-import { proveGovIdFirstNameLastName } from '../../utils/proofs';
 import MintContainer from "./MintContainer";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { useProofs } from "../../context/Proofs";
 
 const initialFormValues = {
   firstName: "",
@@ -31,6 +31,7 @@ const VerificationRequestForm = () => {
   const [error, setError] = useState();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const { govIdFirstNameLastNameProof } = useProofs();
 
   useEffect(() => {
     (async () => {
@@ -43,7 +44,6 @@ const VerificationRequestForm = () => {
 
   async function onSubmit(values, { setSubmitting }) {
     try {
-      const govIdFirstNameLastNameProof = await proveGovIdFirstNameLastName(govIdCreds);
       const body = {
         firstName: values.firstName,
         lastName: values.lastName,
@@ -150,9 +150,9 @@ const VerificationRequestForm = () => {
                 className="x-button secondary outline"
                 style={{ width: "100%", marginLeft: "auto" }}
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !govIdFirstNameLastNameProof}
               >
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting ? "Submitting..." : !govIdFirstNameLastNameProof ? "Loading..." : "Submit"}
               </button>
             </Form>
           )}
