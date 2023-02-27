@@ -25,6 +25,7 @@ function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
   const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
   const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useSessionStorage('medical-specialty-proof', null);
+  const [kolpProof, setKOLPProof] = useSessionStorage('kolp', null);
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
@@ -39,8 +40,9 @@ function ProofsProvider({ children }) {
       } else if (event?.data?.proofType === "uniqueness") {
         setUniquenessProof(event.data.proof);
       } else if (event?.data?.proofType === "medical-specialty") {
-        console.log('medical-specialty proof', event.data.proof)
         setMedicalSpecialtyProof(event.data.proof);
+      } else if (event?.data?.proofType === "kolp") {
+        setKOLPProof(event.data.proof);
       } else if (event?.data?.error) {
         console.error(event.data.error);
       }
@@ -52,7 +54,12 @@ function ProofsProvider({ children }) {
     (async () => {
       // Figure out which proofs the user doesn't already have. Then load them
       // if the user has the credentials to do so.
-      const missingProofs = { 'uniqueness': true, 'us-residency': true, 'medical-specialty': true };
+      const missingProofs = { 
+        'uniqueness': true, 
+        'us-residency': true, 
+        'medical-specialty': true,
+        'kolp': true, // kolp is always needed
+      };
       if (proofMetadata) {
         for (const proofMetadataItem of proofMetadata) {
           if (proofMetadataItem?.proofType === "us-residency") {
@@ -92,6 +99,10 @@ function ProofsProvider({ children }) {
             account.address,
           );
         }
+        loadKOLPProof(
+          govIdCreds.creds.newSecret,
+          govIdCreds.creds.serializedAsNewPreimage,
+        )
       }
       // Load proofs requiring medical creds
       const medicalCreds = sortedCreds[serverAddress['med']]
@@ -159,6 +170,19 @@ function ProofsProvider({ children }) {
     }
   }
 
+  function loadKOLPProof(newSecret, serializedAsNewPreimage) {
+    if (proofsWorker) {
+      console.log('Main script requesting kolp proof from worker')
+      proofsWorker.postMessage({ 
+        message: "kolp", 
+        newSecret, 
+        serializedAsNewPreimage, 
+      });
+    } else {
+      // TODO: Call the function directly
+    }
+  }
+
   return (
     <Proofs.Provider value={{
       uniquenessProof,
@@ -166,7 +190,9 @@ function ProofsProvider({ children }) {
       usResidencyProof,
       loadUSResidencyProof,
       medicalSpecialtyProof,
-      loadMedicalSpecialtyProof
+      loadMedicalSpecialtyProof,
+      kolpProof,
+      loadKOLPProof,
     }}>
       {children}
     </Proofs.Provider>

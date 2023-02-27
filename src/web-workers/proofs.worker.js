@@ -12,11 +12,14 @@ import {
 	proofOfResidency,
 	antiSybil,
 	proofOfMedicalSpecialty,
+	proveKnowledgeOfLeafPreimage
 } from "../utils/proofs";
 
 let generatingProof = {
 	'uniqueness': false,
 	'us-residency': false,
+	'medical-specialty': false,
+	'kolp': false, // == "Knowlege of Leaf Preimage"
 }
 
 async function loadAntiSybil(
@@ -110,6 +113,7 @@ async function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, use
 	);
 }
 
+// TODO: Low priority: Refactor this to have less duplicated code.
 onmessage = async (event) => {
 	await waitForArtifacts('poseidonQuinary', 10 * 1000)
 	await waitForArtifacts('poseidonTwoInputs', 10 * 1000)
@@ -146,8 +150,6 @@ onmessage = async (event) => {
 		}
   } else if (event.data && event.data.message === "medical-specialty") {
 		try {
-			// TODO: Need way to try again if the load proof call fails because artifacts haven't been loaded yet.
-			// MAYBE: Export a function "waitForArtifacts" that can be called immediately before calling load proof.
 			if (generatingProof['medical-specialty']) return;	
 			generatingProof['medical-specialty'] = true;
 			console.log('[Worker] Generating medical-specialty proof. Params:', event.data)
@@ -161,6 +163,21 @@ onmessage = async (event) => {
 		} catch (err) {
 			console.log('[Worker] Error generating medical-specialty proof', err)
 			generatingProof['medical-specialty'] = false;
+		}
+  } else if (event.data && event.data.message === "kolp") {
+		try {
+			if (generatingProof['kolp']) return;	
+			generatingProof['kolp'] = true;
+			console.log('[Worker] Generating kolp proof. Params:', event.data)
+			const kolpProof = await proveKnowledgeOfLeafPreimage(
+				event.data.serializedAsNewPreimage, 
+				event.data.newSecret
+			);
+			generatingProof['kolp'] = false;
+			postMessage({ error: null, proofType: "kolp", proof: kolpProof});
+		} catch (err) {
+			console.log('[Worker] Error generating kolp proof', err)
+			generatingProof['kolp'] = false;
 		}
   } else {
     postMessage({ error: "Unknown message", proofType: null, proof: null });
