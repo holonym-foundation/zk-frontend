@@ -8,7 +8,8 @@ export const preprocEndpoint =
 export const relayerUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:6969"
-    : "https://relayer.holonym.id";
+    // : "https://relayer.holonym.id";
+    : "https://relayer.holonym-internal.net";
 
 export const idServerUrl =
   process.env.NODE_ENV === "development"
