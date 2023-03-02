@@ -5,10 +5,12 @@ export const preprocEndpoint =
   ? "http://localhost:8000"
   : "https://preproc-zkp.s3.us-east-2.amazonaws.com";
 
-export const relayerUrl =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:6969"
-    : "https://relayer.holonym.id";
+  export const relayerUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:6969"
+      // : "https://relayer.holonym.id";
+      : "https://relayer.holonym-internal.net";
+
 
 export const idServerUrl =
   process.env.NODE_ENV === "development"
