@@ -585,7 +585,6 @@ export async function proveGovIdFirstNameLastName(govIdCreds) {
     mp.path,
     mp.indices,
   ];
-  console.log('proofArgs', proofArgs)
 
   await loadArtifacts("govIdFirstNameLastName");
   await loadProvingKey("govIdFirstNameLastName");

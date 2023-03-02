@@ -15,6 +15,7 @@ import { useProofs } from "../../context/Proofs";
 const MintButton = ({ creds, onSuccess }) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
+    const [readyToSendToServer, setReadyToSendToServer] = useState(false);
     const { holoAuthSigDigest } = useHoloAuthSig();
     const { holoKeyGenSigDigest } = useHoloKeyGenSig();
     const { loadKOLPProof, kolpProof } = useProofs();
@@ -48,6 +49,7 @@ const MintButton = ({ creds, onSuccess }) => {
           circomProof, 
           async () => {
             loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
+            setReadyToSendToServer(true);
             // await sendCredsToServer();
             // onSuccess();
           }, 
@@ -61,12 +63,10 @@ const MintButton = ({ creds, onSuccess }) => {
     // 1. Generate addLeaf proof and call relayer addLeaf endpoint
     // 2. Generate KOLP proof using creds in newly added leaf, send to server, and call onSuccess
     useEffect(() => {
-      if (!kolpProof) return;
-      (async () => {
-        await sendCredsToServer();
-        onSuccess();
-      })()
-    }, [kolpProof])
+      if (!kolpProof || !readyToSendToServer) return;
+      sendCredsToServer()
+        .then(onSuccess);
+    }, [kolpProof, readyToSendToServer])
 
     return <div style={{ textAlign: "center" }}>
       <button className="mint-button" onClick={addLeaf}>
