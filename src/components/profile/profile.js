@@ -3,10 +3,7 @@ import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
-import { 
-  getCredentials,
-  getProofMetadata,
-} from '../../utils/secrets';
+import { getCredentials } from '../../utils/secrets';
 import { 
   primeToCountryCode,
   serverAddress
@@ -77,29 +74,9 @@ function formatCreds(sortedCreds) {
   return formattedCreds;
 }
 
-function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
-  // TODO: Once we submit proofs to multiple chains, we should sort by chain too
-  const proofMetadataObj = {}
-  for (const metadataItem of proofMetadata) {
-    if (metadataItem.proofType === 'uniqueness') {
-      metadataItem.displayName = 'Unique Person'
-      // metadataItem.fieldValue = `for action ${metadataItem.actionId}`
-      metadataItem.fieldValue = 'Yes'
-    }
-    else if (metadataItem.proofType === 'us-residency') {
-      metadataItem.displayName = 'US Resident'
-      metadataItem.fieldValue = 'Yes'
-    }
-    proofMetadataObj[metadataItem.proofType] = metadataItem;
-  }
-  return proofMetadataObj;
-}
-
 export default function Profile(props) {
   const [creds, setCreds] = useState();
   const [credsLoading, setCredsLoading] = useState(true);
-  const [proofMetadata, setProofMetadata] = useState();
-  const [proofMetadataLoading, setProofMetadataLoading] = useState(true);
   const [readyToLoadCredsAndProofs, setReadyToLoadCredsAndProofs] = useState()
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
@@ -124,28 +101,14 @@ export default function Profile(props) {
         setCredsLoading(false)
       }
     }
-    async function getAndSetProofMetadata() {
-      try {
-        const proofMetadataTemp = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, true);
-        if (proofMetadataTemp) {
-          const populatedData = populateProofMetadataDisplayDataAndRestructure(proofMetadataTemp)
-          setProofMetadata(populatedData)
-        }
-      } catch (err) {
-        console.log(err)
-      } finally {
-        setProofMetadataLoading(false)
-      }
-    }
     getAndSetCreds()
-    getAndSetProofMetadata()
   }, [readyToLoadCredsAndProofs])
 
   return (
     <>
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
-        <PublicInfoCard proofMetadata={proofMetadata} loading={proofMetadataLoading} />
+        <PublicInfoCard />
         <div className="spacer-large"></div>
         <PrivateInfoCard creds={creds} loading={credsLoading} />
       </div>

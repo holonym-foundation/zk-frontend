@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useAccount, useQuery } from "wagmi";
-import { getCredentials, addProofMetadataItem } from "../../utils/secrets";
+import { getCredentials } from "../../utils/secrets";
 import {
 	poseidonTwoInputs,
 	proofOfResidency,
@@ -18,6 +18,7 @@ import {
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useProofs } from "../../context/Proofs";
+import { useProofMetadata } from "../../context/ProofMetadata";
 import Relayer from "../../utils/relayer";
 
 async function loadAntiSybil(newSecret, serializedAsNewPreimage,
@@ -99,15 +100,20 @@ const useProofsState = () => {
 	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 	const { 
 		uniquenessProof,
-		alreadyHasUniquenessSBT, // TODO: See note in context/Proofs.js about proofMetadata
 		loadUniquenessProof,
 		usResidencyProof,
-		alreadyHasUSResidencySBT, // TODO: See note in context/Proofs.js about proofMetadata
-		loadUSResidencyProof
+		loadUSResidencyProof,
+		medicalSpecialtyProof,
+		loadMedicalSpecialtyProof
 	} = useProofs();
+	const { proofMetadata, addProofMetadataItem } = useProofMetadata();
 	const accountReadyAddress = useMemo(
 		() => account?.connector.ready && account?.address && account.address,
     [account]
+	);
+	const alreadyHasSBT = useMemo(
+		() => proofMetadata.filter((item) => item.proofType === params.proofType).length > 0,
+		[proofMetadata, params.proofType]
 	);
 
 	const proofs = {
@@ -120,6 +126,10 @@ const useProofsState = () => {
 			name: "Uniqueness",
 			// contractName: "SybilResistance",
 			contractName: "SybilResistanceV2",
+		},
+		"medical-specialty": {
+			name: "Medical Specialty",
+			contractName: "MedicalSpecialty",
 		},
 	};
 
@@ -141,8 +151,14 @@ const useProofsState = () => {
 			} else {
 				setProof(uniquenessProof)
 			}
+		} else if (params.proofType === "medical-specialty") {
+			if (!medicalSpecialtyProof) {
+				// loadMedicalSpecialtyProof();
+			} else {
+				setProof(medicalSpecialtyProof)
+			}
 		}
-	}, [uniquenessProof, usResidencyProof])
+	}, [uniquenessProof, usResidencyProof, medicalSpecialtyProof])
 
   // eslint-disable-next-line no-unused-vars
 	const getCredentialsQuery = useQuery(
@@ -239,8 +255,6 @@ const useProofsState = () => {
         proof.inputs[1],
 				params.proofType,
 				params.actionId,
-        holoAuthSigDigest,
-        holoKeyGenSigDigest,
       );
       return result;
     },
@@ -273,7 +287,7 @@ const useProofsState = () => {
   return {
     params,
     proofs,
-		alreadyHasSBT: (params.proofType === 'uniqueness' && alreadyHasUniquenessSBT) || (params.proofType === 'us-residency' && alreadyHasUSResidencySBT),
+		alreadyHasSBT,
     accountReadyAddress,
     sortedCreds,
     proof,

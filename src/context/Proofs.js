@@ -3,30 +3,36 @@
  * NOTE: This provider must be a child of the signature providers because this
  * provider relies on the user's signatures.
  */
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
 import { serverAddress, defaultActionId } from '../constants';
-import { getCredentials, getProofMetadata } from "../utils/secrets";
+import { getCredentials } from "../utils/secrets";
 import { useHoloAuthSig } from './HoloAuthSig';
 import { useHoloKeyGenSig } from './HoloKeyGenSig';
+import { useProofMetadata } from './ProofMetadata';
+import ProofsWorker from "../web-workers/proofs.worker.js"; // Use worker in Webpack 4
 
 const Proofs = createContext(null);
 
-const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-proofs.js', import.meta.url)) : null;
+// Use worker in Webpack 5
+// const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-proofs.js', import.meta.url)) : null;
+
+// Use worker in Webpack 4
+const proofsWorker = new ProofsWorker();
 
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
-  // TODO: Don't use alreadyHas<proof>. Store proofMetadata into context, and within the proof page,
-  // check proofMetadata directly for the proof in question. No need to store this derivation of proofMetadata.
-  const [alreadyHasUniquenessSBT, setAlreadyHasUniquenessSBT] = useState(false);
   const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
-  const [alreadyHasUSResidencySBT, setAlreadyHasUSResidencySBT] = useState(false);
+  const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useSessionStorage('medical-specialty-proof', null);
+  const [govIdFirstNameLastNameProof, setGovIdFirstNameLastNameProof] = useSessionStorage('gov-id-firstname-lastname-proof', null);
+  const [kolpProof, setKOLPProof] = useSessionStorage('kolp', null);
   const { data: account } = useAccount();
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
-  // TODO: Load all proofs in here. Need to add onAddLeafProof and proofOfKnowledgeOfLeafPreimage
+  // TODO: Load all proofs in here. Need to add onAddLeafProof
 
   useEffect(() => {
     proofsWorker.onmessage = (event) => {
@@ -34,24 +40,38 @@ function ProofsProvider({ children }) {
         setUSResidencyProof(event.data.proof);
       } else if (event?.data?.proofType === "uniqueness") {
         setUniquenessProof(event.data.proof);
+      } else if (event?.data?.proofType === "medical-specialty") {
+        setMedicalSpecialtyProof(event.data.proof);
+      } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
+        setGovIdFirstNameLastNameProof(event.data.proof);
+      } else if (event?.data?.proofType === "kolp") {
+        setKOLPProof(event.data.proof);
       } else if (event?.data?.error) {
         console.error(event.data.error);
       }
     };
+
+    if (loadingProofMetadata) return;
+
     // TODO: Use useQuery for this so that you only call this function once
     (async () => {
       // Figure out which proofs the user doesn't already have. Then load them
       // if the user has the credentials to do so.
-      const missingProofs = { 'uniqueness': true, 'us-residency': true };
-      const proofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest);
+      const missingProofs = { 
+        'uniqueness': true, 
+        'us-residency': true, 
+        'medical-specialty': true,
+        'gov-id-firstname-lastname': true, // Not an SBT. No good way to determine whether user needs it, so always generate
+        'kolp': true, // Not an SBT. Always needed
+      };
       if (proofMetadata) {
         for (const proofMetadataItem of proofMetadata) {
           if (proofMetadataItem?.proofType === "us-residency") {
             missingProofs['us-residency'] = false;
-            setAlreadyHasUSResidencySBT(true);
           } else if (proofMetadataItem?.proofType === "uniqueness") {
             missingProofs['uniqueness'] = false;
-            setAlreadyHasUniquenessSBT(true);
+          } else if (proofMetadataItem?.proofType === "medical-specialty") {
+            missingProofs['medical-specialty'] = false;
           }
         }
       }
@@ -61,6 +81,7 @@ function ProofsProvider({ children }) {
       // in the newly (locally) stored creds to be overwritten by the old ones. So we set
       // restore to false here.
       const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false);
+      console.log('creds', sortedCreds)
       if (!sortedCreds) {
         return;
       }
@@ -82,9 +103,25 @@ function ProofsProvider({ children }) {
             account.address,
           );
         }
+        loadKOLPProof(
+          govIdCreds.creds.newSecret,
+          govIdCreds.creds.serializedAsNewPreimage,
+        )
+        loadGovIdFirstNameLastNameProof(govIdCreds);
+      }
+      // Load proofs requiring medical creds
+      const medicalCreds = sortedCreds[serverAddress['med']]
+      if (medicalCreds) {
+        if (missingProofs['medical-specialty']) {
+          loadMedicalSpecialtyProof(
+            medicalCreds.creds.newSecret, 
+            medicalCreds.creds.serializedAsNewPreimage, 
+            account.address,
+          );
+        }
       }
     })();
-  }, [])
+  }, [proofMetadata, loadingProofMetadata])
   
   /**
    * Use web worker to load anti-sybil proof into context and session storage.
@@ -121,14 +158,60 @@ function ProofsProvider({ children }) {
     }
   }
 
+  /**
+   * Use web worker to load medical specialty proof into context and session storage.
+   */
+  function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
+    if (proofsWorker) {
+      console.log('Main script requesting medical-specialty proof from worker')
+      proofsWorker.postMessage({ 
+        message: "medical-specialty", 
+        newSecret, 
+        serializedAsNewPreimage, 
+        userAddress
+      });
+    } else {
+      // TODO: Call the function directly
+    }
+  }
+
+  function loadGovIdFirstNameLastNameProof(govIdCreds) {
+    if (proofsWorker) {
+      console.log('Main script requesting kolp proof from worker')
+      proofsWorker.postMessage({ 
+        message: "gov-id-firstname-lastname", 
+        govIdCreds, 
+      });
+    } else {
+      // TODO: Call the function directly
+    }
+  }
+
+  function loadKOLPProof(newSecret, serializedAsNewPreimage) {
+    if (proofsWorker) {
+      console.log('Main script requesting kolp proof from worker')
+      proofsWorker.postMessage({ 
+        message: "kolp", 
+        newSecret, 
+        serializedAsNewPreimage, 
+      });
+    } else {
+      // TODO: Call the function directly
+    }
+  }
+
   return (
     <Proofs.Provider value={{
       uniquenessProof,
-      alreadyHasUniquenessSBT,
       loadUniquenessProof,
       usResidencyProof,
-      alreadyHasUSResidencySBT,
-      loadUSResidencyProof
+      loadUSResidencyProof,
+      medicalSpecialtyProof,
+      loadMedicalSpecialtyProof,
+      govIdFirstNameLastNameProof,
+      loadGovIdFirstNameLastNameProof,
+      kolpProof,
+      loadKOLPProof,
     }}>
       {children}
     </Proofs.Provider>

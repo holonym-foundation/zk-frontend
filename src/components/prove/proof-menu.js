@@ -37,6 +37,10 @@ const ProofMenu = ()=>{
                     <div className="spacer-large"></div>
                     <button onClick={()=>navigate("/prove/uniqueness")} className="x-button">Unique Personhood</button>
                     <div className="spacer-large"></div>
+                    <button onClick={()=>navigate("/prove/medical-specialty")} className="x-button">
+                        Medical Specialty
+                    </button>
+                    <div className="spacer-large"></div>
                     {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
 
                 </div>

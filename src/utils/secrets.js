@@ -281,7 +281,7 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
   }
 }
 
-function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) {
+export function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) {
   const senderAddrHex = ethers.BigNumber.from(
     senderAddress ?? '0x00'
   ).toHexString();
@@ -303,9 +303,10 @@ function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) {
   return proofMetadataItem;
 } 
 
-export async function addProofMetadataItem(tx, senderAddress, proofType, actionId, holoAuthSigDigest, holoKeyGenSigDigest) {
-  try {
-    const proofMetadataItem = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
+// export async function addProofMetadataItem(tx, senderAddress, proofType, actionId, holoAuthSigDigest, holoKeyGenSigDigest) {
+export async function addProofMetadataItem(proofMetadataItem, holoAuthSigDigest, holoKeyGenSigDigest) {
+    try {
+    // const proofMetadataItem = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
     console.log('Storing proof metadata')
     console.log(proofMetadataItem)
     // 1. Get old proof metadata
