@@ -12,7 +12,7 @@ import {
 } from "../../utils/proofs";
 import { 
   serverAddress, 
-  idServerUrl, 
+  clientPortalUrl, 
   defaultActionId,
 } from "../../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
@@ -81,7 +81,7 @@ const Proofs = () => {
       try {
         if (!searchParams.get("sessionId")) return { error: "No session id" };
         const sessionId = searchParams.get("sessionId");
-        const resp = await fetch(`${idServerUrl}/sessions/${sessionId}`);
+        const resp = await fetch(`${clientPortalUrl}/api/sessions/${sessionId}`);
         return await resp.json();
       } catch (err) {
         console.error(err)
@@ -104,7 +104,7 @@ const Proofs = () => {
   };
 
   async function loadPoR() {
-    const creds_ = creds[serverAddress["idgov"]]
+    const creds_ = creds[serverAddress["idgov-v2"]]
     if (!creds_) {
       setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/mint/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
@@ -112,10 +112,10 @@ const Proofs = () => {
     const salt = "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
     const footprint = await poseidonTwoInputs([
       salt,
-      ethers.BigNumber.from(creds_.newSecret).toString(),
+      ethers.BigNumber.from(creds_.creds.newSecret).toString(),
     ]);
 
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.serializedCreds;
+    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.creds.serializedAsNewPreimage;
     const por = await proofOfResidency(
       account.address,
       issuer_,
@@ -125,7 +125,7 @@ const Proofs = () => {
       nameCitySubdivisionZipStreetHash_,
       completedAt_,
       scope,
-      creds_.newSecret
+      creds_.creds.newSecret
     );
     // Once setProof is called, the proof is submited
     setProof(por);
@@ -140,7 +140,7 @@ const Proofs = () => {
       );
     console.log("actionId", actionId);
 
-    const creds_ = creds[serverAddress["idgov"]]
+    const creds_ = creds[serverAddress["idgov-v2"]]
     if (!creds_) {
       setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/mint/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
@@ -148,10 +148,10 @@ const Proofs = () => {
   
     const footprint = await poseidonTwoInputs([
       actionId,
-      ethers.BigNumber.from(creds_.newSecret).toString(),
+      ethers.BigNumber.from(creds_.creds.newSecret).toString(),
     ]);
 
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.serializedCreds;
+    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.creds.serializedAsNewPreimage;
 
     const as = await antiSybil(
       account.address,
@@ -162,7 +162,7 @@ const Proofs = () => {
       nameCitySubdivisionZipStreetHash_, 
       completedAt_, 
       scope,
-      creds_.newSecret
+      creds_.creds.newSecret
     );
     // Once setProof is called, the proof is submited
     setProof(as);
@@ -195,9 +195,9 @@ const Proofs = () => {
           console.log('sessionQuery.data before refetch', sessionQuery.data)
           if (!sessionQuery.data) await sessionQuery.refetch() // manually call queryFn
           console.log('sessionQuery.data after refetch', sessionQuery.data)
-          const returnedSessionId = sessionQuery?.data.sessionId;
+          const returnedSessionId = sessionQuery?.data?.sessionId;
           if (returnedSessionId) setReadyToLoadCreds(true);
-          else if (sessionQuery?.data.error) setError(sessionQuery?.data.error);
+          else if (sessionQuery?.data.error) setError(sessionQuery?.data?.error?.message);
           else setError("Invalid sessionId");
         } catch (err) {
           console.error(err)
@@ -242,7 +242,7 @@ const Proofs = () => {
   }
 
   async function redirectUserWithProof(proof) {
-    const callback = window.atob(decodeURIComponent(searchParams.get("callback")));
+    const callback = searchParams.get("callback");
     const proofString = encodeURIComponent(JSON.stringify(proof));
     // TODO: Encrypt (at least part of) proof using client's public encryption key
     window.location.href = `${callback}?proof=${proofString}`;

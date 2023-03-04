@@ -104,5 +104,71 @@
       { "name": "birthdate", "public": false, "type": "field" }
     ],
     "output": { "type": "field" }
+  },
+  "govIdFirstNameLastName": {
+    "inputs": [
+      { "name": "root", "public": true, "type": "field" },
+      { "name": "issuerAddr", "public": true, "type": "field" },
+      { "name": "firstName", "public": true, "type": "field" },
+      { "name": "lastName", "public": true, "type": "field" },
+      { "name": "leaf", "public": false, "type": "field" },
+      { "name": "middleName", "public": false, "type": "field" },
+      { "name": "countryCode", "public": false, "type": "field" },
+      { "name": "birthdate", "public": false, "type": "field" },
+      { "name": "addressHash", "public": false, "type": "field" },
+      { "name": "expirationDate", "public": false, "type": "field" },
+      { "name": "iat", "public": false, "type": "field" },
+      { "name": "scope", "public": false, "type": "field" },
+      { "name": "secret", "public": false, "type": "field" },
+      {
+        "name": "path",
+        "public": false,
+        "type": "array",
+        "components": {
+          "size": 14,
+          "type": "array",
+          "components": { "size": 5, "type": "field" }
+        }
+      },
+      {
+        "name": "indices",
+        "public": false,
+        "type": "array",
+        "components": { "size": 14, "type": "u32" }
+      }
+    ],
+    "output": { "type": "tuple", "components": { "elements": [] } }
+  },
+  "medicalSpecialty": {
+    "inputs": [
+      { "name": "root", "public": true, "type": "field" },
+      { "name": "msgSenderAddr", "public": true, "type": "field" },
+      { "name": "issuerAddr", "public": true, "type": "field" },
+      { "name": "specialty", "public": true, "type": "field" },
+      { "name": "salt", "public": true, "type": "field" },
+      { "name": "hashbrowns", "public": true, "type": "field" },
+      { "name": "leaf", "public": false, "type": "field" },
+      { "name": "npiNumLicenseMedCredsHash", "public": false, "type": "field" },
+      { "name": "iat", "public": false, "type": "field" },
+      { "name": "scope", "public": false, "type": "field" },
+      { "name": "nullifier", "public": false, "type": "field" },
+      {
+        "name": "path",
+        "public": false,
+        "type": "array",
+        "components": {
+          "size": 14,
+          "type": "array",
+          "components": { "size": 5, "type": "field" }
+        }
+      },
+      {
+        "name": "indices",
+        "public": false,
+        "type": "array",
+        "components": { "size": 14, "type": "u32" }
+      }
+    ],
+    "output": { "type": "tuple", "components": { "elements": [] } }
   }
 }
