@@ -128,7 +128,6 @@ function ProofsProvider({ children }) {
    */
   function loadUniquenessProof(newSecret, serializedAsNewPreimage, userAddress, actionId) {
     if (proofsWorker) {
-      console.log('Main script requesting uniqueness proof from worker')
       proofsWorker.postMessage({ 
         message: "uniqueness", 
         newSecret, 
@@ -146,7 +145,6 @@ function ProofsProvider({ children }) {
    */
   function loadUSResidencyProof(newSecret, serializedAsNewPreimage, userAddress) {
     if (proofsWorker) {
-      console.log('Main script requesting us-residency proof from worker')
       proofsWorker.postMessage({ 
         message: "us-residency", 
         newSecret, 
@@ -163,7 +161,6 @@ function ProofsProvider({ children }) {
    */
   function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
     if (proofsWorker) {
-      console.log('Main script requesting medical-specialty proof from worker')
       proofsWorker.postMessage({ 
         message: "medical-specialty", 
         newSecret, 
@@ -177,7 +174,6 @@ function ProofsProvider({ children }) {
 
   function loadGovIdFirstNameLastNameProof(govIdCreds) {
     if (proofsWorker) {
-      console.log('Main script requesting kolp proof from worker')
       proofsWorker.postMessage({ 
         message: "gov-id-firstname-lastname", 
         govIdCreds, 
@@ -189,7 +185,6 @@ function ProofsProvider({ children }) {
 
   function loadKOLPProof(newSecret, serializedAsNewPreimage) {
     if (proofsWorker) {
-      console.log('Main script requesting kolp proof from worker')
       proofsWorker.postMessage({ 
         message: "kolp", 
         newSecret, 
