@@ -134,7 +134,7 @@ initialize().then(async (zokratesProvider) => {
 /* Gets Merkle tree and creates Merkle proof */
 export async function getMerkleProofParams(leaf) {
   const treeData = await Relayer.getTree(defaultChainToProveOn);
-  console.log(treeData, "treeData")
+  // console.log(treeData, "treeData")
   const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
   // NOTE: _nodes and _zeroes are private readonly variables in the `incremental-merkle-tree.d` file,
   // but the JavaScript implementation doesn't seem to enforce these constraints.
@@ -379,7 +379,7 @@ export async function proofOfResidency(
     witness,
     provingKeys.proofOfResidency
   );
-  console.log("PROOF: us-residency: generated proof");
+  console.log("PROOF: us-residency: generated proof", proof);
   return proof;
 }
 
@@ -451,6 +451,7 @@ export async function antiSybil(
     witness,
     provingKeys.antiSybil
   );
+  console.log('uniqueness proof', proof)
   return proof;
 }
 
@@ -519,7 +520,7 @@ export async function proofOfMedicalSpecialty(
     witness,
     provingKeys.medicalSpecialty
   );
-  console.log("PROOF: medical-specialty: generated proof");
+  console.log("PROOF: medical-specialty: generated proof", proof);
   return proof;
 }
 
