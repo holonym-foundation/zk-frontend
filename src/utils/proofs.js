@@ -68,9 +68,7 @@ export async function waitForArtifacts(circuitName, timeout = 5000) {
 
 async function loadArtifacts(circuitName) {
   if (circuitName in artifacts) {
-    console.log(
-      `Note: Trying to load ${circuitName} artifacts, which have already been loaded. Not reloading`
-    );
+    // console.log(`Note: Trying to load ${circuitName} artifacts, which have already been loaded. Not reloading`);
     return;
   }
   const program = await (
@@ -86,9 +84,7 @@ async function loadArtifacts(circuitName) {
 
 async function loadProvingKey(circuitName) {
   if (circuitName in provingKeys) {
-    console.log(
-      `Note: Trying to load ${circuitName} provingKey, which has already been loaded. Not reloading`
-    );
+    // console.log(`Note: Trying to load ${circuitName} provingKey, which has already been loaded. Not reloading`);
     return;
   }
   const k = await (
@@ -99,9 +95,7 @@ async function loadProvingKey(circuitName) {
 
 async function loadVerifyingKey(circuitName) {
   if (circuitName in verifyingKeys) {
-    console.log(
-      `Note: Trying to load ${circuitName} verifyingKey, which has already been loaded. Not reloading`
-    );
+    // console.log(`Note: Trying to load ${circuitName} verifyingKey, which has already been loaded. Not reloading`);
     return;
   }
   const k = await (
@@ -147,6 +141,7 @@ export async function getMerkleProofParams(leaf) {
     console.error(
       `Could not find leaf ${leaf} in leaves ${leaves}`
     );
+    throw new Error("Leaf is not in Merkle tree");
   }
 
   const index = tree.indexOf(leaf);

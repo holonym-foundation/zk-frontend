@@ -134,6 +134,7 @@ onmessage = async (event) => {
 		} catch (err) {
 			console.log('[Worker] Error generating uniqueness proof', err)
 			generatingProof['uniqueness'] = false;
+			postMessage({ error: err, proofType: "uniqueness", proof: null });
 		}
   } else if (event.data && event.data.message === "us-residency") {
 		try {
@@ -149,6 +150,7 @@ onmessage = async (event) => {
 		} catch (err) {
 			console.log('[Worker] Error generating us-residency proof', err)
 			generatingProof['us-residency'] = false;
+			postMessage({ error: err, proofType: "us-residency", proof: null })
 		}
   } else if (event.data && event.data.message === "medical-specialty") {
 		try {
@@ -165,6 +167,7 @@ onmessage = async (event) => {
 		} catch (err) {
 			console.log('[Worker] Error generating medical-specialty proof', err)
 			generatingProof['medical-specialty'] = false;
+			postMessage({ error: err, proofType: "medical-specialty", proof: null })
 		}
   } else if (event.data && event.data.message === "gov-id-firstname-lastname") {
 		try {
@@ -177,6 +180,7 @@ onmessage = async (event) => {
 		} catch (err) {
 			console.log('[Worker] Error generating gov-id-firstname-lastname proof', err)
 			generatingProof['gov-id-firstname-lastname'] = false;
+			postMessage({ error: err, proofType: "gov-id-firstname-lastname", proof: null })
 		}
   } else if (event.data && event.data.message === "kolp") {
 		try {
@@ -192,6 +196,7 @@ onmessage = async (event) => {
 		} catch (err) {
 			console.log('[Worker] Error generating kolp proof', err)
 			generatingProof['kolp'] = false;
+			postMessage({ error: err, proofType: "kolp", proof: null })
 		}
   } else {
     postMessage({ error: "Unknown message", proofType: null, proof: null });

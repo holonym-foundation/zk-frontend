@@ -6,9 +6,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
+import Relayer from '../utils/relayer';
+import { onAddLeafProof } from '../utils/proofs';
 import { serverAddress, defaultActionId } from '../constants';
-import { useHoloAuthSig } from './HoloAuthSig';
-import { useHoloKeyGenSig } from './HoloKeyGenSig';
 import { useProofMetadata } from './ProofMetadata';
 import ProofsWorker from "../web-workers/proofs.worker.js"; // Use worker in Webpack 4
 import { useCreds } from './Creds';
@@ -33,18 +33,54 @@ function ProofsProvider({ children }) {
   const [kolpProof, setKOLPProof] = useSessionStorage('kolp', null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
   const { data: account } = useAccount();
-  const { holoAuthSigDigest } = useHoloAuthSig();
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
-  const { sortedCreds, loadingCreds } = useCreds();
+  const { sortedCreds, loadingCreds, storeCreds } = useCreds();
+  const [reloadProofs, setReloadProofs] = useState({ data: false });
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
 
-  // TODO: Re-load proofs if credentials change
+  // TODO: !!! Re-load proofs if credentials change. Also, reload proofs after addLeaf.
+  // Maybe write a function "loadProofs" that can be called in these different places.
+
+  async function addLeaf(creds) {
+    const circomProof = await onAddLeafProof(creds);
+    const result = await Relayer.mint(
+      circomProof, 
+      async () => {
+        // loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
+        // We assume KOLPProof has been loaded.
+        // TODO: Handle case where KOLPProof has not been loaded
+        storeCreds(sortedCreds, kolpProof);
+      }, 
+    );
+  }
 
   useEffect(() => {
     proofsWorker.onmessage = (event) => {
-      if (event?.data?.proofType === "us-residency") {
+      if (event?.data?.error) {
+        console.error(event.data.error);
+        // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
+        // user retrieved their credentials but something failed during the mint (add leaf) process.
+        if (event.data.error?.message === "Leaf is not in Merkle tree") {
+          if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
+            console.log('Adding leaf for idgov-v2 creds')
+            addLeaf(sortedCreds[serverAddress['idgov-v2']])
+              .then(() => {
+                // TODO: Fix: For some reason, calling setReloadProofs fails to trigger a reload
+                setReloadProofs({ data: true })
+                console.log('Added leaf for idgov-v2 creds')
+              })
+          } else if (event.data.proofType === "medical-specialty") {
+            console.log('Adding leaf for med creds')
+            addLeaf(sortedCreds[serverAddress['med']])
+              .then(() => {
+                // TODO: Fix: For some reason, calling setReloadProofs fails to trigger a reload
+                setReloadProofs({ data: true })
+                console.log('Added leaf for med creds')
+              })
+          }
+        }
+      } else if (event?.data?.proofType === "us-residency") {
         setUSResidencyProof(event.data.proof);
         setLoadingUSResidencyProof(false);
       } else if (event?.data?.proofType === "uniqueness") {
@@ -59,9 +95,6 @@ function ProofsProvider({ children }) {
       } else if (event?.data?.proofType === "kolp") {
         setKOLPProof(event.data.proof);
         setLoadingKOLPProof(false);
-
-      } else if (event?.data?.error) {
-        console.error(event.data.error);
       }
     };
 
@@ -96,6 +129,13 @@ function ProofsProvider({ children }) {
       // Load proofs requiring gov ID creds
       const govIdCreds = sortedCreds[serverAddress['idgov-v2']]
       if (govIdCreds) {
+        if (!kolpProof && !loadingKOLPProof) {
+          setLoadingKOLPProof(true);
+          loadKOLPProof(
+            govIdCreds.creds.newSecret,
+            govIdCreds.creds.serializedAsNewPreimage,
+          )
+        }
         if (missingProofs.uniqueness && !loadingUniquenessProof) {
           setLoadingUniquenessProof(true);
           loadUniquenessProof(
@@ -113,18 +153,14 @@ function ProofsProvider({ children }) {
             account.address,
           );
         }
-        if (!kolpProof && !loadingKOLPProof) {
-          setLoadingKOLPProof(true);
-          loadKOLPProof(
-            govIdCreds.creds.newSecret,
-            govIdCreds.creds.serializedAsNewPreimage,
-          )
-        }
         if (!govIdFirstNameLastNameProof && !loadingGovIdFirstNameLastNameProof) {
           setLoadingGovIdFirstNameLastNameProof(true);
           loadGovIdFirstNameLastNameProof(govIdCreds);
         }
       }
+      
+      // TODO: load kolpProof for phone number creds
+
       // Load proofs requiring medical creds
       const medicalCreds = sortedCreds[serverAddress['med']]
       if (medicalCreds) {
@@ -138,7 +174,7 @@ function ProofsProvider({ children }) {
         }
       }
     })();
-  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds])
+  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, reloadProofs])
   
   /**
    * Use web worker to load anti-sybil proof into context and session storage.
