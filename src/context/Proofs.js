@@ -4,7 +4,6 @@
  * provider relies on the user's signatures.
  */
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
 import Relayer from '../utils/relayer';
 import { onAddLeafProof } from '../utils/proofs';
@@ -22,24 +21,21 @@ const Proofs = createContext(null);
 const proofsWorker = new ProofsWorker();
 
 function ProofsProvider({ children }) {
-  const [uniquenessProof, setUniquenessProof] = useSessionStorage('uniqueness-proof', null);
+  const [uniquenessProof, setUniquenessProof] = useState('uniqueness-proof', null);
   const [loadingUniquenessProof, setLoadingUniquenessProof] = useState(false);
-  const [usResidencyProof, setUSResidencyProof] = useSessionStorage('us-residency-proof', null);
+  const [usResidencyProof, setUSResidencyProof] = useState('us-residency-proof', null);
   const [loadingUSResidencyProof, setLoadingUSResidencyProof] = useState(false);
-  const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useSessionStorage('medical-specialty-proof', null);
+  const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useState('medical-specialty-proof', null);
   const [loadingMedicalSpecialtyProof, setLoadingMedicalSpecialtyProof] = useState(false);
-  const [govIdFirstNameLastNameProof, setGovIdFirstNameLastNameProof] = useSessionStorage('gov-id-firstname-lastname-proof', null);
+  const [govIdFirstNameLastNameProof, setGovIdFirstNameLastNameProof] = useState('gov-id-firstname-lastname-proof', null);
   const [loadingGovIdFirstNameLastNameProof, setLoadingGovIdFirstNameLastNameProof] = useState(false);
-  const [kolpProof, setKOLPProof] = useSessionStorage('kolp', null);
+  const [kolpProof, setKOLPProof] = useState('kolp', null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
-
-  // TODO: !!! Re-load proofs if credentials change. Also, reload proofs after addLeaf.
-  // Maybe write a function "loadProofs" that can be called in these different places.
 
   async function loadProofs() {
     if (loadingProofMetadata || loadingCreds) return;
