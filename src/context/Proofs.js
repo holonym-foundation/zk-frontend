@@ -35,13 +35,90 @@ function ProofsProvider({ children }) {
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
-  const [reloadProofs, setReloadProofs] = useState({ data: false });
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
 
   // TODO: !!! Re-load proofs if credentials change. Also, reload proofs after addLeaf.
   // Maybe write a function "loadProofs" that can be called in these different places.
 
+  async function loadProofs() {
+    if (loadingProofMetadata || loadingCreds) return;
+    // Figure out which proofs the user doesn't already have. Then load them
+    // if the user has the credentials to do so.
+    const missingProofs = { 
+      'uniqueness': !uniquenessProof, 
+      'us-residency': !usResidencyProof, 
+      'medical-specialty': !medicalSpecialtyProof,
+      'gov-id-firstname-lastname': !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
+      'kolp': !kolpProof, // Not an SBT. Always needed
+    };
+    if (proofMetadata) {
+      for (const proofMetadataItem of proofMetadata) {
+        if (proofMetadataItem?.proofType === "us-residency") {
+          missingProofs['us-residency'] = false;
+        } else if (proofMetadataItem?.proofType === "uniqueness") {
+          missingProofs['uniqueness'] = false;
+        } else if (proofMetadataItem?.proofType === "medical-specialty") {
+          missingProofs['medical-specialty'] = false;
+        }
+      }
+    }
+    console.log('creds', sortedCreds)
+    if (!sortedCreds) {
+      return;
+    }
+    // Load proofs requiring gov ID creds
+    const govIdCreds = sortedCreds[serverAddress['idgov-v2']]
+    if (govIdCreds) {
+      if (!kolpProof && !loadingKOLPProof) {
+        setLoadingKOLPProof(true);
+        loadKOLPProof(
+          govIdCreds.creds.newSecret,
+          govIdCreds.creds.serializedAsNewPreimage,
+        )
+      }
+      if (missingProofs.uniqueness && !loadingUniquenessProof) {
+        setLoadingUniquenessProof(true);
+        loadUniquenessProof(
+          govIdCreds.creds.newSecret, 
+          govIdCreds.creds.serializedAsNewPreimage, 
+          account.address,
+          defaultActionId
+        );
+      }
+      if (missingProofs['us-residency'] && !loadingUSResidencyProof) {
+        setLoadingUSResidencyProof(true);
+        loadUSResidencyProof(
+          govIdCreds.creds.newSecret, 
+          govIdCreds.creds.serializedAsNewPreimage, 
+          account.address,
+        );
+      }
+      if (!govIdFirstNameLastNameProof && !loadingGovIdFirstNameLastNameProof) {
+        setLoadingGovIdFirstNameLastNameProof(true);
+        loadGovIdFirstNameLastNameProof(govIdCreds);
+      }
+    }
+    
+    // TODO: load kolpProof for phone number creds
+
+    // Load proofs requiring medical creds
+    const medicalCreds = sortedCreds[serverAddress['med']]
+    if (medicalCreds) {
+      if (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof) {
+        setLoadingMedicalSpecialtyProof(true);
+        loadMedicalSpecialtyProof(
+          medicalCreds.creds.newSecret, 
+          medicalCreds.creds.serializedAsNewPreimage, 
+          account.address,
+        );
+      }
+    }
+  }
+
+  /**
+   * @param creds An object from an issuer (not a sortedCreds object).
+   */
   async function addLeaf(creds) {
     const circomProof = await onAddLeafProof(creds);
     const result = await Relayer.mint(
@@ -54,127 +131,6 @@ function ProofsProvider({ children }) {
       }, 
     );
   }
-
-  useEffect(() => {
-    proofsWorker.onmessage = (event) => {
-      if (event?.data?.error) {
-        console.error(event.data.error);
-        // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
-        // user retrieved their credentials but something failed during the mint (add leaf) process.
-        if (event.data.error?.message === "Leaf is not in Merkle tree") {
-          if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
-            console.log('Adding leaf for idgov-v2 creds')
-            addLeaf(sortedCreds[serverAddress['idgov-v2']])
-              .then(() => {
-                // TODO: Fix: For some reason, calling setReloadProofs fails to trigger a reload
-                setReloadProofs({ data: true })
-                console.log('Added leaf for idgov-v2 creds')
-              })
-          } else if (event.data.proofType === "medical-specialty") {
-            console.log('Adding leaf for med creds')
-            addLeaf(sortedCreds[serverAddress['med']])
-              .then(() => {
-                // TODO: Fix: For some reason, calling setReloadProofs fails to trigger a reload
-                setReloadProofs({ data: true })
-                console.log('Added leaf for med creds')
-              })
-          }
-        }
-      } else if (event?.data?.proofType === "us-residency") {
-        setUSResidencyProof(event.data.proof);
-        setLoadingUSResidencyProof(false);
-      } else if (event?.data?.proofType === "uniqueness") {
-        setUniquenessProof(event.data.proof);
-        setLoadingUniquenessProof(false);
-      } else if (event?.data?.proofType === "medical-specialty") {
-        setMedicalSpecialtyProof(event.data.proof);
-        setLoadingMedicalSpecialtyProof(false);
-      } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
-        setGovIdFirstNameLastNameProof(event.data.proof);
-        setLoadingGovIdFirstNameLastNameProof(false);
-      } else if (event?.data?.proofType === "kolp") {
-        setKOLPProof(event.data.proof);
-        setLoadingKOLPProof(false);
-      }
-    };
-
-    if (loadingProofMetadata || loadingCreds) return;
-
-    // TODO: Use useQuery for this so that you only call this function once
-    (async () => {
-      // Figure out which proofs the user doesn't already have. Then load them
-      // if the user has the credentials to do so.
-      const missingProofs = { 
-        'uniqueness': !uniquenessProof, 
-        'us-residency': !usResidencyProof, 
-        'medical-specialty': !medicalSpecialtyProof,
-        'gov-id-firstname-lastname': !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
-        'kolp': !kolpProof, // Not an SBT. Always needed
-      };
-      if (proofMetadata) {
-        for (const proofMetadataItem of proofMetadata) {
-          if (proofMetadataItem?.proofType === "us-residency") {
-            missingProofs['us-residency'] = false;
-          } else if (proofMetadataItem?.proofType === "uniqueness") {
-            missingProofs['uniqueness'] = false;
-          } else if (proofMetadataItem?.proofType === "medical-specialty") {
-            missingProofs['medical-specialty'] = false;
-          }
-        }
-      }
-      console.log('creds', sortedCreds)
-      if (!sortedCreds) {
-        return;
-      }
-      // Load proofs requiring gov ID creds
-      const govIdCreds = sortedCreds[serverAddress['idgov-v2']]
-      if (govIdCreds) {
-        if (!kolpProof && !loadingKOLPProof) {
-          setLoadingKOLPProof(true);
-          loadKOLPProof(
-            govIdCreds.creds.newSecret,
-            govIdCreds.creds.serializedAsNewPreimage,
-          )
-        }
-        if (missingProofs.uniqueness && !loadingUniquenessProof) {
-          setLoadingUniquenessProof(true);
-          loadUniquenessProof(
-            govIdCreds.creds.newSecret, 
-            govIdCreds.creds.serializedAsNewPreimage, 
-            account.address,
-            defaultActionId
-          );
-        }
-        if (missingProofs['us-residency'] && !loadingUSResidencyProof) {
-          setLoadingUSResidencyProof(true);
-          loadUSResidencyProof(
-            govIdCreds.creds.newSecret, 
-            govIdCreds.creds.serializedAsNewPreimage, 
-            account.address,
-          );
-        }
-        if (!govIdFirstNameLastNameProof && !loadingGovIdFirstNameLastNameProof) {
-          setLoadingGovIdFirstNameLastNameProof(true);
-          loadGovIdFirstNameLastNameProof(govIdCreds);
-        }
-      }
-      
-      // TODO: load kolpProof for phone number creds
-
-      // Load proofs requiring medical creds
-      const medicalCreds = sortedCreds[serverAddress['med']]
-      if (medicalCreds) {
-        if (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof) {
-          setLoadingMedicalSpecialtyProof(true);
-          loadMedicalSpecialtyProof(
-            medicalCreds.creds.newSecret, 
-            medicalCreds.creds.serializedAsNewPreimage, 
-            account.address,
-          );
-        }
-      }
-    })();
-  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, reloadProofs])
   
   /**
    * Use web worker to load anti-sybil proof into context and session storage.
@@ -247,6 +203,45 @@ function ProofsProvider({ children }) {
       // TODO: Call the function directly
     }
   }
+
+  useEffect(() => {
+    proofsWorker.onmessage = async (event) => {
+      if (event?.data?.error) {
+        console.error(event.data.error);
+        // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
+        // user retrieved their credentials but something failed during the mint (add leaf) process.
+        if (event.data.error?.message === "Leaf is not in Merkle tree") {
+          if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
+            console.log('Adding leaf for idgov-v2 creds')
+            await addLeaf(sortedCreds[serverAddress['idgov-v2']])
+            console.log('Added leaf for idgov-v2 creds');
+          } else if (event.data.proofType === "medical-specialty") {
+            console.log('Adding leaf for med creds')
+            await addLeaf(sortedCreds[serverAddress['med']])
+            console.log('Added leaf for med creds');
+          }
+          // Reload proofs after adding leaf. The proof that erred should succeed now.
+          loadProofs();
+        }
+      } else if (event?.data?.proofType === "us-residency") {
+        setUSResidencyProof(event.data.proof);
+        setLoadingUSResidencyProof(false);
+      } else if (event?.data?.proofType === "uniqueness") {
+        setUniquenessProof(event.data.proof);
+        setLoadingUniquenessProof(false);
+      } else if (event?.data?.proofType === "medical-specialty") {
+        setMedicalSpecialtyProof(event.data.proof);
+        setLoadingMedicalSpecialtyProof(false);
+      } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
+        setGovIdFirstNameLastNameProof(event.data.proof);
+        setLoadingGovIdFirstNameLastNameProof(false);
+      } else if (event?.data?.proofType === "kolp") {
+        setKOLPProof(event.data.proof);
+        setLoadingKOLPProof(false);
+      }
+    };
+    loadProofs();
+  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds])
 
   return (
     <Proofs.Provider value={{
