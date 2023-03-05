@@ -10,10 +10,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
 import RoundedWindow from "./RoundedWindow";
-import { useHoloAuthSig } from "../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import { getCredentials, getProofMetadata } from "../utils/secrets";
 import { serverAddress } from '../constants';
+import { useCreds } from "../context/Creds";
+import { useProofMetadata } from "../context/ProofMetadata";
 
 const proofTypeToString = {
   uniqueness: "uniqueness",
@@ -67,14 +66,15 @@ const Register = () => {
   const [proofMetadataForSBT, setProofMetadataForSBT] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
-  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { sortedCreds, loadingCreds, reloadCreds, storeCreds } = useCreds();
+  const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
   // URL should include:
   // 1. credential type (e.g., "idgov")
   // 2. proof type (e.g., "uniqueness")
-  // 3. callback URL, must be base64 encoded (e.g., btoa("https://holonym.com"))
+  // 3. callback URL (e.g., "https://example.com/verify")
   useEffect(() => {
+    if (loadingCreds || loadingProofMetadata) return;
     (async () => {
       const credentialType = searchParams.get("credentialType");
       const proofType = searchParams.get("proofType");
@@ -112,15 +112,13 @@ const Register = () => {
         return;
       }
 
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
       const userHasCreds = sortedCreds?.[serverAddress[`${credentialType}-v2`]];
       setHasCreds(userHasCreds);
-      const proofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest);
       const proofMetadataForSBTTemp = proofMetadata?.filter(metadata => metadata.proofType === proofType);
       setProofMetadataForSBT(proofMetadataForSBTTemp);
       setLoading(false);
     })();
-  }, [])
+  }, [loadingCreds, sortedCreds, loadingProofMetadata, proofMetadata])
 
   async function handleClick() {
     const credentialType = searchParams.get("credentialType");

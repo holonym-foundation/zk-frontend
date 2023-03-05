@@ -4,15 +4,14 @@ import {
   encryptWithAES,
   setLocalUserCredentials,
   generateSecret,
-  getCredentials,
 } from "../../utils/secrets";
 import { 
   idServerUrl,
   issuerWhitelist,
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
-import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import { useCreds } from "../../context/Creds";
 import { createLeaf } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
@@ -21,8 +20,8 @@ const StoreCredentials = (props) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
-  const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const { reloadCreds } = useCreds();
 
   function storeJobID(retrievalEndpoint) {
     // TODO: check for sessionId and id-server veriff endpoint once we migrate to Veriff
@@ -85,7 +84,7 @@ const StoreCredentials = (props) => {
   async function addNewSecret(credsTemp) {
     console.log('store-credentials: adding new secret and new leaf')
     // Update the creds with the new secret
-    credsTemp.creds.newSecret = await generateSecret();
+    credsTemp.creds.newSecret = generateSecret();
     credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
     credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
     credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
@@ -119,7 +118,8 @@ const StoreCredentials = (props) => {
   async function mergeAndSetCreds(credsTemp) {
     // Merge new creds with old creds
     console.log('store-credentials: merging creds')
-    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
+    // const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
+    const sortedCreds = await reloadCreds() ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);

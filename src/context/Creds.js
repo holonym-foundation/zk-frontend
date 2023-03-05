@@ -21,23 +21,36 @@ function CredsProvider({ children }) {
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
+  async function loadCreds() {
+    setLoadingCreds(true);
+    try {
+      const sortedCredsTemp = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false)
+      setSortedCreds(sortedCredsTemp);
+      setLoadingCreds(false);
+      return sortedCredsTemp;
+    } catch (error) {
+      console.error(error);
+      setLoadingCreds(false);
+    }
+  }
+
   useEffect(() => {
     // TODO: Use useQuery for this so that you only call this function once
-    getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false)
-      .then((sortedCreds) => {
-        setSortedCreds(sortedCreds);
-        setLoadingCreds(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        setLoadingCreds(false);
-      })
+    loadCreds();
   }, []);
+
+  async function storeCreds(sortedCreds, kolpProof) {
+    const result = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, kolpProof);
+    await loadCreds();
+    return result;
+  }
 
   return (
     <CredsContext.Provider value={{
       sortedCreds,
       loadingCreds,
+      reloadCreds: loadCreds,
+      storeCreds,
     }}>
       {children}
     </CredsContext.Provider>

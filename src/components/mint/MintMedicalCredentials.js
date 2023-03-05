@@ -6,11 +6,9 @@ import MintButton from "./mint-button";
 import StoreCredentials from "./store-credentials";
 import StepSuccess from "./StepSuccess";
 import { medDAOIssuerOrigin, serverAddress } from "../../constants";
-import { getCredentials } from '../../utils/secrets';
 import MintContainer from "./MintContainer";
-import { useHoloAuthSig } from "../../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useProofs } from "../../context/Proofs";
+import { useCreds } from "../../context/Creds";
 
 const initialFormValues = {
   firstName: "",
@@ -29,18 +27,17 @@ const VerificationRequestForm = () => {
   const navigate = useNavigate();
   const [govIdCreds, setGovIdCreds] = useState(); 
   const [error, setError] = useState();
-  const { holoAuthSigDigest } = useHoloAuthSig();
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { govIdFirstNameLastNameProof } = useProofs();
+  const { sortedCreds, loadingCreds } = useCreds();
 
   useEffect(() => {
+    if (loadingCreds) return;
     (async () => {
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
       const creds = sortedCreds[serverAddress['idgov-v2']];
       setGovIdCreds(creds);
       console.log('govIdCreds', creds);
     })();
-  }, [])
+  }, [sortedCreds, loadingCreds])
 
   async function onSubmit(values, { setSubmitting }) {
     try {

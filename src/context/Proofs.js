@@ -7,11 +7,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { useAccount } from 'wagmi';
 import { serverAddress, defaultActionId } from '../constants';
-import { getCredentials } from "../utils/secrets";
 import { useHoloAuthSig } from './HoloAuthSig';
 import { useHoloKeyGenSig } from './HoloKeyGenSig';
 import { useProofMetadata } from './ProofMetadata';
 import ProofsWorker from "../web-workers/proofs.worker.js"; // Use worker in Webpack 4
+import { useCreds } from './Creds';
 
 const Proofs = createContext(null);
 
@@ -36,6 +36,7 @@ function ProofsProvider({ children }) {
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
+  const { sortedCreds, loadingCreds } = useCreds();
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
 
@@ -64,7 +65,7 @@ function ProofsProvider({ children }) {
       }
     };
 
-    if (loadingProofMetadata) return;
+    if (loadingProofMetadata || loadingCreds) return;
 
     // TODO: Use useQuery for this so that you only call this function once
     (async () => {
@@ -88,12 +89,6 @@ function ProofsProvider({ children }) {
           }
         }
       }
-      // NOTE: Calling getCredentials with restore=true was causing issues. If the user
-      // mints, and if this component renders at the same time that credentials are retrieved
-      // and confirmed in store-credentials, then this call to getCredentials could result
-      // in the newly (locally) stored creds to be overwritten by the old ones. So we set
-      // restore to false here.
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false);
       console.log('creds', sortedCreds)
       if (!sortedCreds) {
         return;
@@ -143,7 +138,7 @@ function ProofsProvider({ children }) {
         }
       }
     })();
-  }, [proofMetadata, loadingProofMetadata])
+  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds])
   
   /**
    * Use web worker to load anti-sybil proof into context and session storage.

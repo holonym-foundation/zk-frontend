@@ -55,7 +55,6 @@ const Proofs = () => {
     submitProofThenStoreMetadataQuery,
     proofSubmissionSuccess,
     error,
-    customError,
   } = useProofsState();
 
 	if (proofSubmissionSuccess) {
@@ -64,9 +63,6 @@ const Proofs = () => {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
 		}
 		return <Success title="Success" />;
-	}
-	if (customError) {
-		return <ErrorScreen>{customError}</ErrorScreen>;
 	}
 	return (
 		<RoundedWindow>

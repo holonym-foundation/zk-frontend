@@ -3,13 +3,10 @@ import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
-import { getCredentials } from '../../utils/secrets';
 import { 
   primeToCountryCode,
   serverAddress
 } from "../../constants";
-import { useHoloAuthSig } from "../../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useCreds } from "../../context/Creds";
 
 const credsFieldsToIgnore = [
@@ -80,10 +77,10 @@ export default function Profile(props) {
   const { sortedCreds, loadingCreds } = useCreds();
 
   useEffect(() => {
-    if (!sortedCreds) return;
+    if (loadingCreds) return;
     const formattedCreds = formatCreds(sortedCreds);
     setFormattedCreds(formattedCreds);
-  }, []);
+  }, [sortedCreds, loadingCreds]);
 
   return (
     <>
