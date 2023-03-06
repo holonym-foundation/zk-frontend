@@ -52,7 +52,7 @@ const Proofs = () => {
     proof,
     submissionConsent,
     setSubmissionConsent,
-    submitProofThenStoreMetadataQuery,
+    submitProofQuery,
     proofSubmissionSuccess,
     error,
   } = useProofsState();
@@ -117,7 +117,7 @@ const Proofs = () => {
 							className="x-button"
 							onClick={() => setSubmissionConsent(true)}
 						>
-							{submissionConsent && submitProofThenStoreMetadataQuery.isFetching
+							{submissionConsent && submitProofQuery.isFetching
 								? (
 										<div
 											style={{

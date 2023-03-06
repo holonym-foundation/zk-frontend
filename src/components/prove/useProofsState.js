@@ -88,26 +88,19 @@ const useProofsState = () => {
 		}
 	}, [uniquenessProof, usResidencyProof, medicalSpecialtyProof])
 
-	const submitProofThenStoreMetadataQuery = useQuery(
-		["submitProofThenStoreMetadata"],
+	const submitProofQuery = useQuery(
+		["submitProof"],
 		async () => {
-      const result = await Relayer.prove(
+      return await Relayer.prove(
         proof,
 				proofs[params.proofType].contractName,
         defaultChainToProveOn,
       );
-      await addProofMetadataItem(
-        result,
-        proof.inputs[1],
-				params.proofType,
-				params.actionId,
-      );
-      return result;
     },
 		{
 			enabled: !!(submissionConsent && sortedCreds && proof),
 			onSuccess: (result) => {
-        console.log('result from submitProofThenStoreMetadata')
+        console.log('result from submitProof')
         console.log(result)
 				if (result.error) {
 					console.log("error", result);
@@ -117,6 +110,12 @@ const useProofsState = () => {
             result?.error?.message,
           });
 				} else {
+					addProofMetadataItem(
+						result,
+						proof.inputs[1],
+						params.proofType,
+						params.actionId,
+					);
           setProofSubmissionSuccess(true);
         }
 			},
@@ -139,7 +138,7 @@ const useProofsState = () => {
     proof,
     submissionConsent,
     setSubmissionConsent,
-    submitProofThenStoreMetadataQuery,
+    submitProofQuery,
     proofSubmissionSuccess,
     error,
   }
