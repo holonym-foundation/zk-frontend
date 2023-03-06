@@ -67,6 +67,7 @@ function ProofsProvider({ children }) {
     const govIdCreds = sortedCreds[serverAddress['idgov-v2']]
     if (govIdCreds) {
       if (!kolpProof && !loadingKOLPProof) {
+        // KOLP proof can be generated from any type of creds
         setLoadingKOLPProof(true);
         loadKOLPProof(
           govIdCreds.creds.newSecret,
@@ -96,7 +97,18 @@ function ProofsProvider({ children }) {
       }
     }
     
-    // TODO: load kolpProof for phone number creds
+    // Load proofs requiring phone number creds
+    const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
+    if (phoneNumCreds) {
+      // Load KOLP proof using phone number creds in case user does not have idgov creds
+      if (!kolpProof && !loadingKOLPProof) {
+        setLoadingKOLPProof(true);
+        loadKOLPProof(
+          phoneNumCreds.creds.newSecret,
+          phoneNumCreds.creds.serializedAsNewPreimage,
+        )
+      }
+    }
 
     // Load proofs requiring medical creds
     const medicalCreds = sortedCreds[serverAddress['med']]
