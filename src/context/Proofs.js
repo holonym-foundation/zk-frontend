@@ -21,15 +21,15 @@ const Proofs = createContext(null);
 const proofsWorker = new ProofsWorker();
 
 function ProofsProvider({ children }) {
-  const [uniquenessProof, setUniquenessProof] = useState('uniqueness-proof', null);
+  const [uniquenessProof, setUniquenessProof] = useState(null);
   const [loadingUniquenessProof, setLoadingUniquenessProof] = useState(false);
-  const [usResidencyProof, setUSResidencyProof] = useState('us-residency-proof', null);
+  const [usResidencyProof, setUSResidencyProof] = useState(null);
   const [loadingUSResidencyProof, setLoadingUSResidencyProof] = useState(false);
-  const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useState('medical-specialty-proof', null);
+  const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useState(null);
   const [loadingMedicalSpecialtyProof, setLoadingMedicalSpecialtyProof] = useState(false);
-  const [govIdFirstNameLastNameProof, setGovIdFirstNameLastNameProof] = useState('gov-id-firstname-lastname-proof', null);
+  const [govIdFirstNameLastNameProof, setGovIdFirstNameLastNameProof] = useState(null);
   const [loadingGovIdFirstNameLastNameProof, setLoadingGovIdFirstNameLastNameProof] = useState(false);
-  const [kolpProof, setKOLPProof] = useState('kolp', null);
+  const [kolpProof, setKOLPProof] = useState(null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
