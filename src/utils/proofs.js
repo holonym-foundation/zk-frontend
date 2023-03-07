@@ -355,18 +355,16 @@ export async function proofOfResidency(
     mp.path,
     mp.indices,
   ];
+
+  console.log('!!! PoR proofArgs', args)
     
-  console.log("PROOF: us-residency: loading artifacts");
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
-  console.log("PROOF: us-residency: loaded artifacts");
 
-  console.log("PROOF: us-residency: computing witness");
   const { witness, output } = zokProvider.computeWitness(
     artifacts.proofOfResidency,
     args
   );
-  console.log("PROOF: us-residency: computed witness");
 
   console.log("PROOF: us-residency: generating proof");
   const proof = zokProvider.generateProof(

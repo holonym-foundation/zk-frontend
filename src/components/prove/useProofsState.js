@@ -27,10 +27,13 @@ const useProofsState = () => {
 	const { 
 		uniquenessProof,
 		loadUniquenessProof,
+		loadingUniquenessProof,
 		usResidencyProof,
 		loadUSResidencyProof,
+		loadingUSResidencyProof,
 		medicalSpecialtyProof,
-		loadMedicalSpecialtyProof
+		loadMedicalSpecialtyProof,
+		loadingMedicalSpecialtyProof,
 	} = useProofs();
 	const { proofMetadata, addProofMetadataItem } = useProofMetadata();
 	const accountReadyAddress = useMemo(
@@ -66,25 +69,35 @@ const useProofsState = () => {
 
 	useEffect(() => {
 		if (params.proofType === "us-residency") {
-			if (!usResidencyProof) {
+			if (!usResidencyProof && !loadingUSResidencyProof) {
 				loadUSResidencyProof(true);
 			} else {
 				setProof(usResidencyProof)
 			}
 		} else if (params.proofType === "uniqueness") {
-			if (!uniquenessProof) {
+			if (!uniquenessProof && !loadingUniquenessProof) {
 				loadUniquenessProof(true);
 			} else {
 				setProof(uniquenessProof)
 			}
 		} else if (params.proofType === "medical-specialty") {
-			if (!medicalSpecialtyProof) {
+			if (!medicalSpecialtyProof && !loadingMedicalSpecialtyProof) {
 				loadMedicalSpecialtyProof(true);
 			} else {
 				setProof(medicalSpecialtyProof)
 			}
 		}
-	}, [uniquenessProof, usResidencyProof, medicalSpecialtyProof])
+	}, 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	[
+		params,
+		uniquenessProof,
+		loadingUniquenessProof,
+		usResidencyProof,
+		loadingUSResidencyProof,
+		medicalSpecialtyProof,
+		loadingMedicalSpecialtyProof
+	])
 
 	const submitProofQuery = useQuery(
 		["submitProof"],

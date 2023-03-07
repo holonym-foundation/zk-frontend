@@ -353,14 +353,19 @@ function ProofsProvider({ children }) {
     <Proofs.Provider value={{
       uniquenessProof,
       loadUniquenessProof,
+      loadingUniquenessProof,
       usResidencyProof,
       loadUSResidencyProof,
+      loadingUSResidencyProof,
       medicalSpecialtyProof,
       loadMedicalSpecialtyProof,
+      loadingMedicalSpecialtyProof,
       govIdFirstNameLastNameProof,
       loadGovIdFirstNameLastNameProof,
+      loadingGovIdFirstNameLastNameProof,
       kolpProof,
       loadKOLPProof,
+      loadingKOLPProof,
     }}>
       {children}
     </Proofs.Provider>
