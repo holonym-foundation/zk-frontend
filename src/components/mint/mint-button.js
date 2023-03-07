@@ -11,8 +11,8 @@ const MintButton = ({ creds, onSuccess }) => {
     const [minting, setMinting] = useState();
     const [error, setError] = useState();
     const [readyToSendToServer, setReadyToSendToServer] = useState(false);
-    const { sortedCreds, loadingCreds, reloadCreds, storeCreds } = useCreds();
-    const { loadKOLPProof, kolpProof } = useProofs();
+    const { reloadCreds, storeCreds } = useCreds();
+    const { loadKOLPProof, kolpProof, loadProofs } = useProofs();
 
     async function sendCredsToServer() {
       const sortedCreds = await reloadCreds();
@@ -31,19 +31,19 @@ const MintButton = ({ creds, onSuccess }) => {
     }
 
     async function addLeaf() {
-        setMinting(true);
-        const circomProof = await onAddLeafProof(creds);
-        console.log("circom proooooof", circomProof);
-        const result = await Relayer.mint(
-          circomProof, 
-          async () => {
-            loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
-            setReadyToSendToServer(true);
-          }, 
-          () => {
-            setError('Error: An error occurred while minting.')
-          }
-        );
+      setMinting(true);
+      const circomProof = await onAddLeafProof(creds);
+      console.log("circom proooooof", circomProof);
+      const result = await Relayer.mint(
+        circomProof, 
+        async () => {
+          loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
+          setReadyToSendToServer(true);
+        }, 
+        () => {
+          setError('Error: An error occurred while minting.')
+        }
+      );
     }
 
     // Steps:
@@ -52,7 +52,10 @@ const MintButton = ({ creds, onSuccess }) => {
     useEffect(() => {
       if (!kolpProof || !readyToSendToServer) return;
       sendCredsToServer()
-        .then(onSuccess);
+        .then(() => {
+          onSuccess()
+          loadProofs(true); // force a reload of all proofs since a new leaf has been added
+        });
     }, [kolpProof, readyToSendToServer])
 
     return <div style={{ textAlign: "center" }}>

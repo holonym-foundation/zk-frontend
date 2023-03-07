@@ -51,7 +51,7 @@ function ProofsProvider({ children }) {
 
   async function loadProofs(forceReload = false) {
     if (loadingProofMetadata || loadingCreds) return;
-    console.log('loading proofs. forceReload:', forceReload)
+    console.log('Loading proofs. forceReload:', forceReload)
     // Figure out which proofs the user doesn't already have. Then load them
     // if the user has the credentials to do so.
     const missingProofs = { 
@@ -382,6 +382,7 @@ function ProofsProvider({ children }) {
       kolpProof,
       loadKOLPProof,
       loadingKOLPProof,
+      loadProofs, // load all proofs
     }}>
       {children}
     </Proofs.Provider>

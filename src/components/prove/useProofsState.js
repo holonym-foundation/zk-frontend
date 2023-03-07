@@ -6,14 +6,11 @@ import {
 } from "../../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
-import { useHoloAuthSig } from "../../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useProofs } from "../../context/Proofs";
 import { useProofMetadata } from "../../context/ProofMetadata";
 import { useCreds } from "../../context/Creds";
 import Relayer from "../../utils/relayer";
 
-const MINTING_ERROR_TYPE = "mint";
 const SUBMIT_PROOF = 'submitProof';
 
 const useProofsState = () => {
@@ -23,7 +20,7 @@ const useProofsState = () => {
 	const [submissionConsent, setSubmissionConsent] = useState(false);
   const [proofSubmissionSuccess, setProofSubmissionSuccess] = useState(false);
 	const { data: account } = useAccount();
-	const { sortedCreds, loadingCreds } = useCreds();
+	const { sortedCreds } = useCreds();
 	const { 
 		uniquenessProof,
 		loadUniquenessProof,
@@ -69,19 +66,28 @@ const useProofsState = () => {
 
 	useEffect(() => {
 		if (params.proofType === "us-residency") {
-			if (!usResidencyProof && !loadingUSResidencyProof) {
+			if (loadingUSResidencyProof) {
+				// Set proof to null if proof is loading. This handles the case where a proof has already
+				// been set in the state of this hook but proofs in context are being forced to reload.
+				// Force reloads of proofs occur after adding a leaf to the Merkle tree.
+				setProof(null);
+			} else if (!usResidencyProof) {
 				loadUSResidencyProof(true);
 			} else {
 				setProof(usResidencyProof)
 			}
 		} else if (params.proofType === "uniqueness") {
-			if (!uniquenessProof && !loadingUniquenessProof) {
+			if (loadingUniquenessProof) {
+				setProof(null);
+			} else if (!uniquenessProof) {
 				loadUniquenessProof(true);
 			} else {
 				setProof(uniquenessProof)
 			}
 		} else if (params.proofType === "medical-specialty") {
-			if (!medicalSpecialtyProof && !loadingMedicalSpecialtyProof) {
+			if (loadingMedicalSpecialtyProof) {
+				setProof(null);
+			} else if (!medicalSpecialtyProof) {
 				loadMedicalSpecialtyProof(true);
 			} else {
 				setProof(medicalSpecialtyProof)
