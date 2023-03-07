@@ -71,7 +71,7 @@ const useProofsState = () => {
 				// been set in the state of this hook but proofs in context are being forced to reload.
 				// Force reloads of proofs occur after adding a leaf to the Merkle tree.
 				setProof(null);
-			} else if (!usResidencyProof) {
+			} else if (!usResidencyProof && !alreadyHasSBT) {
 				loadUSResidencyProof(true);
 			} else {
 				setProof(usResidencyProof)
@@ -79,7 +79,7 @@ const useProofsState = () => {
 		} else if (params.proofType === "uniqueness") {
 			if (loadingUniquenessProof) {
 				setProof(null);
-			} else if (!uniquenessProof) {
+			} else if (!uniquenessProof && !alreadyHasSBT) {
 				loadUniquenessProof(true);
 			} else {
 				setProof(uniquenessProof)
@@ -87,7 +87,7 @@ const useProofsState = () => {
 		} else if (params.proofType === "medical-specialty") {
 			if (loadingMedicalSpecialtyProof) {
 				setProof(null);
-			} else if (!medicalSpecialtyProof) {
+			} else if (!medicalSpecialtyProof && !alreadyHasSBT) {
 				loadMedicalSpecialtyProof(true);
 			} else {
 				setProof(medicalSpecialtyProof)
