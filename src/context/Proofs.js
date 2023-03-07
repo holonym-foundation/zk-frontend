@@ -47,16 +47,16 @@ function ProofsProvider({ children }) {
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
 
-  async function loadProofs() {
+  async function loadProofs(forceReload = false) {
     if (loadingProofMetadata || loadingCreds) return;
     // Figure out which proofs the user doesn't already have. Then load them
     // if the user has the credentials to do so.
     const missingProofs = { 
-      'uniqueness': !uniquenessProof, 
-      'us-residency': !usResidencyProof, 
-      'medical-specialty': !medicalSpecialtyProof,
-      'gov-id-firstname-lastname': !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
-      'kolp': !kolpProof, // Not an SBT. Always needed
+      'uniqueness': forceReload ? true : !uniquenessProof,
+      'us-residency': forceReload ? true : !usResidencyProof, 
+      'medical-specialty': forceReload ? true : !medicalSpecialtyProof,
+      'gov-id-firstname-lastname': forceReload ? true : !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
+      'kolp': forceReload ? true : !kolpProof, // Not an SBT. Always needed
     };
     if (proofMetadata) {
       for (const proofMetadataItem of proofMetadata) {
@@ -72,7 +72,7 @@ function ProofsProvider({ children }) {
     console.log('creds', sortedCreds)
     if (!sortedCreds) return;
 
-    if (!kolpProof && !loadingKOLPProof) {
+    if (!missingProofs.kolp && !loadingKOLPProof) {
       setLoadingKOLPProof(true);
       loadKOLPProof();
     }
@@ -84,7 +84,7 @@ function ProofsProvider({ children }) {
       setLoadingUSResidencyProof(true);
       loadUSResidencyProof();
     }
-    if (!govIdFirstNameLastNameProof && !loadingGovIdFirstNameLastNameProof) {
+    if (!missingProofs['gov-id-firstname-lastname'] && !loadingGovIdFirstNameLastNameProof) {
       setLoadingGovIdFirstNameLastNameProof(true);
       loadGovIdFirstNameLastNameProof();
     }
@@ -327,7 +327,7 @@ function ProofsProvider({ children }) {
             console.log('Added leaf for med creds');
           }
           // Reload proofs after adding leaf. The proof that erred should succeed now.
-          loadProofs();
+          loadProofs(true);
         }
       } else if (event?.data?.proofType === "us-residency") {
         setUSResidencyProof(event.data.proof);
