@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useAccount, useQuery } from "wagmi";
 import {
 	defaultChainToProveOn,
+	serverAddress,
 } from "../../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
@@ -41,6 +42,13 @@ const useProofsState = () => {
 		() => proofMetadata.filter((item) => item.proofType === params.proofType).length > 0,
 		[proofMetadata, params.proofType]
 	);
+	const hasNecessaryCreds = useMemo(() => {
+		if (params.proofType === "us-residency" || params.proofType === "uniqueness") {
+			return !!sortedCreds?.[serverAddress['idgov-v2']]?.creds;
+		} else if (params.proofType === "medical-specialty") {
+			return !!sortedCreds?.[serverAddress['med']]?.creds;
+		}
+	}, [sortedCreds])
 
 	const proofs = {
 		"us-residency": {
@@ -151,7 +159,7 @@ const useProofsState = () => {
     proofs,
 		alreadyHasSBT,
     accountReadyAddress,
-    sortedCreds,
+    hasNecessaryCreds,
     proof,
     submissionConsent,
     setSubmissionConsent,

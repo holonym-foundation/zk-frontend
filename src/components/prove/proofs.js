@@ -48,7 +48,7 @@ const Proofs = () => {
     proofs,
 		alreadyHasSBT,
     accountReadyAddress,
-    sortedCreds,
+    hasNecessaryCreds,
     proof,
     submissionConsent,
     setSubmissionConsent,
@@ -83,7 +83,7 @@ const Proofs = () => {
 					<p>
 						You already have a soul-bound token (SBT) for this attribute.
 					</p>
-				) : sortedCreds ? (
+				) : hasNecessaryCreds ? (
 					<p>
 						This will give you,
 						<code> {truncateAddress(accountReadyAddress)} </code>, a{" "}
@@ -101,8 +101,9 @@ const Proofs = () => {
 					</p>
 				) : (
 					<p>
-						&nbsp;Note: You cannot generate proofs before minting a holo. If
+						&nbsp;Note: You cannot generate this proof without the necessary credentials. If
 						you have not already, please{" "}
+						{/* TODO: Get specific. Tell the user which credentials they need to get/mint/verify. */}
 						<a href="/mint" style={{ color: "#fdc094" }}>
 							mint your holo
 						</a>
@@ -111,7 +112,7 @@ const Proofs = () => {
 				)}
 				<div className="spacer-med" />
 				<br />
-				{!alreadyHasSBT && sortedCreds ? (
+				{!alreadyHasSBT && hasNecessaryCreds ? (
 					proof ? (
 						<button
 							className="x-button"
