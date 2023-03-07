@@ -4,8 +4,7 @@ import "../../vouched-css-customization.css";
 import "react-phone-number-input/style.css";
 import loadVouched from "../../load-vouched";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
-import MintButton from "./mint-button";
-import StoreCredentials from "./store-credentials";
+import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import MintContainer from "./MintContainer";
@@ -75,20 +74,19 @@ const ConfirmRetry = ({ setRetry }) => (
 function useMintGovernmentIDState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
-  const [creds, setCreds] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
+  // TODO: Check sessionId once we switch to Veriff
   const [retry, setRetry] = useState(!!localStorage.getItem('jobID'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
   // NOTE: Phone# should be removed once we switch to Veriff
-  const steps = ["Phone#", "Verify", "Store", "Mint"];
+  const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!phoneNumber && !store && !creds) return "Phone#";
-    if (phoneNumber && !store && !creds) return "Verify";
-    if (store && !creds) return "Store";
-    if (creds) return "Mint";
-  }, [phoneNumber, store, creds]);
+    if (!phoneNumber && !store) return "Phone#";
+    if (phoneNumber && !store) return "Verify";
+    if (store) return "Finalize";
+  }, [phoneNumber, store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
@@ -97,8 +95,6 @@ function useMintGovernmentIDState() {
   return {
     success,
     setSuccess,
-    creds,
-    setCreds,
     retry,
     setRetry,
     currentIdx,
@@ -115,8 +111,6 @@ const MintGovernmentID = () => {
   const {
     success,
     setSuccess,
-    creds,
-    setCreds,
     retry,
     setRetry,
     currentIdx,
@@ -137,16 +131,14 @@ const MintGovernmentID = () => {
     <MintContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
-      ) : retry && currentStep !== "Store" && currentStep !== "Mint" ? (
+      ) : retry && currentStep !== "Finalize" ? (
         <ConfirmRetry setRetry={setRetry} />
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (
         <StepIDV phoneNumber={phoneNumber} />
-      ) : currentStep === "Store" ? (
-        <StoreCredentials onCredsStored={setCreds} />
-      ) : (
-        <MintButton onSuccess={() => setSuccess(true)} creds={creds} />
+      ) : ( // currentStep === "Finalize" ? (
+        <FinalStep onSuccess={() => setSuccess(true)} />
       )}
     </MintContainer>
   );

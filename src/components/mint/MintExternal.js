@@ -1,25 +1,20 @@
 /**
  * Component for minting credentials from external issuers.
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import MintButton from "./mint-button";
-import StoreCredentials from "./store-credentials";
+import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import MintContainer from "./MintContainer";
 
 function useMintExternalState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
-  const [creds, setCreds] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const steps = ["Store", "Mint"];
+  const steps = ["Verify", "Finalize"];
 
-  const currentStep = useMemo(() => {
-    if (store && !creds) return "Store";
-    if (creds) return "Mint";
-  }, [store, creds]);
+  const currentStep = "Finalize";
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
@@ -28,8 +23,6 @@ function useMintExternalState() {
   return {
     success,
     setSuccess,
-    creds,
-    setCreds,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -41,8 +34,6 @@ const MintExternal = () => {
   const {
     success,
     setSuccess,
-    creds,
-    setCreds,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -53,10 +44,8 @@ const MintExternal = () => {
     <MintContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
-      ) : currentStep === "Store" ? (
-        <StoreCredentials onCredsStored={setCreds} />
       ) : (
-        <MintButton onSuccess={() => setSuccess(true)} creds={creds} />
+        <FinalStep onSuccess={() => setSuccess(true)} />
       )}
     </MintContainer>
   );

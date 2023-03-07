@@ -5,8 +5,7 @@ import "react-phone-number-input/style.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
-import MintButton from "./mint-button";
-import StoreCredentials from "./store-credentials";
+import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import MintContainer from "./MintContainer";
 
@@ -16,19 +15,17 @@ const allowedCredTypes = ["idgov", "phone"];
 function useMintPhoneNumberState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
-  const [creds, setCreds] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
   const [code, setCode] = useState("");
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const steps = ["Phone#", "Verify", "Store", "Mint"];
+  const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!phoneNumber && !store && !creds) return "Phone#";
-    if (phoneNumber && !store && !creds) return "Verify";
-    if (store && !creds) return "Store";
-    if (creds) return "Mint";
-  }, [phoneNumber, store, creds]);
+    if (!phoneNumber && !store) return "Phone#";
+    if (phoneNumber && !store) return "Verify";
+    if (store) return "Finalize";
+  }, [phoneNumber, store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
@@ -37,8 +34,6 @@ function useMintPhoneNumberState() {
   return {
     success,
     setSuccess,
-    creds,
-    setCreds,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -55,8 +50,6 @@ const MintPhoneNumber = () => {
   const {
     success,
     setSuccess,
-    creds,
-    setCreds,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -105,10 +98,8 @@ const MintPhoneNumber = () => {
             className="text-field"
           ></input>
         </>
-      ) : currentStep === "Store" ? (
-        <StoreCredentials onCredsStored={setCreds} />
-      ) : (
-        <MintButton onSuccess={() => setSuccess(true)} creds={creds} />
+      ) : ( // currentStep === "Finalize" ? (
+        <FinalStep onSuccess={() => setSuccess(true)} />
       )}
     </MintContainer>
   );

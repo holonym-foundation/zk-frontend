@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import MintButton from "./mint-button";
-import StoreCredentials from "./store-credentials";
+import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { medDAOIssuerOrigin, serverAddress } from "../../constants";
 import MintContainer from "./MintContainer";
@@ -162,17 +161,15 @@ const VerificationRequestForm = () => {
 function useMintMedicalCredentials() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
-  const [creds, setCreds] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
 
   // TODO: Do we need phone # for this?
-  const steps = ["Verify", "Store", "Mint"];
+  const steps = ["Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!store && !creds) return "Verify";
-    if (store && !creds) return "Store";
-    if (creds) return "Mint";
-  }, [store, creds]);
+    if (!store) return "Verify";
+    if (store) return "Finalize";
+  }, [store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
@@ -181,8 +178,6 @@ function useMintMedicalCredentials() {
   return {
     success,
     setSuccess,
-    creds,
-    setCreds,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -195,8 +190,6 @@ const MintMedicalCredentials = () => {
   const {
     success,
     setSuccess,
-    creds,
-    setCreds,
     currentIdx,
     setCurrentIdx,
     steps,
@@ -215,10 +208,8 @@ const MintMedicalCredentials = () => {
         <StepSuccess />
       ) : currentStep === "Verify" ? (
         <VerificationRequestForm />
-      ) : currentStep === "Store" ? (
-        <StoreCredentials onCredsStored={setCreds} />
-      ) : (
-        <MintButton onSuccess={() => setSuccess(true)} creds={creds} />
+      ) : ( // currentStep === "Finalize" ? (
+        <FinalStep onSuccess={() => setSuccess(true)} />
       )}
     </MintContainer>
   );
