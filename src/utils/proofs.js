@@ -355,8 +355,6 @@ export async function proofOfResidency(
     mp.path,
     mp.indices,
   ];
-
-  console.log('!!! PoR proofArgs', args)
     
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
