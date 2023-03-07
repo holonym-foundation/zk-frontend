@@ -3,7 +3,8 @@
  * NOTE: This provider must be a child of the signature providers because this
  * provider relies on the user's signatures.
  */
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { isEqual } from 'lodash';
 import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import Relayer from '../utils/relayer';
@@ -44,19 +45,21 @@ function ProofsProvider({ children }) {
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
+  const prevSortedCredsRef = useRef(sortedCreds);
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
 
   async function loadProofs(forceReload = false) {
     if (loadingProofMetadata || loadingCreds) return;
+    console.log('loading proofs. forceReload:', forceReload)
     // Figure out which proofs the user doesn't already have. Then load them
     // if the user has the credentials to do so.
     const missingProofs = { 
-      'uniqueness': forceReload ? true : !uniquenessProof,
-      'us-residency': forceReload ? true : !usResidencyProof, 
-      'medical-specialty': forceReload ? true : !medicalSpecialtyProof,
-      'gov-id-firstname-lastname': forceReload ? true : !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
-      'kolp': forceReload ? true : !kolpProof, // Not an SBT. Always needed
+      'uniqueness': !uniquenessProof,
+      'us-residency': !usResidencyProof, 
+      'medical-specialty': !medicalSpecialtyProof,
+      'gov-id-firstname-lastname': !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
+      'kolp': !kolpProof, // Not an SBT. Always needed
     };
     if (proofMetadata) {
       for (const proofMetadataItem of proofMetadata) {
@@ -72,25 +75,25 @@ function ProofsProvider({ children }) {
     console.log('creds', sortedCreds)
     if (!sortedCreds) return;
 
-    if (!missingProofs.kolp && !loadingKOLPProof) {
+    if (forceReload || (missingProofs.kolp && !loadingKOLPProof)) {
       setLoadingKOLPProof(true);
-      loadKOLPProof();
+      loadKOLPProof(false, forceReload);
     }
-    if (missingProofs.uniqueness && !loadingUniquenessProof) {
+    if (forceReload || (missingProofs.uniqueness && !loadingUniquenessProof)) {
       setLoadingUniquenessProof(true);
-      loadUniquenessProof();
+      loadUniquenessProof(false, forceReload);
     }
-    if (missingProofs['us-residency'] && !loadingUSResidencyProof) {
+    if (forceReload || (missingProofs['us-residency'] && !loadingUSResidencyProof)) {
       setLoadingUSResidencyProof(true);
-      loadUSResidencyProof();
+      loadUSResidencyProof(false, forceReload);
     }
-    if (!missingProofs['gov-id-firstname-lastname'] && !loadingGovIdFirstNameLastNameProof) {
+    if (forceReload || (missingProofs['gov-id-firstname-lastname'] && !loadingGovIdFirstNameLastNameProof)) {
       setLoadingGovIdFirstNameLastNameProof(true);
-      loadGovIdFirstNameLastNameProof();
+      loadGovIdFirstNameLastNameProof(false, forceReload);
     }
-    if (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof) {
+    if (forceReload || (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof)) {
       setLoadingMedicalSpecialtyProof(true);
-      loadMedicalSpecialtyProof();
+      loadMedicalSpecialtyProof(false, forceReload);
     }
   }
 
@@ -99,13 +102,13 @@ function ProofsProvider({ children }) {
    */
   async function addLeaf(creds) {
     const circomProof = await onAddLeafProof(creds);
-    const result = await Relayer.mint(
+    await Relayer.mint(
       circomProof, 
       async () => {
         // loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
         // We assume KOLPProof has been loaded.
         // TODO: Handle case where KOLPProof has not been loaded
-        storeCreds(sortedCreds, kolpProof);
+        if (sortedCreds && kolpProof) storeCreds(sortedCreds, kolpProof);
       }, 
     );
   }
@@ -115,7 +118,7 @@ function ProofsProvider({ children }) {
    * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
    * running in main thread could result in the page freezing while proof is generating.
    */
-  async function loadUniquenessProof(runInMainThread = false) {
+  async function loadUniquenessProof(runInMainThread = false, forceReload = false) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     if (!govIdCreds) return;
     if (!runInMainThread && proofsWorker) {
@@ -124,7 +127,8 @@ function ProofsProvider({ children }) {
         newSecret: govIdCreds.creds.newSecret, 
         serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
         userAddress: account.address,
-        actionId: defaultActionId
+        actionId: defaultActionId,
+        forceReload
       });
     } 
     if (runInMainThread) {
@@ -169,7 +173,7 @@ function ProofsProvider({ children }) {
    * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
    * running in main thread could result in the page freezing while proof is generating.
    */
-  async function loadUSResidencyProof(runInMainThread = false) {
+  async function loadUSResidencyProof(runInMainThread = false, forceReload = false) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     if (!govIdCreds) return;
     if (proofsWorker && !runInMainThread) {
@@ -178,6 +182,7 @@ function ProofsProvider({ children }) {
         newSecret: govIdCreds.creds.newSecret, 
         serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
         userAddress: account.address,
+        forceReload
       });
     } 
     if (runInMainThread) {
@@ -223,7 +228,7 @@ function ProofsProvider({ children }) {
    * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
    * running in main thread could result in the page freezing while proof is generating.
    */
-  async function loadMedicalSpecialtyProof(runInMainThread = false) {
+  async function loadMedicalSpecialtyProof(runInMainThread = false, forceReload = false) {
     const medicalCreds = sortedCreds?.[serverAddress['med']]
     if (!medicalCreds) return;
     if (proofsWorker && !runInMainThread) {
@@ -232,6 +237,7 @@ function ProofsProvider({ children }) {
         newSecret: medicalCreds.creds.newSecret, 
         serializedAsNewPreimage: medicalCreds.creds.serializedAsNewPreimage, 
         userAddress: account.address,
+        forceReload
       });
     }
     if (runInMainThread) {
@@ -272,40 +278,45 @@ function ProofsProvider({ children }) {
     }
   }
 
-  function loadGovIdFirstNameLastNameProof() {
+  function loadGovIdFirstNameLastNameProof(runInMainThread = false, forceReload = false) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     if (!govIdCreds) return;
-    if (proofsWorker) {
+    if (proofsWorker && !runInMainThread) {
       proofsWorker.postMessage({ 
         message: "gov-id-firstname-lastname", 
-        govIdCreds, 
+        govIdCreds,
+        forceReload,
       });
-    } else {
+    }
+    if (runInMainThread) {
       // TODO: Call the function directly
     }
   }
 
-  function loadKOLPProof() {
+  function loadKOLPProof(runInMainThread = false, forceReload = false) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
     if (!govIdCreds && !phoneNumCreds) return;
-    if (proofsWorker) {
+    if (proofsWorker && !runInMainThread) {
       // We just need one KOLP proof. The proof is only used by storage server to verify that
       // the request is in fact from a Holonym user.
       if (govIdCreds?.creds?.serializedAsNewPreimage) {
         proofsWorker.postMessage({ 
           message: "kolp", 
           newSecret: govIdCreds.creds.newSecret, 
-          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage,
+          forceReload,
         });
       } else if (phoneNumCreds?.creds?.serializedAsNewPreimage) {
         proofsWorker.postMessage({ 
           message: "kolp", 
           newSecret: govIdCreds.creds.newSecret, 
-          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage,
+          forceReload,
         });
       }
-    } else {
+    } 
+    if (runInMainThread) {
       // TODO: Call the function directly
     }
   }
@@ -318,13 +329,13 @@ function ProofsProvider({ children }) {
         // user retrieved their credentials but something failed during the mint (add leaf) process.
         if (event.data.error?.message === "Leaf is not in Merkle tree") {
           if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
-            console.log('Adding leaf for idgov-v2 creds')
+            console.log('Attempting to add leaf for idgov-v2 creds')
             await addLeaf(sortedCreds[serverAddress['idgov-v2']])
-            console.log('Added leaf for idgov-v2 creds');
+            console.log('Attempted to add leaf for idgov-v2 creds');
           } else if (event.data.proofType === "medical-specialty") {
-            console.log('Adding leaf for med creds')
+            console.log('Attempting to add leaf for med creds')
             await addLeaf(sortedCreds[serverAddress['med']])
-            console.log('Added leaf for med creds');
+            console.log('Attempted to add leaf for med creds');
           }
           // Reload proofs after adding leaf. The proof that erred should succeed now.
           loadProofs(true);
@@ -346,7 +357,12 @@ function ProofsProvider({ children }) {
         setLoadingKOLPProof(false);
       }
     };
-    loadProofs();
+    // Force a reload of the proofs if sortedCreds has actually changed. Otherwise just load
+    // proofs that haven't yet been loaded.
+    const forceReload = !isEqual(sortedCreds, prevSortedCredsRef.current)
+    loadProofs(forceReload);
+
+    prevSortedCredsRef.current = sortedCreds;
   }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds])
 
   return (

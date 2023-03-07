@@ -124,7 +124,7 @@ onmessage = async (event) => {
 	await waitForArtifacts('poseidonTwoInputs', 10 * 1000)
   if (event.data && event.data.message === "uniqueness") {
 		try {
-			if (generatingProof['uniqueness']) return;
+			if (generatingProof['uniqueness'] && !event.data.forceReload) return;
 			generatingProof['uniqueness'] = true;
 			console.log('[Worker] Generating uniqueness proof. Received params:', event.data)
 			const antiSybilProof = await loadAntiSybil(
@@ -141,7 +141,7 @@ onmessage = async (event) => {
 		}
   } else if (event.data && event.data.message === "us-residency") {
 		try {
-			if (generatingProof['us-residency']) return;	
+			if (generatingProof['us-residency'] && !event.data.forceReload) return;	
 			generatingProof['us-residency'] = true;
 			console.log('[Worker] Generating us-residency proof. Params:', event.data)
 			const proofOfResidencyProof = await loadPoR(
@@ -157,7 +157,7 @@ onmessage = async (event) => {
 		}
   } else if (event.data && event.data.message === "medical-specialty") {
 		try {
-			if (generatingProof['medical-specialty']) return;	
+			if (generatingProof['medical-specialty'] && !event.data.forceReload) return;	
 			generatingProof['medical-specialty'] = true;
 			console.log('[Worker] Generating medical-specialty proof. Params:', event.data)
 			const medicalSpecialtyProof = await loadMedicalSpecialtyProof(
@@ -174,7 +174,7 @@ onmessage = async (event) => {
 		}
   } else if (event.data && event.data.message === "gov-id-firstname-lastname") {
 		try {
-			if (generatingProof['gov-id-firstname-lastname']) return;	
+			if (generatingProof['gov-id-firstname-lastname'] && !event.data.forceReload) return;	
 			generatingProof['gov-id-firstname-lastname'] = true;
 			console.log('[Worker] Generating gov-id-firstname-lastname proof. Params:', event.data)
       const govIdFirstNameLastNameProof = await proveGovIdFirstNameLastName(event.data.govIdCreds);
@@ -187,7 +187,7 @@ onmessage = async (event) => {
 		}
   } else if (event.data && event.data.message === "kolp") {
 		try {
-			if (generatingProof['kolp']) return;	
+			if (generatingProof['kolp'] && !event.data.forceReload) return;	
 			generatingProof['kolp'] = true;
 			console.log('[Worker] Generating kolp proof. Params:', event.data)
 			const kolpProof = await proveKnowledgeOfLeafPreimage(
