@@ -4,9 +4,19 @@
  * provider relies on the user's signatures.
  */
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import Relayer from '../utils/relayer';
-import { onAddLeafProof } from '../utils/proofs';
+import {
+  onAddLeafProof,
+	waitForArtifacts,
+	poseidonTwoInputs,
+	proofOfResidency,
+	antiSybil,
+	proofOfMedicalSpecialty,
+	proveGovIdFirstNameLastName,
+	proveKnowledgeOfLeafPreimage
+} from "../utils/proofs";
 import { serverAddress, defaultActionId } from '../constants';
 import { useProofMetadata } from './ProofMetadata';
 import ProofsWorker from "../web-workers/proofs.worker.js"; // Use worker in Webpack 4
@@ -60,67 +70,27 @@ function ProofsProvider({ children }) {
       }
     }
     console.log('creds', sortedCreds)
-    if (!sortedCreds) {
-      return;
-    }
-    // Load proofs requiring gov ID creds
-    const govIdCreds = sortedCreds[serverAddress['idgov-v2']]
-    if (govIdCreds) {
-      if (!kolpProof && !loadingKOLPProof) {
-        // KOLP proof can be generated from any type of creds
-        setLoadingKOLPProof(true);
-        loadKOLPProof(
-          govIdCreds.creds.newSecret,
-          govIdCreds.creds.serializedAsNewPreimage,
-        )
-      }
-      if (missingProofs.uniqueness && !loadingUniquenessProof) {
-        setLoadingUniquenessProof(true);
-        loadUniquenessProof(
-          govIdCreds.creds.newSecret, 
-          govIdCreds.creds.serializedAsNewPreimage, 
-          account.address,
-          defaultActionId
-        );
-      }
-      if (missingProofs['us-residency'] && !loadingUSResidencyProof) {
-        setLoadingUSResidencyProof(true);
-        loadUSResidencyProof(
-          govIdCreds.creds.newSecret, 
-          govIdCreds.creds.serializedAsNewPreimage, 
-          account.address,
-        );
-      }
-      if (!govIdFirstNameLastNameProof && !loadingGovIdFirstNameLastNameProof) {
-        setLoadingGovIdFirstNameLastNameProof(true);
-        loadGovIdFirstNameLastNameProof(govIdCreds);
-      }
-    }
-    
-    // Load proofs requiring phone number creds
-    const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
-    if (phoneNumCreds) {
-      // Load KOLP proof using phone number creds in case user does not have idgov creds
-      if (!kolpProof && !loadingKOLPProof) {
-        setLoadingKOLPProof(true);
-        loadKOLPProof(
-          phoneNumCreds.creds.newSecret,
-          phoneNumCreds.creds.serializedAsNewPreimage,
-        )
-      }
-    }
+    if (!sortedCreds) return;
 
-    // Load proofs requiring medical creds
-    const medicalCreds = sortedCreds[serverAddress['med']]
-    if (medicalCreds) {
-      if (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof) {
-        setLoadingMedicalSpecialtyProof(true);
-        loadMedicalSpecialtyProof(
-          medicalCreds.creds.newSecret, 
-          medicalCreds.creds.serializedAsNewPreimage, 
-          account.address,
-        );
-      }
+    if (!kolpProof && !loadingKOLPProof) {
+      setLoadingKOLPProof(true);
+      loadKOLPProof();
+    }
+    if (missingProofs.uniqueness && !loadingUniquenessProof) {
+      setLoadingUniquenessProof(true);
+      loadUniquenessProof();
+    }
+    if (missingProofs['us-residency'] && !loadingUSResidencyProof) {
+      setLoadingUSResidencyProof(true);
+      loadUSResidencyProof();
+    }
+    if (!govIdFirstNameLastNameProof && !loadingGovIdFirstNameLastNameProof) {
+      setLoadingGovIdFirstNameLastNameProof(true);
+      loadGovIdFirstNameLastNameProof();
+    }
+    if (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof) {
+      setLoadingMedicalSpecialtyProof(true);
+      loadMedicalSpecialtyProof();
     }
   }
 
@@ -141,55 +111,170 @@ function ProofsProvider({ children }) {
   }
   
   /**
-   * Use web worker to load anti-sybil proof into context and session storage.
+   * Load anti-sybil proof into context.
+   * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
+   * running in main thread could result in the page freezing while proof is generating.
    */
-  function loadUniquenessProof(newSecret, serializedAsNewPreimage, userAddress, actionId) {
-    if (proofsWorker) {
-      proofsWorker.postMessage({ 
+  async function loadUniquenessProof(runInMainThread = false) {
+    const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
+    if (!govIdCreds) return;
+    if (!runInMainThread && proofsWorker) {
+      proofsWorker.postMessage({
         message: "uniqueness", 
-        newSecret, 
-        serializedAsNewPreimage, 
-        userAddress, 
-        actionId
+        newSecret: govIdCreds.creds.newSecret, 
+        serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+        userAddress: account.address,
+        actionId: defaultActionId
       });
-    } else {
-      // TODO: Call the function directly
+    } 
+    if (runInMainThread) {
+      try {
+        // TODO: Move this prep code into the `antiSybil` function
+        console.log("actionId", defaultActionId);
+        const footprint = await poseidonTwoInputs([
+          defaultActionId,
+          ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+        ]);
+        const [
+          issuer_,
+          // eslint-disable-next-line no-unused-vars
+          _,
+          countryCode_,
+          nameCitySubdivisionZipStreetHash_,
+          completedAt_,
+          scope,
+        ] = govIdCreds.creds.serializedAsNewPreimage;
+        const proof = await antiSybil(
+          account.address,
+          issuer_,
+          defaultActionId,
+          footprint,
+          countryCode_,
+          nameCitySubdivisionZipStreetHash_,
+          completedAt_,
+          scope,
+          govIdCreds.creds.newSecret,
+        );
+        setUniquenessProof(proof);
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingUniquenessProof(false);
+      }
     }
   }
 
   /**
-   * Use web worker to load proof of residency proof into context and session storage.
+   * Load proof of residency proof into context.
+   * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
+   * running in main thread could result in the page freezing while proof is generating.
    */
-  function loadUSResidencyProof(newSecret, serializedAsNewPreimage, userAddress) {
-    if (proofsWorker) {
+  async function loadUSResidencyProof(runInMainThread = false) {
+    const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
+    if (!govIdCreds) return;
+    if (proofsWorker && !runInMainThread) {
       proofsWorker.postMessage({ 
         message: "us-residency", 
-        newSecret, 
-        serializedAsNewPreimage, 
-        userAddress
+        newSecret: govIdCreds.creds.newSecret, 
+        serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+        userAddress: account.address,
       });
-    } else {
-      // TODO: Call the function directly
+    } 
+    if (runInMainThread) {
+      try {
+        // TODO: Move this prep code into the `proofOfResidency` function
+        const salt =
+          "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
+        const footprint = await poseidonTwoInputs([
+          salt,
+          ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+        ]);
+        const [
+          issuer_,
+          // eslint-disable-next-line no-unused-vars
+          _,
+          countryCode_,
+          nameCitySubdivisionZipStreetHash_,
+          completedAt_,
+          scope,
+        ] = govIdCreds.creds.serializedAsNewPreimage;
+        const proof = await proofOfResidency(
+          account.address,
+          issuer_,
+          salt,
+          footprint,
+          countryCode_,
+          nameCitySubdivisionZipStreetHash_,
+          completedAt_,
+          scope,
+          govIdCreds.creds.newSecret,
+        );
+        setUSResidencyProof(proof);
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingUSResidencyProof(false);
+      }
     }
   }
 
   /**
-   * Use web worker to load medical specialty proof into context and session storage.
+   * Load medical specialty proof into context.
+   * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
+   * running in main thread could result in the page freezing while proof is generating.
    */
-  function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
-    if (proofsWorker) {
-      proofsWorker.postMessage({ 
+  async function loadMedicalSpecialtyProof(runInMainThread = false) {
+    const medicalCreds = sortedCreds?.[serverAddress['med']]
+    if (!medicalCreds) return;
+    if (proofsWorker && !runInMainThread) {
+      proofsWorker.postMessage({
         message: "medical-specialty", 
-        newSecret, 
-        serializedAsNewPreimage, 
-        userAddress
+        newSecret: medicalCreds.creds.newSecret, 
+        serializedAsNewPreimage: medicalCreds.creds.serializedAsNewPreimage, 
+        userAddress: account.address,
       });
-    } else {
-      // TODO: Call the function directly
+    }
+    if (runInMainThread) {
+      try {
+        // TODO: Move this prep code into the `proofOfMedicalSpecialty` function
+        const salt =
+          "320192098064396900878317978103229380372186908085604549333845693700248653086"; // this number is poseidon("MedicalSpecialty")
+        const hashbrowns = await poseidonTwoInputs([
+          salt,
+          ethers.BigNumber.from(medicalCreds.creds.newSecret).toString(),
+        ]);
+        const [
+          issuer_,
+          // eslint-disable-next-line no-unused-vars
+          _,
+          specialty,
+          npiNumLicenseMedCredsHash,
+          iat,
+          scope,
+        ] = medicalCreds.creds.serializedAsNewPreimage;
+        const proof = await proofOfMedicalSpecialty(
+          account.address,
+          issuer_,
+          salt,
+          hashbrowns,
+          specialty,
+          npiNumLicenseMedCredsHash,
+          iat,
+          scope,
+          medicalCreds.creds.newSecret,
+        );
+        setMedicalSpecialtyProof(proof);
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingMedicalSpecialtyProof(false);
+      }
     }
   }
 
-  function loadGovIdFirstNameLastNameProof(govIdCreds) {
+  function loadGovIdFirstNameLastNameProof() {
+    const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
+    if (!govIdCreds) return;
     if (proofsWorker) {
       proofsWorker.postMessage({ 
         message: "gov-id-firstname-lastname", 
@@ -200,13 +285,26 @@ function ProofsProvider({ children }) {
     }
   }
 
-  function loadKOLPProof(newSecret, serializedAsNewPreimage) {
+  function loadKOLPProof() {
+    const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
+    const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
+    if (!govIdCreds && !phoneNumCreds) return;
     if (proofsWorker) {
-      proofsWorker.postMessage({ 
-        message: "kolp", 
-        newSecret, 
-        serializedAsNewPreimage, 
-      });
+      // We just need one KOLP proof. The proof is only used by storage server to verify that
+      // the request is in fact from a Holonym user.
+      if (govIdCreds?.creds?.serializedAsNewPreimage) {
+        proofsWorker.postMessage({ 
+          message: "kolp", 
+          newSecret: govIdCreds.creds.newSecret, 
+          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+        });
+      } else if (phoneNumCreds?.creds?.serializedAsNewPreimage) {
+        proofsWorker.postMessage({ 
+          message: "kolp", 
+          newSecret: govIdCreds.creds.newSecret, 
+          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+        });
+      }
     } else {
       // TODO: Call the function directly
     }

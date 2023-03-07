@@ -23,8 +23,6 @@ const useProofsState = () => {
 	const [submissionConsent, setSubmissionConsent] = useState(false);
   const [proofSubmissionSuccess, setProofSubmissionSuccess] = useState(false);
 	const { data: account } = useAccount();
-	const { holoAuthSigDigest } = useHoloAuthSig();
-	const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 	const { sortedCreds, loadingCreds } = useCreds();
 	const { 
 		uniquenessProof,
@@ -69,19 +67,19 @@ const useProofsState = () => {
 	useEffect(() => {
 		if (params.proofType === "us-residency") {
 			if (!usResidencyProof) {
-				// loadUSResidencyProof();
+				loadUSResidencyProof(true);
 			} else {
 				setProof(usResidencyProof)
 			}
 		} else if (params.proofType === "uniqueness") {
 			if (!uniquenessProof) {
-				// loadUniquenessProof();
+				loadUniquenessProof(true);
 			} else {
 				setProof(uniquenessProof)
 			}
 		} else if (params.proofType === "medical-specialty") {
 			if (!medicalSpecialtyProof) {
-				// loadMedicalSpecialtyProof();
+				loadMedicalSpecialtyProof(true);
 			} else {
 				setProof(medicalSpecialtyProof)
 			}

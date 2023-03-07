@@ -30,6 +30,7 @@ async function loadAntiSybil(
 	address,
 	actionId,
 ) {
+	// TODO: Move this prep code into the `antiSybil` function
 	console.log("actionId", actionId);
 	const footprint = await poseidonTwoInputs([
 		actionId,
@@ -58,6 +59,7 @@ async function loadAntiSybil(
 }
 
 async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
+	// TODO: Move this prep code into the `proofOfResidency` function
 	const salt =
 		"18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
 	const footprint = await poseidonTwoInputs([
@@ -87,6 +89,7 @@ async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
 }
 
 async function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
+	// TODO: Move this prep code into the `proofOfMedicalSpecialty` function
 	const salt =
 		"320192098064396900878317978103229380372186908085604549333845693700248653086"; // this number is poseidon("MedicalSpecialty")
 	const hashbrowns = await poseidonTwoInputs([
