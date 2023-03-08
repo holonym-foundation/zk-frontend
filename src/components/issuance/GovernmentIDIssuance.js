@@ -5,11 +5,10 @@ import "react-phone-number-input/style.css";
 import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
 import { useQuery } from '@tanstack/react-query'
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
-import MintButton from "./mint-button";
-import StoreCredentials from "./store-credentials";
+import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
-import MintContainer from "./MintContainer";
+import VerificationContainer from "./IssuanceContainer";
 
 const StepIDV = ({ phoneNumber }) => {
   const navigate = useNavigate();
@@ -90,7 +89,7 @@ const ConfirmRetry = ({ setRetry }) => (
           // TODO: Change URL when we migrate to Veriff
           const retrievalEndpoint = `${idServerUrl}/v2/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
           const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-          window.location.href=(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+          window.location.href=(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
         }}
       >
         Yes
@@ -99,23 +98,22 @@ const ConfirmRetry = ({ setRetry }) => (
   </div>
 )
 
-function useMintGovernmentIDState() {
+function useGovernmentIDIssuanceState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
-  const [creds, setCreds] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
+  // TODO: Check sessionId once we switch to Veriff
   const [retry, setRetry] = useState(!!localStorage.getItem('jobID'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
   // NOTE: Phone# should be removed once we switch to Veriff
-  const steps = ["Phone#", "Verify", "Store", "Mint"];
+  const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!phoneNumber && !store && !creds) return "Phone#";
-    if (phoneNumber && !store && !creds) return "Verify";
-    if (store && !creds) return "Store";
-    if (creds) return "Mint";
-  }, [phoneNumber, store, creds]);
+    if (!phoneNumber && !store) return "Phone#";
+    if (phoneNumber && !store) return "Verify";
+    if (store) return "Finalize";
+  }, [phoneNumber, store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
@@ -124,8 +122,6 @@ function useMintGovernmentIDState() {
   return {
     success,
     setSuccess,
-    creds,
-    setCreds,
     retry,
     setRetry,
     currentIdx,
@@ -137,13 +133,11 @@ function useMintGovernmentIDState() {
   };
 }
 
-const MintGovernmentID = () => {
+const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
   const {
     success,
     setSuccess,
-    creds,
-    setCreds,
     retry,
     setRetry,
     currentIdx,
@@ -152,7 +146,7 @@ const MintGovernmentID = () => {
     currentStep,
     phoneNumber,
     setPhoneNumber,
-  } = useMintGovernmentIDState();
+  } = useGovernmentIDIssuanceState();
 
   useEffect(() => {
     if (success && window.localStorage.getItem('register-credentialType')) {
@@ -161,22 +155,20 @@ const MintGovernmentID = () => {
   }, [success]);
 
   return (
-    <MintContainer steps={steps} currentIdx={currentIdx}>
+    <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
-      ) : retry && currentStep !== "Store" && currentStep !== "Mint" ? (
+      ) : retry && currentStep !== "Finalize" ? (
         <ConfirmRetry setRetry={setRetry} />
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (
         <StepIDV phoneNumber={phoneNumber} />
-      ) : currentStep === "Store" ? (
-        <StoreCredentials onCredsStored={setCreds} />
-      ) : (
-        <MintButton onSuccess={() => setSuccess(true)} creds={creds} />
+      ) : ( // currentStep === "Finalize" ? (
+        <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </MintContainer>
+    </VerificationContainer>
   );
 };
 
-export default MintGovernmentID;
+export default GovernmentIDIssuance;

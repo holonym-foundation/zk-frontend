@@ -1,19 +1,18 @@
 /**
  * Users can be directed to this page from an external site when the owner
- * of the external site wants the user to mint a certain type of credential
+ * of the external site wants the user to verify a certain type of credential
  * and generate a certain proof.
  * 
  * This component displays a loading screen while it parses the URL and
- * then redirects the user to the appropriate page (e.g., mint government ID).
+ * then redirects the user to the appropriate page (e.g., verify government ID).
  */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
 import RoundedWindow from "./RoundedWindow";
-import { useHoloAuthSig } from "../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import { getCredentials, getProofMetadata } from "../utils/secrets";
 import { serverAddress } from '../constants';
+import { useCreds } from "../context/Creds";
+import { useProofMetadata } from "../context/ProofMetadata";
 
 const proofTypeToString = {
   uniqueness: "uniqueness",
@@ -67,14 +66,15 @@ const Register = () => {
   const [proofMetadataForSBT, setProofMetadataForSBT] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
-  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { sortedCreds, loadingCreds, reloadCreds, storeCreds } = useCreds();
+  const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
   // URL should include:
   // 1. credential type (e.g., "idgov")
   // 2. proof type (e.g., "uniqueness")
-  // 3. callback URL, must be base64 encoded (e.g., btoa("https://holonym.com"))
+  // 3. callback URL (e.g., "https://example.com/verify")
   useEffect(() => {
+    if (loadingCreds || loadingProofMetadata) return;
     (async () => {
       const credentialType = searchParams.get("credentialType");
       const proofType = searchParams.get("proofType");
@@ -106,21 +106,19 @@ const Register = () => {
         return;
       }
       try {
-        setHostname(new URL(window.atob(callback)).hostname)
+        setHostname(new URL(callback).hostname)
       } catch (err) {
         setError("Invalid callback URL. Callback is invalid.");
         return;
       }
 
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
       const userHasCreds = sortedCreds?.[serverAddress[`${credentialType}-v2`]];
       setHasCreds(userHasCreds);
-      const proofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest);
       const proofMetadataForSBTTemp = proofMetadata?.filter(metadata => metadata.proofType === proofType);
       setProofMetadataForSBT(proofMetadataForSBTTemp);
       setLoading(false);
     })();
-  }, [])
+  }, [loadingCreds, sortedCreds, loadingProofMetadata, proofMetadata])
 
   async function handleClick() {
     const credentialType = searchParams.get("credentialType");
@@ -134,7 +132,7 @@ const Register = () => {
       window.localStorage.removeItem('register-proofType');
       window.localStorage.removeItem('register-callback');
       // Send user to the callback URL. Include address that owns the proof SBT
-      window.location.href = `${window.atob(callback)}?address=${proofMetadataForSBT[0].address}`;
+      window.location.href = `${callback}?address=${proofMetadataForSBT[0].address}`;
       return;
     }
     else if (hasCreds) {
@@ -143,8 +141,8 @@ const Register = () => {
       navigate(`/prove/${proofType}`)
     }
     else {
-      // Send user to minting page for credentialType
-      navigate(`/mint/${credentialType}`)
+      // Send user to verification page for credentialType
+      navigate(`/issuance/${credentialType}`)
     }
 
     window.localStorage.setItem('register-credentialType', credentialType);

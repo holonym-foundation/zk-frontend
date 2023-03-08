@@ -1,28 +1,36 @@
-import { useState, useEffect } from "react";
+/**
+ * This component finishes the verification flow for any credential type.
+ * It does 2 things (while displaying a loading message):
+ * 1. Stores the new credentials.
+ * 2. Adds to the Merkle tree a leaf containing the new credentials.
+ */
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   encryptWithAES,
   setLocalUserCredentials,
   generateSecret,
-  getCredentials,
 } from "../../utils/secrets";
 import { 
   idServerUrl,
   issuerWhitelist,
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
-import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
-import { createLeaf } from "../../utils/proofs";
+import { useCreds } from "../../context/Creds";
+import { useProofs } from "../../context/Proofs";
+import Relayer from "../../utils/relayer";
+import { createLeaf, onAddLeafProof } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-const StoreCredentials = (props) => {
+function useStoreCredentialsState({ setCredsForAddLeaf }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState();
+  const [status, setStatus] = useState('loading');
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
-  const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const { reloadCreds } = useCreds();
 
   function storeJobID(retrievalEndpoint) {
     // TODO: check for sessionId and id-server veriff endpoint once we migrate to Veriff
@@ -85,7 +93,7 @@ const StoreCredentials = (props) => {
   async function addNewSecret(credsTemp) {
     console.log('store-credentials: adding new secret and new leaf')
     // Update the creds with the new secret
-    credsTemp.creds.newSecret = await generateSecret();
+    credsTemp.creds.newSecret = generateSecret();
     credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
     credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
     credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
@@ -119,7 +127,8 @@ const StoreCredentials = (props) => {
   async function mergeAndSetCreds(credsTemp) {
     // Merge new creds with old creds
     console.log('store-credentials: merging creds')
-    const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
+    // const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
+    const sortedCreds = await reloadCreds() ?? {};
     const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);
@@ -133,7 +142,8 @@ const StoreCredentials = (props) => {
     // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
     window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
     setLocalUserCredentials(encryptedCredentialsAES);
-    if (props.onCredsStored) props.onCredsStored(sortedCreds[credsTemp.creds.issuerAddress]);
+    setCredsForAddLeaf(sortedCreds[credsTemp.creds.issuerAddress]);
+    setStatus('success');
   }
   
   // Steps:
@@ -158,15 +168,103 @@ const StoreCredentials = (props) => {
       } catch (err) {
         console.error(err);
         setError(`Error loading credentials: ${err.message}`);
+        setStatus('error');
       }
-    })()
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  return {
+    declinedToStoreCreds,
+    error,
+    status,
+  }
+}
+
+function useAddLeafState({ onSuccess }) {
+  const [error, setError] = useState();
+  const [credsForAddLeaf, setCredsForAddLeaf] = useState();
+  const [readyToSendToServer, setReadyToSendToServer] = useState(false);
+  const { reloadCreds, storeCreds } = useCreds();
+  const { loadKOLPProof, kolpProof, loadProofs } = useProofs();
+
+  async function sendCredsToServer() {
+    const sortedCredsTemp = await reloadCreds();
+    const success = await storeCreds(sortedCredsTemp, kolpProof);
+    if (!success) {
+      setError('Error: Could not send credentials to server.')
+    } else {
+      // Remove plaintext credentials from local storage now that they've been backed up
+      for (const key of Object.keys(window.localStorage)) {
+        if (key.startsWith('holoPlaintextCreds')) {
+          console.log('removing', key, 'from local storage')
+          window.localStorage.removeItem(key);
+        }
+      }
+    }
+  }
+
+  async function addLeaf() {
+    const circomProof = await onAddLeafProof(credsForAddLeaf);
+    console.log("circom proooooof", circomProof);
+    await Relayer.addLeaf(
+      circomProof, 
+      async () => {
+        loadKOLPProof(credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
+        setReadyToSendToServer(true);
+      }, 
+      () => {
+        setError('Error: An error occurred while adding leaf to Merkle tree.')
+      }
+    );
+  }
+
+  // Steps:
+  // 1. Generate addLeaf proof and call relayer addLeaf endpoint
+  // 2. Generate KOLP proof using creds in newly added leaf, send to server, and call onSuccess
+
+  useEffect(() => {
+    if (!credsForAddLeaf) return;
+    addLeaf();
+  }, [credsForAddLeaf])
+
+  useEffect(() => {
+    if (!kolpProof || !readyToSendToServer) return;
+    sendCredsToServer()
+      .then(() => {
+        onSuccess()
+        console.log('!!! Sent creds to server. Now suggesting a reload of all proofs')
+        loadProofs(true); // force a reload of all proofs since a new leaf has been added
+      });
+  }, [kolpProof, readyToSendToServer])
+  
+  return {
+    error,
+    setCredsForAddLeaf
+  };
+}
+
+const FinalStep = ({ onSuccess }) => {
+  const { error: addLeafError, setCredsForAddLeaf } = useAddLeafState({ onSuccess });
+  const { 
+    declinedToStoreCreds, 
+    error: storeCredsError, 
+    status: storeCredsStatus 
+  } = useStoreCredentialsState({ setCredsForAddLeaf });
+  const error = useMemo(
+    () => addLeafError ?? storeCredsError, 
+    [addLeafError, storeCredsError]
+  );
+  const loadingMessage = useMemo(() => {
+    if (storeCredsStatus === 'loading') return 'Loading credentials';
+    if (storeCredsStatus === 'success') return 'Adding leaf to Merkle tree';
+  }, [storeCredsStatus])
 
   return (
     <>
       {declinedToStoreCreds ? (
         <>
-          <h3>Minting aborted</h3>
+          <h3>Verification finalization aborted</h3>
           <p>Made a mistake? Please open a ticket in the{" "}
             <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
               #support-tickets
@@ -174,41 +272,47 @@ const StoreCredentials = (props) => {
             channel in the Holonym Discord with a description of your situation.
           </p>
         </>
+      ) : error ? (
+        <>
+          <p style={{ color: "#f00", fontSize: "1.1rem" }}>{error}</p>
+          {error && (
+            <p>Please open a ticket in the{" "}
+              <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
+                #support-tickets
+              </a>{" "}
+              channel in the Holonym Discord with a description of the error.
+            </p>
+          )}
+        </>
       ) : (
         <>
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}>
-          <h3 style={{ textAlign: "center", paddingRight:"10px"}}>Loading credentials</h3>
-          <ThreeDots 
-            height="20" 
-            width="40" 
-            radius="2"
-            color="#FFFFFF" 
-            ariaLabel="three-dots-loading"
-            wrapperStyle={{marginBottom:"-20px"}}
-            wrapperClassName=""
-            visible={true}
-            />
-
-        </div>
-        <p>Please sign the new messages in your wallet.</p>
-        <p>Loading credentials could take a few seconds.</p>
-        <p style={{ color: "#f00", fontSize: "1.1rem" }}>{error}</p>
-        {error && (
-          <p>Please open a ticket in the{" "}
-            <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
-              #support-tickets
-            </a>{" "}
-            channel in the Holonym Discord with a description of the error.
-          </p>
-        )}
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}>
+            <h3 style={{ textAlign: "center", paddingRight:"10px"}}>{loadingMessage}</h3>
+            <ThreeDots 
+              height="20" 
+              width="40" 
+              radius="2"
+              color="#FFFFFF" 
+              ariaLabel="three-dots-loading"
+              wrapperStyle={{marginBottom:"-20px"}}
+              wrapperClassName=""
+              visible={true}
+              />
+          </div>
+          {storeCredsStatus === 'loading' && (
+            <>
+              {/* <p>Please sign the new messages in your wallet.</p> */}
+              <p>Loading credentials could take a few seconds.</p>
+            </>
+          )}
         </>
       )}
     </>
   );
 };
 
-export default StoreCredentials;
+export default FinalStep;

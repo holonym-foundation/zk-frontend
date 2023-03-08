@@ -48,14 +48,13 @@ const Proofs = () => {
     proofs,
 		alreadyHasSBT,
     accountReadyAddress,
-    sortedCreds,
+    hasNecessaryCreds,
     proof,
     submissionConsent,
     setSubmissionConsent,
-    submitProofThenStoreMetadataQuery,
+    submitProofQuery,
     proofSubmissionSuccess,
     error,
-    customError,
   } = useProofsState();
 
 	if (proofSubmissionSuccess) {
@@ -64,9 +63,6 @@ const Proofs = () => {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
 		}
 		return <Success title="Success" />;
-	}
-	if (customError) {
-		return <ErrorScreen>{customError}</ErrorScreen>;
 	}
 	return (
 		<RoundedWindow>
@@ -87,7 +83,7 @@ const Proofs = () => {
 					<p>
 						You already have a soul-bound token (SBT) for this attribute.
 					</p>
-				) : sortedCreds ? (
+				) : hasNecessaryCreds ? (
 					<p>
 						This will give you,
 						<code> {truncateAddress(accountReadyAddress)} </code>, a{" "}
@@ -105,23 +101,24 @@ const Proofs = () => {
 					</p>
 				) : (
 					<p>
-						&nbsp;Note: You cannot generate proofs before minting a holo. If
+						&nbsp;Note: You cannot generate this proof without the necessary credentials. If
 						you have not already, please{" "}
-						<a href="/mint" style={{ color: "#fdc094" }}>
-							mint your holo
+						{/* TODO: Get specific. Tell the user which credentials they need to get/verify. */}
+						<a href="/issuance" style={{ color: "#fdc094" }}>
+							verify yourself
 						</a>
 						.
 					</p>
 				)}
 				<div className="spacer-med" />
 				<br />
-				{!alreadyHasSBT && sortedCreds ? (
+				{!alreadyHasSBT && hasNecessaryCreds ? (
 					proof ? (
 						<button
 							className="x-button"
 							onClick={() => setSubmissionConsent(true)}
 						>
-							{submissionConsent && submitProofThenStoreMetadataQuery.isFetching
+							{submissionConsent && submitProofQuery.isFetching
 								? (
 										<div
 											style={{

@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
 import { InfoButton } from "../info-button";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
+import { useProofMetadata } from "../../context/ProofMetadata";
 
-const ProveButton = ({ onClick, text}) => (
+const ProveButton = ({ onClick, text }) => (
   <button onClick={onClick} className="profile-prove-button">
     {text}
   </button>
@@ -28,13 +30,38 @@ const ProofRow = ({ proofTitle, infoText, address, onClickProve, buttonText }) =
   </>
 )
 
-export default function PublicInfoCard({ proofMetadata, loading }) {
+function populateProofMetadataDisplayDataAndRestructure(proofMetadata) {
+  // TODO: Once we submit proofs to multiple chains, we should sort by chain too
+  const proofMetadataObj = {}
+  for (const metadataItem of proofMetadata) {
+    if (metadataItem.proofType === 'uniqueness') {
+      metadataItem.displayName = 'Unique Person'
+      // metadataItem.fieldValue = `for action ${metadataItem.actionId}`
+      metadataItem.fieldValue = 'Yes'
+    }
+    else if (metadataItem.proofType === 'us-residency') {
+      metadataItem.displayName = 'US Resident'
+      metadataItem.fieldValue = 'Yes'
+    }
+    proofMetadataObj[metadataItem.proofType] = metadataItem;
+  }
+  return proofMetadataObj;
+}
+
+export default function PublicInfoCard() {
   const navigate = useNavigate();
+  const { proofMetadata, loadingProofMetadata } = useProofMetadata();
+  const [formattedProofMetadata, setFormattedProofMetadata] = useState();
+
+  useEffect(() => {
+    const formattedData = populateProofMetadataDisplayDataAndRestructure(proofMetadata)
+    setFormattedProofMetadata(formattedData)
+  }, [proofMetadata])
 
   return (
     <>
       <div className="profile-info-card public-info">
-        {loading ? (
+        {loadingProofMetadata && !formattedProofMetadata ? (
           <Oval
             // height={100}
             // width={100}
@@ -56,7 +83,7 @@ export default function PublicInfoCard({ proofMetadata, loading }) {
           <>
             <div className="card-header">
               <h2 className="card-header-title">Soulbound Tokens</h2>
-              <p>When you generate a proof, you can mint a soulbound token that records the proven fact.</p>
+              <p>When you generate a proof, you can get a soulbound token that records the proven fact.</p>
             </div>
             <ColoredHorizontalRule />
             <div className="card-content">
@@ -66,14 +93,14 @@ export default function PublicInfoCard({ proofMetadata, loading }) {
                 <ProofRow
                   proofTitle="Unique Person"
                   infoText={`This shows whether you have publicly claimed a "Unique person" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
-                  address={proofMetadata?.['uniqueness']?.address}
+                  address={formattedProofMetadata?.['uniqueness']?.address}
                   onClickProve={() => navigate('/prove/uniqueness')}
                   buttonText="Prove uniqueness"
                 />
                 <ProofRow
                   proofTitle="US Resident"
                   infoText={`This shows whether you've publicly claimed a US residency SBT at a certain address`}
-                  address={proofMetadata?.['us-residency']?.address}
+                  address={formattedProofMetadata?.['us-residency']?.address}
                   onClickProve={() => navigate('/prove/us-residency')}
                   buttonText="Prove US residency"
                 />
