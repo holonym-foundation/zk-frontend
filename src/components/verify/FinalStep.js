@@ -207,14 +207,14 @@ function useAddLeafState({ onSuccess }) {
   async function addLeaf() {
     const circomProof = await onAddLeafProof(credsForAddLeaf);
     console.log("circom proooooof", circomProof);
-    await Relayer.mint(
+    await Relayer.addLeaf(
       circomProof, 
       async () => {
         loadKOLPProof(credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
       }, 
       () => {
-        setError('Error: An error occurred while minting.')
+        setError('Error: An error occurred while adding leaf to Merkle tree.')
       }
     );
   }
@@ -264,7 +264,7 @@ const FinalStep = ({ onSuccess }) => {
     <>
       {declinedToStoreCreds ? (
         <>
-          <h3>Minting aborted</h3>
+          <h3>Verification finalization aborted</h3>
           <p>Made a mistake? Please open a ticket in the{" "}
             <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
               #support-tickets

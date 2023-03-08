@@ -3,7 +3,7 @@ import "react-phone-number-input/style.css";
 import RoundedWindow from "../RoundedWindow";
 import Progress from "../atoms/progress-bar";
 
-const MintContainer = ({ steps, currentIdx, children }) => {
+const VerificationContainer = ({ steps, currentIdx, children }) => {
   return (
     <RoundedWindow>
       <div className="spacer-medium" />
@@ -26,4 +26,4 @@ const MintContainer = ({ steps, currentIdx, children }) => {
   );
 };
 
-export default MintContainer;
+export default VerificationContainer;

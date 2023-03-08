@@ -7,7 +7,7 @@ import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
-import MintContainer from "./MintContainer";
+import VerificationContainer from "./VerificationContainer";
 
 const StepIDV = ({ phoneNumber }) => {
   useEffect(() => {
@@ -62,7 +62,7 @@ const ConfirmRetry = ({ setRetry }) => (
           // TODO: Change URL when we migrate to Veriff
           const retrievalEndpoint = `${idServerUrl}/v2/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
           const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-          window.location.href=(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+          window.location.href=(`/verify/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
         }}
       >
         Yes
@@ -71,7 +71,7 @@ const ConfirmRetry = ({ setRetry }) => (
   </div>
 )
 
-function useMintGovernmentIDState() {
+function useVerifyGovernmentIDState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
@@ -106,7 +106,7 @@ function useMintGovernmentIDState() {
   };
 }
 
-const MintGovernmentID = () => {
+const VerifyGovernmentID = () => {
   const navigate = useNavigate();
   const {
     success,
@@ -119,7 +119,7 @@ const MintGovernmentID = () => {
     currentStep,
     phoneNumber,
     setPhoneNumber,
-  } = useMintGovernmentIDState();
+  } = useVerifyGovernmentIDState();
 
   useEffect(() => {
     if (success && window.localStorage.getItem('register-credentialType')) {
@@ -128,7 +128,7 @@ const MintGovernmentID = () => {
   }, [success]);
 
   return (
-    <MintContainer steps={steps} currentIdx={currentIdx}>
+    <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
       ) : retry && currentStep !== "Finalize" ? (
@@ -140,8 +140,8 @@ const MintGovernmentID = () => {
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </MintContainer>
+    </VerificationContainer>
   );
 };
 
-export default MintGovernmentID;
+export default VerifyGovernmentID;

@@ -12,21 +12,21 @@ import questionImg from "../../img/question.png";
 const opts = [
     { 
         name: "Phone Number", 
-        url: "/mint/phone", 
+        url: "/verify/phone", 
         image: phoneImg, 
         description: "This adds a phone number to your Holo if it's a real number / not a burner. It lets you to prove you're not a bot, for Sybil resistance.", 
         disabled: false 
     },
     { 
         name: "ID + Phone Number", 
-        url: "/mint/idgov", 
+        url: "/verify/idgov", 
         image: idImg, 
         description: "This verifies your government ID. You can prove you're not a bot for Sybil resistance. You can prove facts about your age, jurisdiction, and KYC/AML checks", 
         disabled: false 
     },
     {
         name: "Medical Credentials", 
-        url: "/mint/med", 
+        url: "/verify/med", 
         image: stethoscopeImg, 
         description: "This adds medical credentials to your Holo. It lets you prove that you are a doctor and what specialty you are in.", 
         disabled: false 
@@ -45,7 +45,7 @@ const opts = [
     }
 ];
 
-const MintOption = (props) => {
+const VerificationOption = (props) => {
     const navigate = useNavigate();
 
     return <button onClick={() => {
@@ -66,24 +66,24 @@ const MintOption = (props) => {
             </button>
 }
 
-const MintOptions = () => {
+const VerificationOptions = () => {
     return <RoundedWindow>
                 <div className="x-wrapper small-center" style={{height: "95%", width:"80%"}}>
                 <h1>Choose your private credentials</h1>
-                <h5 className="h5">to add to your Holo. If you don't have a Holo, this will mint it for you.</h5> 
+                <h5 className="h5">to add to your Holo.</h5> 
                     {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                     <InfoButton
                         type="proofMenu"
                         text={`Anonymity is provided by the anonymity set, a.k.a. Privacy Pool. If we wanted to spy and you only waited a minute, we could see you verified at a certain time and that some wallet submitted a proof a minute later. We could then guess you were that wallet. But if you waited a whole week, a lot of people have also will have registered, so we can't tell it's you. Everyone's verification would be pooled together, so we would only know the prover was one person in the whole pool. Whether you wait a second, a day, or year depends on how much you want to stay anonymous to Holonym Foundation. If you trust us not to track you, you can prove now...`}
                     /> */}
-                <div className="mint-options" style={{
+                <div className="verification-options" style={{
                     // display:"flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "space-around", flexDirection: "column"
                     }}>
-                        {opts.map(opt=><MintOption {...opt} />)}
+                        {opts.map(opt=><VerificationOption {...opt} />)}
                 </div>
                 {/* TODO: add buttons for future credential types such as accredited investor status */}
                 {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
             </div>
     </RoundedWindow>
 }
-export default MintOptions;
+export default VerificationOptions;

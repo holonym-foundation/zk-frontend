@@ -114,7 +114,7 @@ function ProofsProvider({ children }) {
    */
   async function addLeaf(creds) {
     const circomProof = await onAddLeafProof(creds);
-    await Relayer.mint(
+    await Relayer.addLeaf(
       circomProof, 
       async () => {
         // loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
@@ -338,7 +338,7 @@ function ProofsProvider({ children }) {
       if (event?.data?.error) {
         console.error(event.data.error);
         // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
-        // user retrieved their credentials but something failed during the mint (add leaf) process.
+        // user retrieved their credentials but something failed during the add leaf process.
         if (event.data.error?.message === "Leaf is not in Merkle tree") {
           if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
             console.log('Attempting to add leaf for idgov-v2 creds')

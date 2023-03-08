@@ -106,7 +106,7 @@ const Proofs = () => {
   async function loadPoR() {
     const creds_ = creds[serverAddress["idgov-v2"]]
     if (!creds_) {
-      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/mint/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
+      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/verify/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
     }
     const salt = "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
@@ -142,7 +142,7 @@ const Proofs = () => {
 
     const creds_ = creds[serverAddress["idgov-v2"]]
     if (!creds_) {
-      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/mint/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
+      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/verify/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
     }    
   
@@ -216,7 +216,7 @@ const Proofs = () => {
         setCreds(sortedCreds)
       } else {
         setError(
-          "Could not retrieve credentials for proof. Please make sure you have minted your Holo."
+          "Could not retrieve credentials for proof. Please make sure you have verified yourself."
         );
       }
     }
@@ -286,8 +286,8 @@ const Proofs = () => {
                       </p>
                     :
                       <p>
-                        &nbsp;Note: You cannot generate proofs before minting a holo. If you have not
-                        already, please <a href="/mint" style={{ color: '#fdc094'}}>mint your holo</a>.
+                        &nbsp;Note: You cannot generate proofs before verifying yourself. If you have not
+                        already, please <a href="/verify" style={{ color: '#fdc094'}}>verify yourself</a>.
                       </p>
                     )
                   }

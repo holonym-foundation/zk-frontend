@@ -7,12 +7,12 @@ import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
-import MintContainer from "./MintContainer";
+import VerificationContainer from "./VerificationContainer";
 
 // Add to this when a new issuer is added
 const allowedCredTypes = ["idgov", "phone"];
 
-function useMintPhoneNumberState() {
+function useVerifyPhoneNumberState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
@@ -45,7 +45,7 @@ function useMintPhoneNumberState() {
   };
 }
 
-const MintPhoneNumber = () => {
+const VerifyPhoneNumber = () => {
   const navigate = useNavigate();
   const {
     success,
@@ -58,7 +58,7 @@ const MintPhoneNumber = () => {
     setPhoneNumber,
     code,
     setCode
-  } = useMintPhoneNumberState();
+  } = useVerifyPhoneNumberState();
 
   useEffect(() => {
     if (success && window.localStorage.getItem('register-credentialType')) {
@@ -79,12 +79,12 @@ const MintPhoneNumber = () => {
       const country = parsePhoneNumber(phoneNumber).country;
       const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
-      navigate(`/mint/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+      navigate(`/verify/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }
   };
 
   return (
-    <MintContainer steps={steps} currentIdx={currentIdx}>
+    <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
       ) : currentStep === "Phone#" ? (
@@ -101,8 +101,8 @@ const MintPhoneNumber = () => {
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </MintContainer>
+    </VerificationContainer>
   );
 };
 
-export default MintPhoneNumber;
+export default VerifyPhoneNumber;

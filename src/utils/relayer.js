@@ -2,19 +2,7 @@ import axios from "axios";
 import { relayerUrl } from "../constants";
 console.log("relayer url is ", relayerUrl)
 const Relayer = {
-    /* mint() argument 'args' is an object with format 
-     {
-            addLeafArgs: {
-              issuer: <credential issuer address>
-              v: <v of ethers signature>
-              r: <r of ethers signature>
-              s: <s of ethers signature>
-              zkp: <onAddLeaf proof's proof object >
-              zkpInputs: <onAddLeaf proof's inputs object>
-            },
-          }
-    */
-    mint : async function(args, onSuccess, onError) {
+    addLeaf : async function(args, onSuccess, onError) {
         let res;
         let error;
         try {

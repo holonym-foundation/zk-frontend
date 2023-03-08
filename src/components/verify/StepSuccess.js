@@ -3,21 +3,21 @@ import { WithCheckMark } from "../atoms/checkmark";
 
 const StepSuccess = () => {
   const navigate = useNavigate();
-  const toTweet = `Just tried out the Holonym beta version and minted my Holo: https://app.holonym.id/mint Each mint makes on-chain privacy stronger ⛓🎭`;
+  const toTweet = `Just tried out the Holonym beta version and verified myself: https://app.holonym.id/verify Each verification makes on-chain privacy stronger ⛓🎭`;
   return (
     <>
       <WithCheckMark size={3}>
         <h2>Success</h2>
       </WithCheckMark>
       {/* <h5>
-        By minting a Holo, you not only created an identity but also made the
+        By verifying yourself, you not only created an identity but also made the
         Privacy Pool (anonymity set) larger
       </h5>
       <br /> */}
       <div style={{ display: "flex"}}>
         <a
           href="/prove"
-          className="mint-button"
+          className="glowy-green-button"
           style={{ lineHeight: "1", fontSize: "16px" }}
           target="_blank"
           rel="noreferrer"

@@ -83,7 +83,7 @@ export default function PublicInfoCard() {
           <>
             <div className="card-header">
               <h2 className="card-header-title">Soulbound Tokens</h2>
-              <p>When you generate a proof, you can mint a soulbound token that records the proven fact.</p>
+              <p>When you generate a proof, you can get a soulbound token that records the proven fact.</p>
             </div>
             <ColoredHorizontalRule />
             <div className="card-content">

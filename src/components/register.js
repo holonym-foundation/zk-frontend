@@ -1,10 +1,10 @@
 /**
  * Users can be directed to this page from an external site when the owner
- * of the external site wants the user to mint a certain type of credential
+ * of the external site wants the user to verify a certain type of credential
  * and generate a certain proof.
  * 
  * This component displays a loading screen while it parses the URL and
- * then redirects the user to the appropriate page (e.g., mint government ID).
+ * then redirects the user to the appropriate page (e.g., verify government ID).
  */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -141,8 +141,8 @@ const Register = () => {
       navigate(`/prove/${proofType}`)
     }
     else {
-      // Send user to minting page for credentialType
-      navigate(`/mint/${credentialType}`)
+      // Send user to verification page for credentialType
+      navigate(`/verify/${credentialType}`)
     }
 
     window.localStorage.setItem('register-credentialType', credentialType);

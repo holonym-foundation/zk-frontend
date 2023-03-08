@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { medDAOIssuerOrigin, serverAddress } from "../../constants";
-import MintContainer from "./MintContainer";
+import VerificationContainer from "./VerificationContainer";
 import { useProofs } from "../../context/Proofs";
 import { useCreds } from "../../context/Creds";
 
@@ -59,7 +59,7 @@ const VerificationRequestForm = () => {
       if (resp.status === 200 && data.id) {
         const retrievalEndpoint = `${medDAOIssuerOrigin}/verification/credentials?id=${data.id}`;
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-        navigate(`/mint/med/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+        navigate(`/verify/med/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
       } else if (data.error && data.message) {
         if (data.message.includes('Unsupported specialty')) {
           setError('This specialty is not supported yet but is in development.');
@@ -93,7 +93,7 @@ const VerificationRequestForm = () => {
             <button 
               style={{ backgroundColor: 'transparent', padding: '0px' }}
               className="in-text-link" 
-              onClick={() => navigate('/mint/idgov')}
+              onClick={() => navigate('/verify/idgov')}
             >
               here
             </button>.
@@ -158,7 +158,7 @@ const VerificationRequestForm = () => {
   )
 }
 
-function useMintMedicalCredentials() {
+function useVerifyMedicalCredentials() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -185,7 +185,7 @@ function useMintMedicalCredentials() {
   };
 }
 
-const MintMedicalCredentials = () => {
+const VerifyMedicalCredentials = () => {
   const navigate = useNavigate();
   const {
     success,
@@ -194,7 +194,7 @@ const MintMedicalCredentials = () => {
     setCurrentIdx,
     steps,
     currentStep,
-  } = useMintMedicalCredentials();
+  } = useVerifyMedicalCredentials();
 
   useEffect(() => {
     if (success && window.localStorage.getItem('register-credentialType')) {
@@ -203,7 +203,7 @@ const MintMedicalCredentials = () => {
   }, [success]);
 
   return (
-    <MintContainer steps={steps} currentIdx={currentIdx}>
+    <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
       ) : currentStep === "Verify" ? (
@@ -211,8 +211,8 @@ const MintMedicalCredentials = () => {
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </MintContainer>
+    </VerificationContainer>
   );
 };
 
-export default MintMedicalCredentials;
+export default VerifyMedicalCredentials;

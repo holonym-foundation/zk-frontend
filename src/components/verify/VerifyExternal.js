@@ -1,13 +1,13 @@
 /**
- * Component for minting credentials from external issuers.
+ * Component for finalizing the verification flow for credentials from external issuers.
  */
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
-import MintContainer from "./MintContainer";
+import VerificationContainer from "./VerificationContainer";
 
-function useMintExternalState() {
+function useVerifyExternalState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -30,7 +30,7 @@ function useMintExternalState() {
   };
 }
 
-const MintExternal = () => {
+const VerifyExternal = () => {
   const {
     success,
     setSuccess,
@@ -38,17 +38,17 @@ const MintExternal = () => {
     setCurrentIdx,
     steps,
     currentStep,
-  } = useMintExternalState();
+  } = useVerifyExternalState();
 
   return (
-    <MintContainer steps={steps} currentIdx={currentIdx}>
+    <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
       ) : (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </MintContainer>
+    </VerificationContainer>
   );
 };
 
-export default MintExternal;
+export default VerifyExternal;

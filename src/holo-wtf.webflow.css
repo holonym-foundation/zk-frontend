@@ -44,7 +44,7 @@
   padding-bottom: 56.25%;
 }
 
-.mint-options {
+.verification-options {
       padding-top: 40px;
       display: grid;
       /* // width: 100%; */
@@ -621,7 +621,7 @@ p {
   padding: 15px 25px;
 }
 
-.mint-button {
+.glowy-green-button {
   padding: 20px 35px;
   border-radius: 7px;
   background-color: rgb(167, 247, 216);
@@ -634,17 +634,17 @@ p {
   letter-spacing: 1px;
   text-transform: uppercase;
   text-decoration: none;
-  animation-name: mint-button;
+  animation-name: glowy-green-button;
   animation-duration: 2s;
   animation-direction: alternate;
   animation-iteration-count: infinite;
 }
 
-.mint-button:hover {
+.glowy-green-button:hover {
   background-color: #fff;
 }
 
-@keyframes mint-button {
+@keyframes glowy-green-button {
   0% {box-shadow: 0px 0px 10px 1px rgb(167, 247, 216);}
   /* 0%   {width: 230px; height: 85px;} */
   /* 25%  {width: 100px;}
