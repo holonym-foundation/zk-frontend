@@ -148,7 +148,7 @@ const VerificationRequestForm = () => {
                 type="submit"
                 disabled={isSubmitting || !govIdFirstNameLastNameProof}
               >
-                {isSubmitting ? "Submitting..." : !govIdFirstNameLastNameProof ? "Loading..." : "Submit"}
+                {isSubmitting ? "Submitting..." : !govIdFirstNameLastNameProof ? "Loading proof..." : "Submit"}
               </button>
             </Form>
           )}
