@@ -56,7 +56,7 @@ export default function Navbar(props) {
           <img src={HolonymLogo} loading="lazy" alt="" sizes="200px" className="logo" />
           </a>
           <nav role="navigation" className="nav-menu flex w-nav-menu" style={{ fontSize: "1rem" }}>
-            <a href="/verify" onClick={handleNavigate} className="nav-link w-nav-link">Verify</a>
+            <a href="/issuance" onClick={handleNavigate} className="nav-link w-nav-link">Verify</a>
             <a href="/prove" onClick={handleNavigate} className="nav-link w-nav-link">Prove</a>
             <a href="/profile" onClick={handleNavigate} className="nav-link w-nav-link">Profile</a>
             <div className="nav-wallet" style={{ backgroundColor: 'var(--dark-card-background)' }}>

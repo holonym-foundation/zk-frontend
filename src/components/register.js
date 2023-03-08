@@ -142,7 +142,7 @@ const Register = () => {
     }
     else {
       // Send user to verification page for credentialType
-      navigate(`/verify/${credentialType}`)
+      navigate(`/issuance/${credentialType}`)
     }
 
     window.localStorage.setItem('register-credentialType', credentialType);

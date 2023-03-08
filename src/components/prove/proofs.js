@@ -104,7 +104,7 @@ const Proofs = () => {
 						&nbsp;Note: You cannot generate this proof without the necessary credentials. If
 						you have not already, please{" "}
 						{/* TODO: Get specific. Tell the user which credentials they need to get/verify. */}
-						<a href="/verify" style={{ color: "#fdc094" }}>
+						<a href="/issuance" style={{ color: "#fdc094" }}>
 							verify yourself
 						</a>
 						.

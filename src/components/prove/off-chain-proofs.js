@@ -106,7 +106,7 @@ const Proofs = () => {
   async function loadPoR() {
     const creds_ = creds[serverAddress["idgov-v2"]]
     if (!creds_) {
-      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/verify/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
+      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/issuance/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
     }
     const salt = "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
@@ -142,7 +142,7 @@ const Proofs = () => {
 
     const creds_ = creds[serverAddress["idgov-v2"]]
     if (!creds_) {
-      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/verify/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
+      setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/issuance/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
     }    
   
@@ -287,7 +287,7 @@ const Proofs = () => {
                     :
                       <p>
                         &nbsp;Note: You cannot generate proofs before verifying yourself. If you have not
-                        already, please <a href="/verify" style={{ color: '#fdc094'}}>verify yourself</a>.
+                        already, please <a href="/issuance" style={{ color: '#fdc094'}}>verify yourself</a>.
                       </p>
                     )
                   }

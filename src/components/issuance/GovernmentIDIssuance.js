@@ -7,7 +7,7 @@ import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
-import VerificationContainer from "./VerificationContainer";
+import VerificationContainer from "./IssuanceContainer";
 
 const StepIDV = ({ phoneNumber }) => {
   useEffect(() => {
@@ -62,7 +62,7 @@ const ConfirmRetry = ({ setRetry }) => (
           // TODO: Change URL when we migrate to Veriff
           const retrievalEndpoint = `${idServerUrl}/v2/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
           const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-          window.location.href=(`/verify/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+          window.location.href=(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
         }}
       >
         Yes
@@ -71,7 +71,7 @@ const ConfirmRetry = ({ setRetry }) => (
   </div>
 )
 
-function useVerifyGovernmentIDState() {
+function useGovernmentIDIssuanceState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
@@ -106,7 +106,7 @@ function useVerifyGovernmentIDState() {
   };
 }
 
-const VerifyGovernmentID = () => {
+const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
   const {
     success,
@@ -119,7 +119,7 @@ const VerifyGovernmentID = () => {
     currentStep,
     phoneNumber,
     setPhoneNumber,
-  } = useVerifyGovernmentIDState();
+  } = useGovernmentIDIssuanceState();
 
   useEffect(() => {
     if (success && window.localStorage.getItem('register-credentialType')) {
@@ -144,4 +144,4 @@ const VerifyGovernmentID = () => {
   );
 };
 
-export default VerifyGovernmentID;
+export default GovernmentIDIssuance;

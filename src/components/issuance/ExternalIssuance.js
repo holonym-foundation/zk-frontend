@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
-import VerificationContainer from "./VerificationContainer";
+import IssuanceContainer from "./IssuanceContainer";
 
-function useVerifyExternalState() {
+function useExternalIssuanceState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -30,7 +30,7 @@ function useVerifyExternalState() {
   };
 }
 
-const VerifyExternal = () => {
+const ExternalIssuance = () => {
   const {
     success,
     setSuccess,
@@ -38,17 +38,17 @@ const VerifyExternal = () => {
     setCurrentIdx,
     steps,
     currentStep,
-  } = useVerifyExternalState();
+  } = useExternalIssuanceState();
 
   return (
-    <VerificationContainer steps={steps} currentIdx={currentIdx}>
+    <IssuanceContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
       ) : (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </VerificationContainer>
+    </IssuanceContainer>
   );
 };
 
-export default VerifyExternal;
+export default ExternalIssuance;

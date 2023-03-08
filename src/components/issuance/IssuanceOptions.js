@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAccount, useNetwork } from 'wagmi'
 // import { InfoButton } from "./info-button";
@@ -12,21 +11,21 @@ import questionImg from "../../img/question.png";
 const opts = [
     { 
         name: "Phone Number", 
-        url: "/verify/phone", 
+        url: "/issuance/phone", 
         image: phoneImg, 
         description: "This adds a phone number to your Holo if it's a real number / not a burner. It lets you to prove you're not a bot, for Sybil resistance.", 
         disabled: false 
     },
     { 
         name: "ID + Phone Number", 
-        url: "/verify/idgov", 
+        url: "/issuance/idgov", 
         image: idImg, 
         description: "This verifies your government ID. You can prove you're not a bot for Sybil resistance. You can prove facts about your age, jurisdiction, and KYC/AML checks", 
         disabled: false 
     },
     {
         name: "Medical Credentials", 
-        url: "/verify/med", 
+        url: "/issuance/med", 
         image: stethoscopeImg, 
         description: "This adds medical credentials to your Holo. It lets you prove that you are a doctor and what specialty you are in.", 
         disabled: false 
@@ -45,7 +44,7 @@ const opts = [
     }
 ];
 
-const VerificationOption = (props) => {
+const IssuanceOption = (props) => {
     const navigate = useNavigate();
 
     return <button onClick={() => {
@@ -66,7 +65,7 @@ const VerificationOption = (props) => {
             </button>
 }
 
-const VerificationOptions = () => {
+const IssuanceOptions = () => {
     return <RoundedWindow>
                 <div className="x-wrapper small-center" style={{height: "95%", width:"80%"}}>
                 <h1>Choose your private credentials</h1>
@@ -79,11 +78,11 @@ const VerificationOptions = () => {
                 <div className="verification-options" style={{
                     // display:"flex", flexWrap: "wrap", alignItems: "stretch", justifyContent: "space-around", flexDirection: "column"
                     }}>
-                        {opts.map(opt=><VerificationOption {...opt} />)}
+                        {opts.map(opt=><IssuanceOption {...opt} />)}
                 </div>
                 {/* TODO: add buttons for future credential types such as accredited investor status */}
                 {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
             </div>
     </RoundedWindow>
 }
-export default VerificationOptions;
+export default IssuanceOptions;

@@ -7,7 +7,7 @@ import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
-import VerificationContainer from "./VerificationContainer";
+import IssuanceContainer from "./IssuanceContainer";
 
 // Add to this when a new issuer is added
 const allowedCredTypes = ["idgov", "phone"];
@@ -79,12 +79,12 @@ const VerifyPhoneNumber = () => {
       const country = parsePhoneNumber(phoneNumber).country;
       const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
-      navigate(`/verify/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+      navigate(`/issuance/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }
   };
 
   return (
-    <VerificationContainer steps={steps} currentIdx={currentIdx}>
+    <IssuanceContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
       ) : currentStep === "Phone#" ? (
@@ -101,7 +101,7 @@ const VerifyPhoneNumber = () => {
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
-    </VerificationContainer>
+    </IssuanceContainer>
   );
 };
 
