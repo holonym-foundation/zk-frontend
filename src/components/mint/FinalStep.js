@@ -189,8 +189,8 @@ function useAddLeafState({ onSuccess }) {
   const { loadKOLPProof, kolpProof, loadProofs } = useProofs();
 
   async function sendCredsToServer() {
-    const sortedCreds = await reloadCreds();
-    const success = await storeCreds(sortedCreds, kolpProof);
+    const sortedCredsTemp = await reloadCreds();
+    const success = await storeCreds(sortedCredsTemp, kolpProof);
     if (!success) {
       setError('Error: Could not send credentials to server.')
     } else {
@@ -207,7 +207,7 @@ function useAddLeafState({ onSuccess }) {
   async function addLeaf() {
     const circomProof = await onAddLeafProof(credsForAddLeaf);
     console.log("circom proooooof", circomProof);
-    const result = await Relayer.mint(
+    await Relayer.mint(
       circomProof, 
       async () => {
         loadKOLPProof(credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
@@ -233,6 +233,7 @@ function useAddLeafState({ onSuccess }) {
     sendCredsToServer()
       .then(() => {
         onSuccess()
+        console.log('!!! Sent creds to server. Now suggesting a reload of all proofs')
         loadProofs(true); // force a reload of all proofs since a new leaf has been added
       });
   }, [kolpProof, readyToSendToServer])

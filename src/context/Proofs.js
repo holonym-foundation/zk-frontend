@@ -8,6 +8,7 @@ import { isEqual } from 'lodash';
 import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import Relayer from '../utils/relayer';
+import { sha1String } from '../utils/misc';
 import {
   onAddLeafProof,
 	waitForArtifacts,
@@ -42,6 +43,7 @@ function ProofsProvider({ children }) {
   const [loadingGovIdFirstNameLastNameProof, setLoadingGovIdFirstNameLastNameProof] = useState(false);
   const [kolpProof, setKOLPProof] = useState(null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
+  const [sortedCredsDigest, setSortedCredsDigest] = useState(null);
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
@@ -49,9 +51,19 @@ function ProofsProvider({ children }) {
 
   // TODO: Load all proofs in here. Need to add onAddLeafProof
 
-  async function loadProofs(forceReload = false) {
-    if (loadingProofMetadata || loadingCreds) return;
-    console.log('Loading proofs. forceReload:', forceReload)
+  /**
+   * @param {boolean} suggestForceReload - If true, proofs will be reloaded even if they are already loaded
+   * and even if they are currently being loaded UNLESS sortedCreds is the same as it was the last time
+   * this function was called.
+   */
+  async function loadProofs(suggestForceReload = false) {
+    if (loadingProofMetadata || loadingCreds || !sortedCreds) return;
+    if (sortedCredsDigest && sortedCredsDigest === sha1String(JSON.stringify(sortedCreds))) {
+      console.log('Denying a reload of proofs because sortedCredsDigest is the same', sortedCredsDigest);
+      return;
+    }
+    setSortedCredsDigest(sha1String(JSON.stringify(sortedCreds)));
+    console.log('Loading proofs. suggestForceReload:', suggestForceReload)
     // Figure out which proofs the user doesn't already have. Then load them
     // if the user has the credentials to do so.
     const missingProofs = { 
@@ -75,25 +87,25 @@ function ProofsProvider({ children }) {
     console.log('creds', sortedCreds)
     if (!sortedCreds) return;
 
-    if (forceReload || (missingProofs.kolp && !loadingKOLPProof)) {
+    if (suggestForceReload || (missingProofs.kolp && !loadingKOLPProof)) {
       setLoadingKOLPProof(true);
-      loadKOLPProof(false, forceReload);
+      loadKOLPProof(false, suggestForceReload);
     }
-    if (forceReload || (missingProofs.uniqueness && !loadingUniquenessProof)) {
+    if (suggestForceReload || (missingProofs.uniqueness && !loadingUniquenessProof)) {
       setLoadingUniquenessProof(true);
-      loadUniquenessProof(false, forceReload);
+      loadUniquenessProof(false, suggestForceReload);
     }
-    if (forceReload || (missingProofs['us-residency'] && !loadingUSResidencyProof)) {
+    if (suggestForceReload || (missingProofs['us-residency'] && !loadingUSResidencyProof)) {
       setLoadingUSResidencyProof(true);
-      loadUSResidencyProof(false, forceReload);
+      loadUSResidencyProof(false, suggestForceReload);
     }
-    if (forceReload || (missingProofs['gov-id-firstname-lastname'] && !loadingGovIdFirstNameLastNameProof)) {
+    if (suggestForceReload || (missingProofs['gov-id-firstname-lastname'] && !loadingGovIdFirstNameLastNameProof)) {
       setLoadingGovIdFirstNameLastNameProof(true);
-      loadGovIdFirstNameLastNameProof(false, forceReload);
+      loadGovIdFirstNameLastNameProof(false, suggestForceReload);
     }
-    if (forceReload || (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof)) {
+    if (suggestForceReload || (missingProofs['medical-specialty'] && !loadingMedicalSpecialtyProof)) {
       setLoadingMedicalSpecialtyProof(true);
-      loadMedicalSpecialtyProof(false, forceReload);
+      loadMedicalSpecialtyProof(false, suggestForceReload);
     }
   }
 
