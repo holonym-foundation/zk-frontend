@@ -566,7 +566,7 @@ export async function proveGovIdFirstNameLastName(govIdCreds) {
     ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.firstName)).toString(),
     ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.lastName)).toString(),
     govIdCreds.newLeaf,
-    ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.middleName)).toString(),
+    govIdCreds.metadata.rawCreds.middleName ? ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.middleName)).toString() : "0",
     ethers.BigNumber.from(govIdCreds.metadata.rawCreds.countryCode).toString(),
     ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.birthdate)).toString(),
     govIdCreds.metadata.derivedCreds.addressHash.value,
