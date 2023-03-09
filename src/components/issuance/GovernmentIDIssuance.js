@@ -1,16 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "../../vouched-css-customization.css";
-import "react-phone-number-input/style.css";
 import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
 import { useQuery } from '@tanstack/react-query'
-import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
 
-const StepIDV = ({ phoneNumber }) => {
+const StepIDV = () => {
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({
     queryKey: ['veriffSession'],
@@ -23,14 +20,14 @@ const StepIDV = ({ phoneNumber }) => {
   });
 
   useEffect(() => {
-    if (!phoneNumber || !veriffSessionQuery.data?.url) return;
+    if (!veriffSessionQuery.data?.url) return;
     
     const verification = veriffSessionQuery.data;
     const handleVeriffEvent = (msg) => {
       if (msg === MESSAGES.FINISHED) {
         const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-        navigate(`/mint/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
       }
     }
     createVeriffFrame({
@@ -52,9 +49,6 @@ const StepIDV = ({ phoneNumber }) => {
   //   })();
   // }, []);
 
-  if (!phoneNumber) {
-    return <p>No phone number specified</p>
-  }
   return (
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
@@ -86,8 +80,7 @@ const ConfirmRetry = ({ setRetry }) => (
           fontSize: "16px"
         }}
         onClick={() => {
-          // TODO: Change URL when we migrate to Veriff
-          const retrievalEndpoint = `${idServerUrl}/v2/registerVouched/vouchedCredentials?jobID=${localStorage.getItem('jobID')}`
+          const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${localStorage.getItem('veriff-sessionId')}`
           const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
           window.location.href=(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
         }}
@@ -101,19 +94,15 @@ const ConfirmRetry = ({ setRetry }) => (
 function useGovernmentIDIssuanceState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
-  const [phoneNumber, setPhoneNumber] = useState();
-  // TODO: Check sessionId once we switch to Veriff
-  const [retry, setRetry] = useState(!!localStorage.getItem('jobID'));
+  const [retry, setRetry] = useState(!!localStorage.getItem('veriff-sessionId'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  // NOTE: Phone# should be removed once we switch to Veriff
-  const steps = ["Phone#", "Verify", "Finalize"];
+  const steps = ["Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!phoneNumber && !store) return "Phone#";
-    if (phoneNumber && !store) return "Verify";
+    if (!store) return "Verify";
     if (store) return "Finalize";
-  }, [phoneNumber, store]);
+  }, [store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
@@ -128,8 +117,6 @@ function useGovernmentIDIssuanceState() {
     setCurrentIdx,
     steps,
     currentStep,
-    phoneNumber,
-    setPhoneNumber,
   };
 }
 
@@ -144,8 +131,6 @@ const GovernmentIDIssuance = () => {
     setCurrentIdx,
     steps,
     currentStep,
-    phoneNumber,
-    setPhoneNumber,
   } = useGovernmentIDIssuanceState();
 
   useEffect(() => {
@@ -160,10 +145,8 @@ const GovernmentIDIssuance = () => {
         <StepSuccess />
       ) : retry && currentStep !== "Finalize" ? (
         <ConfirmRetry setRetry={setRetry} />
-      ) : currentStep === "Phone#" ? (
-        <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (
-        <StepIDV phoneNumber={phoneNumber} />
+        <StepIDV />
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}

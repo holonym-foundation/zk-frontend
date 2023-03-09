@@ -32,14 +32,13 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { reloadCreds } = useCreds();
 
-  function storeJobID(retrievalEndpoint) {
-    // TODO: check for sessionId and id-server veriff endpoint once we migrate to Veriff
+  function storeSessionId(retrievalEndpoint) {
     if (
-      retrievalEndpoint.includes('jobID') && 
-      retrievalEndpoint.includes(`${idServerUrl}/v2/registerVouched/vouchedCredentials`)
+      retrievalEndpoint.includes('veriff-sessionId') && 
+      retrievalEndpoint.includes(`${idServerUrl}/veriff/credentials`)
     ) {
-      const jobID = retrievalEndpoint.split('jobID=')[1]
-      localStorage.setItem('jobID', jobID);
+      const sessionId = retrievalEndpoint.split('sessionId=')[1]
+      localStorage.setItem('veriff-sessionId', sessionId);
     }
   }
 
@@ -47,7 +46,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
     console.log('store-credentials: loading credentials')
     setError(undefined);
     const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
-    storeJobID(retrievalEndpoint)
+    storeSessionId(retrievalEndpoint)
     console.log('retrievalEndpoint', retrievalEndpoint)
     const resp = await fetch(retrievalEndpoint)
 
