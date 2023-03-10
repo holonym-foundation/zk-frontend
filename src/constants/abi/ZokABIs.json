@@ -170,5 +170,33 @@
       }
     ],
     "output": { "type": "tuple", "components": { "elements": [] } }
+  },
+  "knowledgeOfLeafPreimage": {
+    "inputs": [
+      { "name": "root", "public": true, "type": "field" },
+      { "name": "issuerAddr", "public": false, "type": "field" },
+      { "name": "countryCode", "public": false, "type": "field" },
+      { "name": "nameDobCitySubdivisionZipStreetExpireHash", "public": false, "type": "field" },
+      { "name": "iat", "public": false, "type": "field" },
+      { "name": "scope", "public": false, "type": "field" },
+      { "name": "nullifier", "public": false, "type": "field" },
+      {
+        "name": "path",
+        "public": false,
+        "type": "array",
+        "components": {
+          "size": 14,
+          "type": "array",
+          "components": { "size": 5, "type": "field" }
+        }
+      },
+      {
+        "name": "indices",
+        "public": false,
+        "type": "array",
+        "components": { "size": 14, "type": "u32" }
+      }
+    ],
+    "output": { "type": "tuple", "components": { "elements": [] } }
   }
 }

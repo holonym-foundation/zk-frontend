@@ -11,42 +11,6 @@ let artifacts = {};
 let provingKeys = {};
 let verifyingKeys = {};
 
-const knowPreimageSrc = `import "hashes/poseidon/poseidon" as poseidon;
-def main(field leaf, field address, private field countryCode, private field nameDobCitySubdivisionZipStreetExpireHash, private field completedAt, private field scope, private field secret) {
-    field[6] preimage = [address, secret, countryCode, nameDobCitySubdivisionZipStreetExpireHash, completedAt, scope];
-    assert(poseidon(preimage) == leaf);
-    return;
-}`;
-
-// TODO: Compile this and store it in AWS
-const govIdFirstNameLastNameSrc = `import "hashes/poseidon/poseidon" as poseidon;
-const u32 DEPTH = 14;
-const u32 ARITY=5; // Quinary tree
-// root - public so that we can verify Merkle proof
-// issuerAddr - public so that we can check that these creds were issued by trusted issuer
-// firstName - public so that we can verify the user's name
-// lastName - public so that we can verify the user's name
-def main(field root, field issuerAddr, field firstName, field lastName, private field leaf, private field middleName, private field countryCode, private field birthdate, private field addressHash, private field expirationDate, private field iat, private field scope, private field secret, private field[DEPTH][ARITY] path, private u32[DEPTH] indices) {
-    // Construct leaf. Derive nameHash from name fields and nameDobCitySubdivisionZipStreetExpireHashPreimage from nameHash and other fields
-    // to ensure that the names are correct.
-    field[3] nameHashPreimage = [firstName, middleName, lastName];
-    field nameHash = poseidon(nameHashPreimage);
-    field nameDobCitySubdivisionZipStreetExpireHash = poseidon([nameHash, birthdate, addressHash, expirationDate]);
-    field[6] leafPreimage = [issuerAddr, secret, countryCode, nameDobCitySubdivisionZipStreetExpireHash, iat, scope];
-    // assert valid leaf preimage
-    assert(poseidon(leafPreimage) == leaf);
-    // Merkle proof
-    field mut digest = leaf;
-    for u32 i in 0..DEPTH {
-        // At each step, check for the digest in the next level of path, then calculate the new digest
-        assert(path[i][indices[i]] == digest);
-        digest = poseidon(path[i]);
-    }
-    assert(digest == root);
-    return;
-}
-`
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
@@ -521,30 +485,41 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
   }
+
   const leafArgs = [
     serializedCreds[0], // issuer
     newSecret,
     serializedCreds[2], // countryCode
     serializedCreds[3], // nameDobCitySubdivisionZipStreetExpireHash
-    serializedCreds[4], // completedAt
+    serializedCreds[4], // iat
     serializedCreds[5], // scope
-  ].map((x) => ethers.BigNumber.from(x).toString())
+  ].map((x) => ethers.BigNumber.from(x).toString());
   const leaf = ethers.BigNumber.from(await createLeaf(leafArgs)).toString();
-  const knowPreimageArtifacts = zokProvider.compile(knowPreimageSrc);
+
+  const mp = await getMerkleProofParams(leaf);
+
+  await loadArtifacts("knowledgeOfLeafPreimage");
+  await loadProvingKey("knowledgeOfLeafPreimage");
+
+  // root, issuerAddr, countryCode, nameDobCitySubdivisionZipStreetExpireHash, iat, scope, secret, field[DEPTH][ARITY] path, private u32[DEPTH] indices
   const proofArgs = [
-    leaf,
+    mp.root,
     serializedCreds[0], // issuer
     serializedCreds[2], // countryCode
     serializedCreds[3], // nameDobCitySubdivisionZipStreetExpireHash
-    serializedCreds[4], // completedAt
+    serializedCreds[4], // iat
     serializedCreds[5], // scope
     newSecret,
-  ]
-  const { witness, output } = zokProvider.computeWitness(knowPreimageArtifacts, proofArgs);
-  const provingKeyFile = await fetch(`${preprocEndpoint}/knowPreimage.proving.key`);
-  const provingKeyBuffer = await provingKeyFile.arrayBuffer();
-  const provingKey = new Uint8Array(provingKeyBuffer);
-  const proof = zokProvider.generateProof(knowPreimageArtifacts.program, witness, provingKey);
+    mp.path,
+    mp.indices
+  ];
+
+  const { witness, output } = zokProvider.computeWitness(artifacts.knowledgeOfLeafPreimage, proofArgs);
+  const proof = zokProvider.generateProof(
+    artifacts.knowledgeOfLeafPreimage.program,
+    witness,
+    provingKeys.knowledgeOfLeafPreimage
+  );
   console.log('proveKnowledgeOfLeafPreimage proof', proof);
   return proof;
 }
