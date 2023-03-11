@@ -6,6 +6,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from '@tanstack/react-query'
 import {
   encryptWithAES,
   setLocalUserCredentials,
@@ -13,6 +14,7 @@ import {
 } from "../../utils/secrets";
 import { 
   idServerUrl,
+  relayerUrl,
   issuerWhitelist,
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
@@ -182,10 +184,11 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
 
 function useAddLeafState({ onSuccess }) {
   const [error, setError] = useState();
+  const [status, setStatus] = useState('idle');
   const [credsForAddLeaf, setCredsForAddLeaf] = useState();
   const [readyToSendToServer, setReadyToSendToServer] = useState(false);
   const { reloadCreds, storeCreds } = useCreds();
-  const { loadKOLPProof, kolpProof, loadProofs } = useProofs();
+  const { loadKOLPProof, kolpProof, loadProofs, setDisableLoadProofs } = useProofs();
 
   async function sendCredsToServer() {
     const sortedCredsTemp = await reloadCreds();
@@ -209,7 +212,8 @@ function useAddLeafState({ onSuccess }) {
     await Relayer.addLeaf(
       circomProof, 
       async () => {
-        loadKOLPProof(credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
+        setStatus('generatingKOLPProof')
+        loadKOLPProof(false, false, credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
       }, 
       () => {
@@ -229,22 +233,31 @@ function useAddLeafState({ onSuccess }) {
 
   useEffect(() => {
     if (!kolpProof || !readyToSendToServer) return;
+    setStatus('backingUpCreds')
     sendCredsToServer()
       .then(() => {
+        setDisableLoadProofs(false);
         onSuccess()
-        console.log('!!! Sent creds to server. Now suggesting a reload of all proofs')
+        console.log('Sent creds to server. Now suggesting a reload of all proofs');
         loadProofs(true); // force a reload of all proofs since a new leaf has been added
       });
   }, [kolpProof, readyToSendToServer])
   
   return {
     error,
-    setCredsForAddLeaf
+    status,
+    setCredsForAddLeaf,
+    setDisableLoadProofs
   };
 }
 
 const FinalStep = ({ onSuccess }) => {
-  const { error: addLeafError, setCredsForAddLeaf } = useAddLeafState({ onSuccess });
+  const { 
+    error: addLeafError, 
+    status: addLeafStatus, 
+    setCredsForAddLeaf, 
+    setDisableLoadProofs 
+  } = useAddLeafState({ onSuccess });
   const { 
     declinedToStoreCreds, 
     error: storeCredsError, 
@@ -254,10 +267,17 @@ const FinalStep = ({ onSuccess }) => {
     () => addLeafError ?? storeCredsError, 
     [addLeafError, storeCredsError]
   );
+  // TODO: Display these messages in a nice progress bar.
   const loadingMessage = useMemo(() => {
     if (storeCredsStatus === 'loading') return 'Loading credentials';
-    if (storeCredsStatus === 'success') return 'Adding leaf to Merkle tree';
-  }, [storeCredsStatus])
+    else if (storeCredsStatus === 'success' && addLeafStatus === 'idle') return 'Adding leaf to Merkle tree';
+    else if (addLeafStatus === 'generatingKOLPProof') return 'Generating proof';
+    else if (addLeafStatus === 'backingUpCreds') return 'Backing up encrypted credentials';
+  }, [storeCredsStatus, addLeafStatus])
+
+  useEffect(() => {
+    setDisableLoadProofs(true);
+  }, [])
 
   return (
     <>

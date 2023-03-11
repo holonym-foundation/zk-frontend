@@ -43,7 +43,14 @@ function ProofsProvider({ children }) {
   const [loadingGovIdFirstNameLastNameProof, setLoadingGovIdFirstNameLastNameProof] = useState(false);
   const [kolpProof, setKOLPProof] = useState(null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
-  // const [disableLoadProofs, setDisableLoadProofs] = useState(false);
+  // disableLoadProofs is a temporary fix to prevent anything other than the issuance state
+  // manager to trigger proof generation when the user reaches the end of the issuance flow.
+  // TODO: Centralize the state management of leaf additions (and possible the whole 
+  // issuance flow). The main stuff to centralize is the stuff in the FinalStep component.
+  // Perhaps put addLeaf in context and, if the user is in the issuance flow, only
+  // allow addLeaf to be called from the issuance flow; this way, there is no race condition
+  // between the addLeaf call here and the addLeaf call in useProofs.
+  const [disableLoadProofs, setDisableLoadProofs] = useState(false);
   const [sortedCredsDigest, setSortedCredsDigest] = useState(null);
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
@@ -58,7 +65,7 @@ function ProofsProvider({ children }) {
    * this function was called.
    */
   async function loadProofs(suggestForceReload = false) {
-    if (loadingProofMetadata || loadingCreds || !sortedCreds) return;
+    if (disableLoadProofs || loadingProofMetadata || loadingCreds || !sortedCreds) return;
     if (sortedCredsDigest && sortedCredsDigest === await sha1String(JSON.stringify(sortedCreds))) {
       console.log('Denying a reload of proofs because sortedCredsDigest is the same', sortedCredsDigest);
       return;
@@ -306,25 +313,25 @@ function ProofsProvider({ children }) {
     }
   }
 
-  function loadKOLPProof(runInMainThread = false, forceReload = false) {
+  function loadKOLPProof(runInMainThread = false, forceReload = false, newSecret = null, serializedAsNewPreimage = null) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
-    if (!govIdCreds && !phoneNumCreds) return;
+    if (!(newSecret && serializedAsNewPreimage) && !govIdCreds && !phoneNumCreds) return;
     if (proofsWorker && !runInMainThread) {
       // We just need one KOLP proof. The proof is only used by storage server to verify that
       // the request is in fact from a Holonym user.
       if (govIdCreds?.creds?.serializedAsNewPreimage) {
         proofsWorker.postMessage({ 
           message: "kolp", 
-          newSecret: govIdCreds.creds.newSecret, 
-          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage,
+          newSecret: newSecret ?? govIdCreds.creds.newSecret, 
+          serializedAsNewPreimage: serializedAsNewPreimage ?? govIdCreds.creds.serializedAsNewPreimage,
           forceReload,
         });
       } else if (phoneNumCreds?.creds?.serializedAsNewPreimage) {
         proofsWorker.postMessage({ 
           message: "kolp", 
-          newSecret: govIdCreds.creds.newSecret, 
-          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage,
+          newSecret: newSecret ?? phoneNumCreds.creds.newSecret, 
+          serializedAsNewPreimage: serializedAsNewPreimage ?? phoneNumCreds.creds.serializedAsNewPreimage,
           forceReload,
         });
       }
@@ -376,7 +383,7 @@ function ProofsProvider({ children }) {
     loadProofs(forceReload);
 
     prevSortedCredsRef.current = sortedCreds;
-  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds])
+  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, disableLoadProofs])
 
   return (
     <Proofs.Provider value={{
@@ -396,6 +403,7 @@ function ProofsProvider({ children }) {
       loadKOLPProof,
       loadingKOLPProof,
       loadProofs, // load all proofs
+      setDisableLoadProofs,
     }}>
       {children}
     </Proofs.Provider>
