@@ -43,6 +43,7 @@ function ProofsProvider({ children }) {
   const [loadingGovIdFirstNameLastNameProof, setLoadingGovIdFirstNameLastNameProof] = useState(false);
   const [kolpProof, setKOLPProof] = useState(null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
+  // const [disableLoadProofs, setDisableLoadProofs] = useState(false);
   const [sortedCredsDigest, setSortedCredsDigest] = useState(null);
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
@@ -58,11 +59,11 @@ function ProofsProvider({ children }) {
    */
   async function loadProofs(suggestForceReload = false) {
     if (loadingProofMetadata || loadingCreds || !sortedCreds) return;
-    if (sortedCredsDigest && sortedCredsDigest === sha1String(JSON.stringify(sortedCreds))) {
+    if (sortedCredsDigest && sortedCredsDigest === await sha1String(JSON.stringify(sortedCreds))) {
       console.log('Denying a reload of proofs because sortedCredsDigest is the same', sortedCredsDigest);
       return;
     }
-    setSortedCredsDigest(sha1String(JSON.stringify(sortedCreds)));
+    setSortedCredsDigest(await sha1String(JSON.stringify(sortedCreds)));
     console.log('Loading proofs. suggestForceReload:', suggestForceReload)
     // Figure out which proofs the user doesn't already have. Then load them
     // if the user has the credentials to do so.
