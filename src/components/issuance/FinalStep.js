@@ -6,7 +6,6 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from '@tanstack/react-query'
 import {
   encryptWithAES,
   setLocalUserCredentials,
@@ -188,7 +187,7 @@ function useAddLeafState({ onSuccess }) {
   const [credsForAddLeaf, setCredsForAddLeaf] = useState();
   const [readyToSendToServer, setReadyToSendToServer] = useState(false);
   const { reloadCreds, storeCreds } = useCreds();
-  const { loadKOLPProof, kolpProof, loadProofs, setDisableLoadProofs } = useProofs();
+  const { loadKOLPProof, kolpProof, loadProofs } = useProofs();
 
   async function sendCredsToServer() {
     const sortedCredsTemp = await reloadCreds();
@@ -236,7 +235,6 @@ function useAddLeafState({ onSuccess }) {
     setStatus('backingUpCreds')
     sendCredsToServer()
       .then(() => {
-        setDisableLoadProofs(false);
         onSuccess()
         console.log('Sent creds to server. Now suggesting a reload of all proofs');
         loadProofs(true); // force a reload of all proofs since a new leaf has been added
@@ -247,7 +245,6 @@ function useAddLeafState({ onSuccess }) {
     error,
     status,
     setCredsForAddLeaf,
-    setDisableLoadProofs
   };
 }
 
@@ -256,7 +253,6 @@ const FinalStep = ({ onSuccess }) => {
     error: addLeafError, 
     status: addLeafStatus, 
     setCredsForAddLeaf, 
-    setDisableLoadProofs 
   } = useAddLeafState({ onSuccess });
   const { 
     declinedToStoreCreds, 
@@ -274,10 +270,6 @@ const FinalStep = ({ onSuccess }) => {
     else if (addLeafStatus === 'generatingKOLPProof') return 'Generating proof';
     else if (addLeafStatus === 'backingUpCreds') return 'Backing up encrypted credentials';
   }, [storeCredsStatus, addLeafStatus])
-
-  useEffect(() => {
-    setDisableLoadProofs(true);
-  }, [])
 
   return (
     <>

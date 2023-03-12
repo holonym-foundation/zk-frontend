@@ -4,8 +4,8 @@
  * provider relies on the user's signatures.
  */
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { isEqual } from 'lodash';
-import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
 import Relayer from '../utils/relayer';
 import { sha1String } from '../utils/misc';
@@ -43,14 +43,6 @@ function ProofsProvider({ children }) {
   const [loadingGovIdFirstNameLastNameProof, setLoadingGovIdFirstNameLastNameProof] = useState(false);
   const [kolpProof, setKOLPProof] = useState(null);
   const [loadingKOLPProof, setLoadingKOLPProof] = useState(false);
-  // disableLoadProofs is a temporary fix to prevent anything other than the issuance state
-  // manager to trigger proof generation when the user reaches the end of the issuance flow.
-  // TODO: Centralize the state management of leaf additions (and possible the whole 
-  // issuance flow). The main stuff to centralize is the stuff in the FinalStep component.
-  // Perhaps put addLeaf in context and, if the user is in the issuance flow, only
-  // allow addLeaf to be called from the issuance flow; this way, there is no race condition
-  // between the addLeaf call here and the addLeaf call in useProofs.
-  const [disableLoadProofs, setDisableLoadProofs] = useState(false);
   const [sortedCredsDigest, setSortedCredsDigest] = useState(null);
   // numQueuedStoreCredsInvocations is the number of times storeCreds has been queued for
   // invocation. This allows us to trigger a specific number of calls to storeCreds and
@@ -60,6 +52,7 @@ function ProofsProvider({ children }) {
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
   const prevSortedCredsRef = useRef(sortedCreds);
+  const location = useLocation();
 
   // TODO: Low priority: Maybe: Add onAddLeafProof to this context
 
@@ -69,7 +62,16 @@ function ProofsProvider({ children }) {
    * this function was called.
    */
   async function loadProofs(suggestForceReload = false) {
-    if (disableLoadProofs || loadingProofMetadata || loadingCreds || !sortedCreds) return;
+    if (loadingProofMetadata || loadingCreds || !sortedCreds) return;
+    if (location.pathname.includes('issuance') && location.pathname.includes('store')) {
+      // Do not load proofs if the user is at the end of the issuance flow. We include this check
+      // mainly to prevent a race condition between the calls to addLeaf (the one in this context
+      // and the one in the issuance/FinalStep component). This check also prevents the unnecessary
+      // loading of proofs that will need to be re-loaded once the user completes the issuance flow.
+      // Note that we do not include this check in the individual loadXProof functions because
+      // we want the issuance flow to be able to trigger the loading of individual proofs.
+      return;
+    }
     if (sortedCredsDigest && sortedCredsDigest === await sha1String(JSON.stringify(sortedCreds))) {
       console.log('Denying a reload of proofs because sortedCredsDigest is the same', sortedCredsDigest);
       return;
@@ -340,7 +342,7 @@ function ProofsProvider({ children }) {
     loadProofs(forceReload);
 
     prevSortedCredsRef.current = sortedCreds;
-  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, disableLoadProofs])
+  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, location])
 
   return (
     <Proofs.Provider value={{
@@ -360,7 +362,6 @@ function ProofsProvider({ children }) {
       loadKOLPProof,
       loadingKOLPProof,
       loadProofs, // load all proofs
-      setDisableLoadProofs,
     }}>
       {children}
     </Proofs.Provider>
