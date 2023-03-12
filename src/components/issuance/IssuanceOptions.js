@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useAccount, useNetwork } from 'wagmi'
 // import { InfoButton } from "./info-button";
 import RoundedWindow from "../RoundedWindow";
 import phoneImg from "../../img/phone.png";
@@ -20,7 +19,7 @@ const opts = [
         name: "ID + Phone Number", 
         url: "/issuance/idgov", 
         image: idImg, 
-        description: "This verifies your government ID. You can prove you're not a bot for Sybil resistance. You can prove facts about your age, jurisdiction, and KYC/AML checks", 
+        description: "This verifies your government ID (driver's license or ID card). You can prove you're not a bot for Sybil resistance. You can prove facts about your age, jurisdiction, and KYC/AML checks.", 
         disabled: false 
     },
     {
@@ -33,7 +32,7 @@ const opts = [
     { 
         name: "Accredited Investor Status", 
         url: "/", image: moneyImg, 
-        description: "This allows you to prove you are an accredited investor. It currently is not implemented", 
+        description: "This allows you to prove you are an accredited investor. It currently is not implemented.", 
         disabled: true 
     },
     { 
