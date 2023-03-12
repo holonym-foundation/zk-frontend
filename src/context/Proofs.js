@@ -230,22 +230,29 @@ function ProofsProvider({ children }) {
     }
   }
 
-  function loadGovIdFirstNameLastNameProof(runInMainThread = false, forceReload = false) {
+  async function loadGovIdFirstNameLastNameProof(runInMainThread = false, forceReload = false) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     if (!govIdCreds) return;
     if (proofsWorker && !runInMainThread) {
-      proofsWorker.postMessage({ 
-        message: "gov-id-firstname-lastname", 
+      proofsWorker.postMessage({
+        message: "gov-id-firstname-lastname",
         govIdCreds,
         forceReload,
       });
     }
     if (runInMainThread) {
-      // TODO: Call the function directly
+      try {
+        const proof = await proveGovIdFirstNameLastName(govIdCreds);
+        setGovIdFirstNameLastNameProof(proof);
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingGovIdFirstNameLastNameProof(false);
+      }
     }
   }
 
-  function loadKOLPProof(runInMainThread = false, forceReload = false, newSecret = null, serializedAsNewPreimage = null) {
+  async function loadKOLPProof(runInMainThread = false, forceReload = false, newSecret = null, serializedAsNewPreimage = null) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
     if (!(newSecret && serializedAsNewPreimage) && !govIdCreds && !phoneNumCreds) return;
@@ -269,7 +276,25 @@ function ProofsProvider({ children }) {
       }
     } 
     if (runInMainThread) {
-      // TODO: Call the function directly
+      try {
+        if (govIdCreds?.creds?.serializedAsNewPreimage) {
+          const proof = await proveKnowledgeOfLeafPreimage(
+            govIdCreds?.creds?.serializedAsNewPreimage, 
+            govIdCreds?.creds?.newSecret
+          );
+          setKOLPProof(proof);
+        } else if (phoneNumCreds?.creds?.serializedAsNewPreimage) {
+          const proof = await proveKnowledgeOfLeafPreimage(
+            phoneNumCreds?.creds?.serializedAsNewPreimage, 
+            phoneNumCreds?.creds?.newSecret
+          );
+          setKOLPProof(proof);
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingKOLPProof(false);
+      }
     }
   }
 
