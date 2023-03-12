@@ -260,47 +260,44 @@ export async function onAddLeafProof (data) {
 // }
 
 /**
- * @param {string} issuer Hex string
- * @param {string} secret Hex string representing 16 bytes
- * @param {string} salt Hex string representing 16 bytes
- * @param {string} footprint Hex string representing 16 bytes
- * @param {number} countryCode
- * @param {string} subdivision UTF-8
- * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} scope Hex string representing 3 bytes
- * @param {Array<Array<string>>} path Numbers represented as strings
- * @param {Array<string>} indices Numbers represented as strings
+ * @param {string} issuer 
+ * @param {string} govIdCreds
  */
-export async function proofOfResidency(
-  sender,
-  issuer,
-  salt,
-  footprint,
-  countryCode,
-  subdivision,
-  completedAt,
-  scope,
-  secret
-) {
+export async function proofOfResidency(sender, govIdCreds) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
   console.log("PROOF: us-residency: starting");
+
+  // salt == poseidon("IsFromUS")
+  const salt =
+    "18450029681611047275023442534946896643130395402313725026917000686233641593164";
+  const footprint = await poseidonTwoInputs([
+    salt,
+    ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+  ]);
+
+  const [
+    issuer,
+    newSecret,
+    countryCode,
+    nameCitySubdivisionZipStreetHash,
+    completedAt,
+    scope,
+  ] = govIdCreds.creds.serializedAsNewPreimage;
+
   const leaf = await createLeaf(
     [
       issuer,
-      secret,
+      newSecret,
       countryCode,
-      subdivision,
+      nameCitySubdivisionZipStreetHash,
       completedAt,
       scope
     ]
   );
 
-  console.log("PROOF: us-residency: leaf created");
-
   const mp = await getMerkleProofParams(leaf);
-  console.log("PROOF: us-residency: Merkle params done");
 
   const args = [
     mp.root,
@@ -309,10 +306,10 @@ export async function proofOfResidency(
     salt,
     footprint,
     ethers.BigNumber.from(countryCode).toString(),
-    ethers.BigNumber.from(subdivision).toString(), //ethers.BigNumber.from(new TextEncoder("utf-8").encode(subdivision)).toString(),
+    ethers.BigNumber.from(nameCitySubdivisionZipStreetHash).toString(),
     ethers.BigNumber.from(completedAt).toString(),
     ethers.BigNumber.from(scope).toString(),
-    ethers.BigNumber.from(secret).toString(),
+    ethers.BigNumber.from(newSecret).toString(),
     leaf,
     mp.path,
     mp.indices,
@@ -326,7 +323,6 @@ export async function proofOfResidency(
     args
   );
 
-  console.log("PROOF: us-residency: generating proof");
   const proof = zokProvider.generateProof(
     artifacts.proofOfResidency.program,
     witness,

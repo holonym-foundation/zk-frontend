@@ -185,41 +185,14 @@ function ProofsProvider({ children }) {
     if (proofsWorker && !runInMainThread) {
       proofsWorker.postMessage({ 
         message: "us-residency", 
-        newSecret: govIdCreds.creds.newSecret, 
-        serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
         userAddress: account.address,
+        govIdCreds, 
         forceReload
       });
     } 
     if (runInMainThread) {
       try {
-        // TODO: Move this prep code into the `proofOfResidency` function
-        const salt =
-          "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
-        const footprint = await poseidonTwoInputs([
-          salt,
-          ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
-        ]);
-        const [
-          issuer_,
-          // eslint-disable-next-line no-unused-vars
-          _,
-          countryCode_,
-          nameCitySubdivisionZipStreetHash_,
-          completedAt_,
-          scope,
-        ] = govIdCreds.creds.serializedAsNewPreimage;
-        const proof = await proofOfResidency(
-          account.address,
-          issuer_,
-          salt,
-          footprint,
-          countryCode_,
-          nameCitySubdivisionZipStreetHash_,
-          completedAt_,
-          scope,
-          govIdCreds.creds.newSecret,
-        );
+        const proof = await proofOfResidency(account.address, govIdCreds);
         setUSResidencyProof(proof);
       } catch (err) {
         console.error(err)

@@ -104,29 +104,12 @@ const Proofs = () => {
   };
 
   async function loadPoR() {
-    const creds_ = creds[serverAddress["idgov-v2"]]
-    if (!creds_) {
+    const govIdCreds = creds[serverAddress["idgov-v2"]]
+    if (!govIdCreds) {
       setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/issuance/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
     }
-    const salt = "18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
-    const footprint = await poseidonTwoInputs([
-      salt,
-      ethers.BigNumber.from(creds_.creds.newSecret).toString(),
-    ]);
-
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.creds.serializedAsNewPreimage;
-    const por = await proofOfResidency(
-      account.address,
-      issuer_,
-      salt,
-      footprint,
-      countryCode_,
-      nameCitySubdivisionZipStreetHash_,
-      completedAt_,
-      scope,
-      creds_.creds.newSecret
-    );
+    const por = await proofOfResidency(account.address, govIdCreds);
     // Once setProof is called, the proof is submited
     setProof(por);
     console.log("proof is", JSON.stringify(por));

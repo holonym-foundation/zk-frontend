@@ -24,36 +24,6 @@ let generatingProof = {
 	'kolp': false, // == "Knowlege of Leaf Preimage"
 }
 
-async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
-	// TODO: Move this prep code into the `proofOfResidency` function
-	const salt =
-		"18450029681611047275023442534946896643130395402313725026917000686233641593164"; // this number is poseidon("IsFromUS")
-	const footprint = await poseidonTwoInputs([
-		salt,
-		ethers.BigNumber.from(newSecret).toString(),
-	]);
-	const [
-		issuer_,
-		// eslint-disable-next-line no-unused-vars
-		_,
-		countryCode_,
-		nameCitySubdivisionZipStreetHash_,
-		completedAt_,
-		scope,
-	] = serializedAsNewPreimage;
-	return await proofOfResidency(
-		userAddress,
-		issuer_,
-		salt,
-		footprint,
-		countryCode_,
-		nameCitySubdivisionZipStreetHash_,
-		completedAt_,
-		scope,
-		newSecret,
-	);
-}
-
 async function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
 	// TODO: Move this prep code into the `proofOfMedicalSpecialty` function
 	const salt =
@@ -109,11 +79,7 @@ onmessage = async (event) => {
 			if (generatingProof['us-residency'] && !event.data.forceReload) return;	
 			generatingProof['us-residency'] = true;
 			console.log('[Worker] Generating us-residency proof. Params:', event.data)
-			const proofOfResidencyProof = await loadPoR(
-				event.data.newSecret,
-				event.data.serializedAsNewPreimage,
-				event.data.userAddress,
-			)
+			const proofOfResidencyProof = await proofOfResidency(event.data.userAddress, event.data.govIdCreds);
 			postMessage({ error: null, proofType: "us-residency", proof: proofOfResidencyProof });
 		} catch (err) {
 			console.log('[Worker] Error generating us-residency proof', err)
