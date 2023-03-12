@@ -3,7 +3,7 @@
  * NOTE: This provider must be a child of the signature providers because this
  * provider relies on the user's signatures.
  */
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { isEqual } from 'lodash';
 import { ethers } from "ethers";
 import { useAccount } from 'wagmi';
@@ -52,12 +52,16 @@ function ProofsProvider({ children }) {
   // between the addLeaf call here and the addLeaf call in useProofs.
   const [disableLoadProofs, setDisableLoadProofs] = useState(false);
   const [sortedCredsDigest, setSortedCredsDigest] = useState(null);
+  // numQueuedStoreCredsInvocations is the number of times storeCreds has been queued for
+  // invocation. This allows us to trigger a specific number of calls to storeCreds and
+  // ensure that storeCreds is called only when sortedCreds and kolpProof are populated.
+  const [numQueuedStoreCredsInvocations, setNumQueuedStoreCredsInvocations] = useState(0);
   const { data: account } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
   const prevSortedCredsRef = useRef(sortedCreds);
 
-  // TODO: Load all proofs in here. Need to add onAddLeafProof
+  // TODO: Low priority: Maybe: Add onAddLeafProof to this context
 
   /**
    * @param {boolean} suggestForceReload - If true, proofs will be reloaded even if they are already loaded
@@ -125,13 +129,21 @@ function ProofsProvider({ children }) {
     await Relayer.addLeaf(
       circomProof, 
       async () => {
-        // loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
-        // We assume KOLPProof has been loaded.
-        // TODO: Handle case where KOLPProof has not been loaded
+        loadKOLPProof(creds.creds.newSecret, creds.creds.serializedAsNewPreimage)
         if (sortedCreds && kolpProof) storeCreds(sortedCreds, kolpProof);
-      }, 
+        else {
+          setNumQueuedStoreCredsInvocations(numQueuedStoreCredsInvocations + 1);
+        }
+      },
     );
   }
+
+  useEffect(() => {
+    if (numQueuedStoreCredsInvocations > 0 && sortedCreds && kolpProof) {
+      setNumQueuedStoreCredsInvocations(numQueuedStoreCredsInvocations - 1);
+      storeCreds(sortedCreds, kolpProof);
+    }
+  }, [numQueuedStoreCredsInvocations, sortedCreds, kolpProof])
   
   /**
    * Load anti-sybil proof into context.
