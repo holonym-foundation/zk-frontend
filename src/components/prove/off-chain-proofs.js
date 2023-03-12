@@ -138,31 +138,16 @@ const Proofs = () => {
       console.error(
         `Warning: no actionId was given, using default of ${defaultActionId} (generic cross-action sybil resistance)`
       );
-    console.log("actionId", actionId);
 
-    const creds_ = creds[serverAddress["idgov-v2"]]
-    if (!creds_) {
+    const govIdCreds = creds[serverAddress["idgov-v2"]]
+    if (!govIdCreds) {
       setCustomError(<p>To do this proof, your Holo must have a government ID. Please <a href="/issuance/idgov" style={{ color: '#fdc094'}}>add a government ID</a></p>);
       return;
-    }    
-  
-    const footprint = await poseidonTwoInputs([
-      actionId,
-      ethers.BigNumber.from(creds_.creds.newSecret).toString(),
-    ]);
-
-    const [issuer_, oldSecret_, countryCode_, nameCitySubdivisionZipStreetHash_, completedAt_, scope] = creds_.creds.serializedAsNewPreimage;
-
+    }
     const as = await antiSybil(
       account.address,
-      issuer_,
+      govIdCreds,
       actionId,
-      footprint,
-      countryCode_, 
-      nameCitySubdivisionZipStreetHash_, 
-      completedAt_, 
-      scope,
-      creds_.creds.newSecret
     );
     // Once setProof is called, the proof is submited
     setProof(as);

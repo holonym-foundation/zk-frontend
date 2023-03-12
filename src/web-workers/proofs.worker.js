@@ -24,40 +24,6 @@ let generatingProof = {
 	'kolp': false, // == "Knowlege of Leaf Preimage"
 }
 
-async function loadAntiSybil(
-	newSecret, 
-	serializedAsNewPreimage,
-	address,
-	actionId,
-) {
-	// TODO: Move this prep code into the `antiSybil` function
-	console.log("actionId", actionId);
-	const footprint = await poseidonTwoInputs([
-		actionId,
-		ethers.BigNumber.from(newSecret).toString(),
-	]);
-	const [
-		issuer_,
-		// eslint-disable-next-line no-unused-vars
-		_,
-		countryCode_,
-		nameCitySubdivisionZipStreetHash_,
-		completedAt_,
-		scope,
-	] = serializedAsNewPreimage;
-	return await antiSybil(
-		address,
-		issuer_,
-		actionId,
-		footprint,
-		countryCode_,
-		nameCitySubdivisionZipStreetHash_,
-		completedAt_,
-		scope,
-		newSecret,
-	);
-}
-
 async function loadPoR(newSecret, serializedAsNewPreimage, userAddress) {
 	// TODO: Move this prep code into the `proofOfResidency` function
 	const salt =
@@ -127,12 +93,11 @@ onmessage = async (event) => {
 			if (generatingProof['uniqueness'] && !event.data.forceReload) return;
 			generatingProof['uniqueness'] = true;
 			console.log('[Worker] Generating uniqueness proof. Received params:', event.data)
-			const antiSybilProof = await loadAntiSybil(
-				event.data.newSecret,
-				event.data.serializedAsNewPreimage,
+			const antiSybilProof = await antiSybil(
 				event.data.userAddress,
+				event.data.govIdCreds,
 				event.data.actionId,
-			)
+			);
 			postMessage({ error: null, proofType: "uniqueness", proof: antiSybilProof });
 		} catch (err) {
 			console.log('[Worker] Error generating uniqueness proof', err)

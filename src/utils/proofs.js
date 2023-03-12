@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
-import { preprocEndpoint, defaultChainToProveOn } from "../constants";
+import { preprocEndpoint, defaultChainToProveOn, defaultActionId } from "../constants";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 import Relayer from "./relayer";
@@ -337,54 +337,42 @@ export async function proofOfResidency(
 }
 
 /**
- * @param {string} issuer Hex string
- * @param {string} secret Hex string representing 16 bytes
- * @param {string} salt Hex string representing 16 bytes
- * @param {string} footprint Hex string representing 16 bytes
- * @param {number} countryCode
- * @param {string} subdivision UTF-8
- * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} scope Hex string representing 3 bytes
- * @param {Array<Array<string>>} path Numbers represented as strings
- * @param {Array<string>} indices Numbers represented as strings
+ * @param {string} sender 
+ * @param {object} govIdCreds
+ * @param {string} actionId
  */
-export async function antiSybil(
-  sender,
-  issuer,
-  salt,
-  footprint,
-  countryCode,
-  subdivision,
-  completedAt,
-  scope,
-  secret
-) {
+export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) {
   console.log("antiSybil called")
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
 
-  const leaf = await createLeaf(
-    [
-      issuer,
-      secret,
-      countryCode,
-      subdivision,
-      completedAt,
-      scope
-    ]
-  );
+  const footprint = await poseidonTwoInputs([
+    actionId,
+    ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+  ]);
+
+  const leaf = await createLeaf(govIdCreds.creds.serializedAsNewPreimage);
 
   const mp = await getMerkleProofParams(leaf);
+  
+  const [
+    issuer,
+    secret,
+    countryCode,
+    nameCitySubdivisionZipStreetHash,
+    completedAt,
+    scope,
+  ] = govIdCreds.creds.serializedAsNewPreimage;
 
   const args = [
     mp.root,
     ethers.BigNumber.from(sender).toString(),
     ethers.BigNumber.from(issuer).toString(),
-    salt,
+    actionId,
     footprint,
     ethers.BigNumber.from(countryCode).toString(),
-    ethers.BigNumber.from(subdivision).toString(), //ethers.BigNumber.from(new TextEncoder("utf-8").encode(subdivision)).toString(),
+    ethers.BigNumber.from(nameCitySubdivisionZipStreetHash).toString(),
     ethers.BigNumber.from(completedAt).toString(),
     ethers.BigNumber.from(scope).toString(),
     ethers.BigNumber.from(secret).toString(),
@@ -392,7 +380,6 @@ export async function antiSybil(
     mp.path,
     mp.indices,
   ];
-  
 
   await loadArtifacts("antiSybil");
   await loadProvingKey("antiSybil");

@@ -156,8 +156,7 @@ function ProofsProvider({ children }) {
     if (!runInMainThread && proofsWorker) {
       proofsWorker.postMessage({
         message: "uniqueness", 
-        newSecret: govIdCreds.creds.newSecret, 
-        serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage, 
+        govIdCreds,
         userAddress: account.address,
         actionId: defaultActionId,
         forceReload
@@ -165,32 +164,7 @@ function ProofsProvider({ children }) {
     } 
     if (runInMainThread) {
       try {
-        // TODO: Move this prep code into the `antiSybil` function
-        console.log("actionId", defaultActionId);
-        const footprint = await poseidonTwoInputs([
-          defaultActionId,
-          ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
-        ]);
-        const [
-          issuer_,
-          // eslint-disable-next-line no-unused-vars
-          _,
-          countryCode_,
-          nameCitySubdivisionZipStreetHash_,
-          completedAt_,
-          scope,
-        ] = govIdCreds.creds.serializedAsNewPreimage;
-        const proof = await antiSybil(
-          account.address,
-          issuer_,
-          defaultActionId,
-          footprint,
-          countryCode_,
-          nameCitySubdivisionZipStreetHash_,
-          completedAt_,
-          scope,
-          govIdCreds.creds.newSecret,
-        );
+        const proof = await antiSybil(account.address, govIdCreds, defaultActionId);
         setUniquenessProof(proof);
       } catch (err) {
         console.error(err)
