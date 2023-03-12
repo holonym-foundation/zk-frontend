@@ -24,36 +24,6 @@ let generatingProof = {
 	'kolp': false, // == "Knowlege of Leaf Preimage"
 }
 
-async function loadMedicalSpecialtyProof(newSecret, serializedAsNewPreimage, userAddress) {
-	// TODO: Move this prep code into the `proofOfMedicalSpecialty` function
-	const salt =
-		"320192098064396900878317978103229380372186908085604549333845693700248653086"; // this number is poseidon("MedicalSpecialty")
-	const hashbrowns = await poseidonTwoInputs([
-		salt,
-		ethers.BigNumber.from(newSecret).toString(),
-	]);
-	const [
-		issuer_,
-		// eslint-disable-next-line no-unused-vars
-		_,
-		specialty,
-		npiNumLicenseMedCredsHash,
-		iat,
-		scope,
-	] = serializedAsNewPreimage;
-	return await proofOfMedicalSpecialty(
-		userAddress,
-		issuer_,
-		salt,
-		hashbrowns,
-		specialty,
-		npiNumLicenseMedCredsHash,
-		iat,
-		scope,
-		newSecret,
-	);
-}
-
 // TODO: Low priority: Refactor this to have less duplicated code.
 onmessage = async (event) => {
 	await waitForArtifacts('poseidonQuinary', 10 * 1000)
@@ -91,11 +61,10 @@ onmessage = async (event) => {
 			if (generatingProof['medical-specialty'] && !event.data.forceReload) return;	
 			generatingProof['medical-specialty'] = true;
 			console.log('[Worker] Generating medical-specialty proof. Params:', event.data)
-			const medicalSpecialtyProof = await loadMedicalSpecialtyProof(
-				event.data.newSecret,
-				event.data.serializedAsNewPreimage,
+			const medicalSpecialtyProof = await proofOfMedicalSpecialty(
 				event.data.userAddress,
-			)
+				event.data.medicalCreds,
+			);
 			generatingProof['medical-specialty'] = false;
 			postMessage({ error: null, proofType: "medical-specialty", proof: medicalSpecialtyProof });
 		} catch (err) {

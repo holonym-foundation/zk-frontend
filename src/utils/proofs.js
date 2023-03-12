@@ -391,36 +391,32 @@ export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) 
   return proof;
 }
 
-export async function proofOfMedicalSpecialty(
-  sender,
-  issuer,
-  salt,
-  hashbrowns,
-  specialty,
-  npiNumLicenseMedCredsHash,
-  iat,
-  scope,
-  secret
-) {
+export async function proofOfMedicalSpecialty(sender, medicalCreds) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
   console.log("PROOF: medical-specialty: starting");
-  const leaf = await createLeaf(
-    [
-      issuer,
-      secret,
-      specialty,
-      npiNumLicenseMedCredsHash,
-      iat,
-      scope
-    ]
-  );
 
-  console.log("PROOF: medical-specialty: leaf created");
+  // salt == poseidon("MedicalSpecialty")
+  const salt =
+    "320192098064396900878317978103229380372186908085604549333845693700248653086"; 
+  const hashbrowns = await poseidonTwoInputs([
+    salt,
+    ethers.BigNumber.from(medicalCreds.creds.newSecret).toString(),
+  ]);
+
+  const [
+    issuer,
+    newSecret,
+    specialty,
+    npiNumLicenseMedCredsHash,
+    iat,
+    scope,
+  ] = medicalCreds.creds.serializedAsNewPreimage;
+
+  const leaf = await createLeaf(medicalCreds.creds.serializedAsNewPreimage);
 
   const mp = await getMerkleProofParams(leaf);
-  console.log("PROOF: medical-specialty: Merkle params done");
 
   const args = [
     mp.root,
@@ -433,24 +429,19 @@ export async function proofOfMedicalSpecialty(
     ethers.BigNumber.from(npiNumLicenseMedCredsHash).toString(),
     ethers.BigNumber.from(iat).toString(),
     ethers.BigNumber.from(scope).toString(),
-    ethers.BigNumber.from(secret).toString(),
+    ethers.BigNumber.from(newSecret).toString(),
     mp.path,
     mp.indices,
   ];
     
-  console.log("PROOF: medical-specialty: loading artifacts");
   await loadArtifacts("medicalSpecialty");
   await loadProvingKey("medicalSpecialty");
-  console.log("PROOF: medical-specialty: loaded artifacts");
 
-  console.log("PROOF: medical-specialty: computing witness");
   const { witness, output } = zokProvider.computeWitness(
     artifacts.medicalSpecialty,
     args
   );
-  console.log("PROOF: medical-specialty: computed witness");
 
-  console.log("PROOF: medical-specialty: generating proof");
   const proof = zokProvider.generateProof(
     artifacts.medicalSpecialty.program,
     witness,

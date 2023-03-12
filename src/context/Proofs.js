@@ -213,41 +213,14 @@ function ProofsProvider({ children }) {
     if (proofsWorker && !runInMainThread) {
       proofsWorker.postMessage({
         message: "medical-specialty", 
-        newSecret: medicalCreds.creds.newSecret, 
-        serializedAsNewPreimage: medicalCreds.creds.serializedAsNewPreimage, 
         userAddress: account.address,
-        forceReload
+        medicalCreds, 
+        forceReload,
       });
     }
     if (runInMainThread) {
       try {
-        // TODO: Move this prep code into the `proofOfMedicalSpecialty` function
-        const salt =
-          "320192098064396900878317978103229380372186908085604549333845693700248653086"; // this number is poseidon("MedicalSpecialty")
-        const hashbrowns = await poseidonTwoInputs([
-          salt,
-          ethers.BigNumber.from(medicalCreds.creds.newSecret).toString(),
-        ]);
-        const [
-          issuer_,
-          // eslint-disable-next-line no-unused-vars
-          _,
-          specialty,
-          npiNumLicenseMedCredsHash,
-          iat,
-          scope,
-        ] = medicalCreds.creds.serializedAsNewPreimage;
-        const proof = await proofOfMedicalSpecialty(
-          account.address,
-          issuer_,
-          salt,
-          hashbrowns,
-          specialty,
-          npiNumLicenseMedCredsHash,
-          iat,
-          scope,
-          medicalCreds.creds.newSecret,
-        );
+        const proof = await proofOfMedicalSpecialty(account.address, medicalCreds);
         setMedicalSpecialtyProof(proof);
       } catch (err) {
         console.error(err)
