@@ -391,6 +391,66 @@ export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) 
   return proof;
 }
 
+
+/**
+ * @param {string} sender 
+ * @param {object} phoneNumCreds
+ * @param {string} actionId
+ */
+export async function uniquenessPhone(sender, phoneNumCreds, actionId = defaultActionId) {
+  console.log("uniquenessPhone called")
+  if (!zokProvider) {
+    await waitForZokProvider(5000);
+  }
+
+  const hashbrowns = await poseidonTwoInputs([
+    actionId,
+    ethers.BigNumber.from(phoneNumCreds.creds.newSecret).toString(),
+  ]);
+
+  const leaf = await createLeaf(phoneNumCreds.creds.serializedAsNewPreimage);
+
+  const mp = await getMerkleProofParams(leaf);
+  
+  const [
+    issuer,
+    nullifier,
+    phoneNumber,
+    // eslint-disable-next-line no-unused-vars
+    customField2,
+    iat,
+    scope,
+  ] = phoneNumCreds.creds.serializedAsNewPreimage;
+
+  const args = [
+    mp.root,
+    ethers.BigNumber.from(sender).toString(),
+    ethers.BigNumber.from(issuer).toString(),
+    actionId,
+    hashbrowns,
+    ethers.BigNumber.from(phoneNumber).toString(),
+    ethers.BigNumber.from(iat).toString(),
+    ethers.BigNumber.from(scope).toString(),
+    ethers.BigNumber.from(nullifier).toString(),
+    leaf,
+    mp.path,
+    mp.indices,
+  ];
+
+  await loadArtifacts("sybilPhone");
+  await loadProvingKey("sybilPhone");
+
+  const { witness, output } = zokProvider.computeWitness(artifacts.sybilPhone, args);
+
+  const proof = zokProvider.generateProof(
+    artifacts.sybilPhone.program,
+    witness,
+    provingKeys.sybilPhone
+  );
+  console.log('uniqueness-phone proof', proof)
+  return proof;
+}
+
 export async function proofOfMedicalSpecialty(sender, medicalCreds) {
   if (!zokProvider) {
     await waitForZokProvider(5000);

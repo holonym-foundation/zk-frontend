@@ -26,6 +26,9 @@ const useProofsState = () => {
 		uniquenessProof,
 		loadUniquenessProof,
 		loadingUniquenessProof,
+		uniquenessPhoneProof,
+		loadUniquenessPhoneProof,
+		loadingUniquenessPhoneProof,
 		usResidencyProof,
 		loadUSResidencyProof,
 		loadingUSResidencyProof,
@@ -45,6 +48,8 @@ const useProofsState = () => {
 	const hasNecessaryCreds = useMemo(() => {
 		if (params.proofType === "us-residency" || params.proofType === "uniqueness") {
 			return !!sortedCreds?.[serverAddress['idgov-v2']]?.creds;
+		} else if (params.proofType === "uniqueness-phone") {
+			return !!sortedCreds?.[serverAddress['phone-v2']]?.creds;
 		} else if (params.proofType === "medical-specialty") {
 			return !!sortedCreds?.[serverAddress['med']]?.creds;
 		}
@@ -57,9 +62,13 @@ const useProofsState = () => {
 			contractName: "IsUSResidentV2",
 		},
 		uniqueness: {
-			name: "Uniqueness",
+			name: "Uniqueness (government ID)",
 			// contractName: "SybilResistance",
 			contractName: "SybilResistanceV2",
+		},
+		'uniqueness-phone': {
+			name: "Uniqueness (phone number)",
+			contractName: "SybilResistancePhone",
 		},
 		"medical-specialty": {
 			name: "Medical Specialty",
@@ -91,6 +100,14 @@ const useProofsState = () => {
 				loadUniquenessProof(true);
 			} else {
 				setProof(uniquenessProof)
+			}
+		} else if (params.proofType === "uniqueness-phone") {
+			if (loadingUniquenessPhoneProof) {
+				setProof(null);
+			} else if (!uniquenessPhoneProof && !alreadyHasSBT) {
+				loadUniquenessPhoneProof(true);
+			} else {
+				setProof(uniquenessPhoneProof)
 			}
 		} else if (params.proofType === "medical-specialty") {
 			if (loadingMedicalSpecialtyProof) {

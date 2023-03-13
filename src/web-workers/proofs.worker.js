@@ -11,6 +11,7 @@ import {
 	poseidonTwoInputs,
 	proofOfResidency,
 	antiSybil,
+	uniquenessPhone,
 	proofOfMedicalSpecialty,
 	proveGovIdFirstNameLastName,
 	proveKnowledgeOfLeafPreimage
@@ -43,6 +44,22 @@ onmessage = async (event) => {
 			console.log('[Worker] Error generating uniqueness proof', err)
 			generatingProof['uniqueness'] = false;
 			postMessage({ error: err, proofType: "uniqueness", proof: null });
+		}
+  } else if (event.data && event.data.message === "uniqueness-phone") {
+		try {
+			if (generatingProof['uniqueness-phone'] && !event.data.forceReload) return;
+			generatingProof['uniqueness-phone'] = true;
+			console.log('[Worker] Generating uniqueness-phone proof. Received params:', event.data)
+			const uniquenessPhoneProof = await uniquenessPhone(
+				event.data.userAddress,
+				event.data.govIdCreds,
+				event.data.actionId,
+			);
+			postMessage({ error: null, proofType: "uniqueness-phone", proof: uniquenessPhoneProof });
+		} catch (err) {
+			console.log('[Worker] Error generating uniqueness-phone proof', err)
+			generatingProof['uniqueness-phone'] = false;
+			postMessage({ error: err, proofType: "uniqueness-phone", proof: null });
 		}
   } else if (event.data && event.data.message === "us-residency") {
 		try {

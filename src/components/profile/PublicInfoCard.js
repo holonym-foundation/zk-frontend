@@ -15,7 +15,7 @@ const ProofRow = ({ proofTitle, infoText, address, onClickProve, buttonText }) =
   <>
     <div className="public-info-proof-name">
       {proofTitle}
-      <div style={{ position: "relative", left: "100px", bottom: "23px" }}>
+      <div style={{ position: "relative", left: "230px", bottom: "23px" }}>
         <InfoButton
           type="inPlace"
           text={infoText}
@@ -91,11 +91,11 @@ export default function PublicInfoCard() {
                 <div style={{ fontWeight: 'bold' }} className="public-info-proof-name">Proof Type</div>
                 <div style={{ fontWeight: 'bold' }} className="public-info-sbt-owner">SBT belongs to</div>
                 <ProofRow
-                  proofTitle="Unique Person"
-                  infoText={`This shows whether you have publicly claimed a "Unique person" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
+                  proofTitle="Unique Person (government ID)"
+                  infoText={`This shows whether you have publicly claimed a "Unique person (government ID)" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
                   address={formattedProofMetadata?.['uniqueness']?.address}
                   onClickProve={() => navigate('/prove/uniqueness')}
-                  buttonText="Prove uniqueness"
+                  buttonText="Prove uniqueness (government ID)"
                 />
                 <ProofRow
                   proofTitle="US Resident"
@@ -103,6 +103,13 @@ export default function PublicInfoCard() {
                   address={formattedProofMetadata?.['us-residency']?.address}
                   onClickProve={() => navigate('/prove/us-residency')}
                   buttonText="Prove US residency"
+                />
+                <ProofRow
+                  proofTitle="Unique Person (phone number)"
+                  infoText={`This shows whether you have publicly claimed a "Unique person (phone number)" SBT at a certain address. You can only prove this at one address from one phone number, allowing for robust Sybil resistance`}
+                  address={formattedProofMetadata?.['uniqueness-phone']?.address}
+                  onClickProve={() => navigate('/prove/uniqueness-phone')}
+                  buttonText="Prove uniqueness (phone number)"
                 />
               </div>
             </div>

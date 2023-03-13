@@ -15,9 +15,10 @@ import {
 	poseidonTwoInputs,
 	proofOfResidency,
 	antiSybil,
+  uniquenessPhone,
 	proofOfMedicalSpecialty,
 	proveGovIdFirstNameLastName,
-	proveKnowledgeOfLeafPreimage
+	proveKnowledgeOfLeafPreimage,
 } from "../utils/proofs";
 import { serverAddress, defaultActionId } from '../constants';
 import { useProofMetadata } from './ProofMetadata';
@@ -35,6 +36,8 @@ const proofsWorker = new ProofsWorker();
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useState(null);
   const [loadingUniquenessProof, setLoadingUniquenessProof] = useState(false);
+  const [uniquenessPhoneProof, setUniquenessPhoneProof] = useState(null);
+  const [loadingUniquenessPhoneProof, setLoadingUniquenessPhoneProof] = useState(false);
   const [usResidencyProof, setUSResidencyProof] = useState(null);
   const [loadingUSResidencyProof, setLoadingUSResidencyProof] = useState(false);
   const [medicalSpecialtyProof, setMedicalSpecialtyProof] = useState(null);
@@ -82,6 +85,7 @@ function ProofsProvider({ children }) {
     // if the user has the credentials to do so.
     const missingProofs = { 
       'uniqueness': !uniquenessProof,
+      'unique-phone': !uniquenessPhoneProof,
       'us-residency': !usResidencyProof, 
       'medical-specialty': !medicalSpecialtyProof,
       'gov-id-firstname-lastname': !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
@@ -93,6 +97,8 @@ function ProofsProvider({ children }) {
           missingProofs['us-residency'] = false;
         } else if (proofMetadataItem?.proofType === "uniqueness") {
           missingProofs['uniqueness'] = false;
+        } else if (proofMetadataItem?.proofType === "uniqueness-phone") {
+          missingProofs['uniqueness-phone'] = false;
         } else if (proofMetadataItem?.proofType === "medical-specialty") {
           missingProofs['medical-specialty'] = false;
         }
@@ -108,6 +114,10 @@ function ProofsProvider({ children }) {
     if (suggestForceReload || (missingProofs.uniqueness && !loadingUniquenessProof)) {
       setLoadingUniquenessProof(true);
       loadUniquenessProof(false, suggestForceReload);
+    }
+    if (suggestForceReload || (missingProofs['uniqueness-phone'] && !loadingUniquenessPhoneProof)) {
+      setLoadingUniquenessPhoneProof(true);
+      loadUniquenessPhoneProof(false, suggestForceReload);
     }
     if (suggestForceReload || (missingProofs['us-residency'] && !loadingUSResidencyProof)) {
       setLoadingUSResidencyProof(true);
@@ -148,7 +158,7 @@ function ProofsProvider({ children }) {
   }, [numQueuedStoreCredsInvocations, sortedCreds, kolpProof])
   
   /**
-   * Load anti-sybil proof into context.
+   * Load anti-sybil proof (based on government ID) into context.
    * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
    * running in main thread could result in the page freezing while proof is generating.
    */
@@ -175,6 +185,35 @@ function ProofsProvider({ children }) {
       }
     }
   }
+
+    /**
+   * Load anti-sybil proof (based on phone number) into context.
+   * @param runInMainThread - Whether to generate the proof in the main thread. Prefer false because
+   * running in main thread could result in the page freezing while proof is generating.
+   */
+    async function loadUniquenessPhoneProof(runInMainThread = false, forceReload = false) {
+      const phoneNumCreds = sortedCreds?.[serverAddress['phone-v2']]
+      if (!phoneNumCreds) return;
+      if (!runInMainThread && proofsWorker) {
+        proofsWorker.postMessage({
+          message: "uniqueness-phone", 
+          phoneNumCreds,
+          userAddress: account.address,
+          actionId: defaultActionId,
+          forceReload
+        });
+      } 
+      if (runInMainThread) {
+        try {
+          const proof = await uniquenessPhone(account.address, phoneNumCreds, defaultActionId);
+          setUniquenessPhoneProof(proof);
+        } catch (err) {
+          console.error(err)
+        } finally {
+          setLoadingUniquenessPhoneProof(false);
+        }
+      }
+    }
 
   /**
    * Load proof of residency proof into context.
@@ -311,6 +350,10 @@ function ProofsProvider({ children }) {
             console.log('Attempting to add leaf for idgov-v2 creds')
             await addLeaf(sortedCreds[serverAddress['idgov-v2']])
             console.log('Attempted to add leaf for idgov-v2 creds');
+          } else if (event.data.proofType === "uniqueness-phone") {
+            console.log('Attempting to add leaf for phone-v2 creds')
+            await addLeaf(sortedCreds[serverAddress['phone-v2']]);
+            console.log('Attempted to add leaf for phone-v2 creds');
           } else if (event.data.proofType === "medical-specialty") {
             console.log('Attempting to add leaf for med creds')
             await addLeaf(sortedCreds[serverAddress['med']])
@@ -325,6 +368,9 @@ function ProofsProvider({ children }) {
       } else if (event?.data?.proofType === "uniqueness") {
         setUniquenessProof(event.data.proof);
         setLoadingUniquenessProof(false);
+      } else if (event?.data?.proofType === "uniqueness-phone") {
+        setUniquenessPhoneProof(event.data.proof);
+        setLoadingUniquenessPhoneProof(false);
       } else if (event?.data?.proofType === "medical-specialty") {
         setMedicalSpecialtyProof(event.data.proof);
         setLoadingMedicalSpecialtyProof(false);
@@ -349,6 +395,9 @@ function ProofsProvider({ children }) {
       uniquenessProof,
       loadUniquenessProof,
       loadingUniquenessProof,
+      uniquenessPhoneProof,
+      loadUniquenessPhoneProof,
+      loadingUniquenessPhoneProof,
       usResidencyProof,
       loadUSResidencyProof,
       loadingUSResidencyProof,

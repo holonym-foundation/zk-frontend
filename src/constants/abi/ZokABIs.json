@@ -94,6 +94,37 @@
     ],
     "output": { "type": "tuple", "components": { "elements": [] } }
   },
+  "sybilPhone": {
+    "inputs": [
+      { "name": "root", "public": true, "type": "field" },
+      { "name": "msgSenderAddr", "public": true, "type": "field" },
+      { "name": "issuerAddr", "public": true, "type": "field" },
+      { "name": "salt", "public": true, "type": "field" },
+      { "name": "hashbrowns", "public": true, "type": "field" },
+      { "name": "phoneNumber", "public": false, "type": "field" },
+      { "name": "issuedAt", "public": false, "type": "field" },
+      { "name": "scope", "public": false, "type": "field" },
+      { "name": "nullifier", "public": false, "type": "field" },
+      { "name": "leaf", "public": false, "type": "field" },
+      {
+        "name": "path",
+        "public": false,
+        "type": "array",
+        "components": {
+          "size": 14,
+          "type": "array",
+          "components": { "size": 5, "type": "field" }
+        }
+      },
+      {
+        "name": "indices",
+        "public": false,
+        "type": "array",
+        "components": { "size": 14, "type": "u32" }
+      }
+    ],
+    "output": { "type": "tuple", "components": { "elements": [] } }
+  },
   "createLeaf": {
     "inputs": [
       { "name": "address", "public": true, "type": "field" },
