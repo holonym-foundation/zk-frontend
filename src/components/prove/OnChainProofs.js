@@ -2,14 +2,16 @@ import { useNavigate } from "react-router-dom";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { Oval } from "react-loader-spinner";
+import { useQuery } from "wagmi";
 import { Success } from "../success";
 import { truncateAddress } from "../../utils/ui-helpers";
 import RoundedWindow from "../RoundedWindow";
-import useProofsState from "./useProofsState";
+import { useProofMetadata } from "../../context/ProofMetadata";
+import { defaultChainToProveOn } from "../../constants";
+import Relayer from "../../utils/relayer";
+import useGenericProofsState from "./useGenericProofsState";
 
-const ErrorScreen = ({ children }) => (
-	<div className="x-container w-container">{children}</div>
-);
+const SUBMIT_PROOF = 'submitProof';
 
 const CustomOval = () => (
 	<Oval
@@ -52,10 +54,53 @@ const Proofs = () => {
     proof,
     submissionConsent,
     setSubmissionConsent,
-    submitProofQuery,
     proofSubmissionSuccess,
+		setProofSubmissionSuccess,
     error,
-  } = useProofsState();
+		setError,
+  } = useGenericProofsState();
+	const { addProofMetadataItem } = useProofMetadata();
+
+	const submitProofQuery = useQuery(
+		["submitProof"],
+		async () => {
+      return await Relayer.prove(
+        proof,
+				proofs[params.proofType].contractName,
+        defaultChainToProveOn,
+      );
+    },
+		{
+			enabled: !!(submissionConsent && proof),
+			onSuccess: (result) => {
+        console.log('result from submitProof')
+        console.log(result)
+				if (result.error) {
+					console.log("error", result);
+					setError({
+            type: SUBMIT_PROOF,
+            message: result?.error?.response?.data?.error?.reason ??
+            result?.error?.message,
+          });
+				} else {
+					addProofMetadataItem(
+						result,
+						proof.inputs[1],
+						params.proofType,
+						params.actionId,
+					);
+          setProofSubmissionSuccess(true);
+        }
+			},
+			onError: (error) => {
+				console.log("error", error);
+				setError({
+					type: SUBMIT_PROOF,
+					message: error?.response?.data?.error?.reason ?? error?.message,
+				});
+			}
+		},
+	);
 
 	if (proofSubmissionSuccess) {
 		if (params.callback) window.location.href = `https://${params.callback}`;

@@ -3,12 +3,12 @@ import { Routes, Route } from "react-router-dom";
 import Profile from './components/profile/profile';
 import IssuanceOptions from "./components/issuance/IssuanceOptions";
 import ProofMenu from "./components/prove/proof-menu";
-import OffChainProofs from './components/prove/off-chain-proofs';
+import OffChainProofs from './components/prove/OffChainProofs';
 import GovernmentIDIssuance from "./components/issuance/GovernmentIDIssuance";
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance';
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
-import { Proofs } from "./App";
+import { OnChainProofs } from "./App";
 import Register from './components/register';
 
 export function AppRoutes() {
@@ -25,10 +25,9 @@ export function AppRoutes() {
       <Route exact path={"/issuance/external/:store"} element={<ExternalIssuance />} />
       <Route exact path={"/prove"} element={<ProofMenu />} />
       {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
-      <Route exact path={"/prove/:proofType/:actionId/:callback"} element={<Proofs />} />
-      <Route exact path={"/prove/:proofType/:actionId"} element={<Proofs />} />
-      <Route exact path={"/prove/:proofType"} element={<Proofs />} />
-      {/* TODO: Extract common elements from Proofs and OffChainProofs components, and put them in separate files/components */}
+      <Route exact path={"/prove/:proofType/:actionId/:callback"} element={<OnChainProofs />} />
+      <Route exact path={"/prove/:proofType/:actionId"} element={<OnChainProofs />} />
+      <Route exact path={"/prove/:proofType"} element={<OnChainProofs />} />
       <Route exact path={"/prove/off-chain/:proofType/:actionId/:callback"} element={<OffChainProofs />} />
       <Route exact path={"/prove/off-chain/:proofType/:actionId"} element={<OffChainProofs />} />
       <Route exact path={"/prove/off-chain/:proofType"} element={<OffChainProofs />} />

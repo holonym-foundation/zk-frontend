@@ -1,18 +1,15 @@
+/**
+ * Hook for managing state common to onChainProofs and offChainProofs.
+ */
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useAccount, useQuery } from "wagmi";
-import {
-	defaultChainToProveOn,
-	serverAddress,
-} from "../../constants";
+import { useAccount } from "wagmi";
+import { serverAddress } from "../../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { useProofs } from "../../context/Proofs";
 import { useProofMetadata } from "../../context/ProofMetadata";
 import { useCreds } from "../../context/Creds";
-import Relayer from "../../utils/relayer";
-
-const SUBMIT_PROOF = 'submitProof';
 
 const useProofsState = () => {
 	const params = useParams();
@@ -36,9 +33,9 @@ const useProofsState = () => {
 		loadMedicalSpecialtyProof,
 		loadingMedicalSpecialtyProof,
 	} = useProofs();
-	const { proofMetadata, addProofMetadataItem } = useProofMetadata();
+	const { proofMetadata } = useProofMetadata();
 	const accountReadyAddress = useMemo(
-		() => account?.connector.ready && account?.address && account.address,
+		() => account?.connector?.ready && account?.address && account.address,
     [account]
 	);
 	const alreadyHasSBT = useMemo(
@@ -89,7 +86,7 @@ const useProofsState = () => {
 				// Force reloads of proofs occur after adding a leaf to the Merkle tree.
 				setProof(null);
 			} else if (!usResidencyProof && !alreadyHasSBT) {
-				loadUSResidencyProof(true);
+				// loadUSResidencyProof(true);
 			} else {
 				setProof(usResidencyProof)
 			}
@@ -97,7 +94,7 @@ const useProofsState = () => {
 			if (loadingUniquenessProof) {
 				setProof(null);
 			} else if (!uniquenessProof && !alreadyHasSBT) {
-				loadUniquenessProof(true);
+				// loadUniquenessProof(true);
 			} else {
 				setProof(uniquenessProof)
 			}
@@ -105,7 +102,7 @@ const useProofsState = () => {
 			if (loadingUniquenessPhoneProof) {
 				setProof(null);
 			} else if (!uniquenessPhoneProof && !alreadyHasSBT) {
-				loadUniquenessPhoneProof(true);
+				// loadUniquenessPhoneProof(true);
 			} else {
 				setProof(uniquenessPhoneProof)
 			}
@@ -113,7 +110,7 @@ const useProofsState = () => {
 			if (loadingMedicalSpecialtyProof) {
 				setProof(null);
 			} else if (!medicalSpecialtyProof && !alreadyHasSBT) {
-				loadMedicalSpecialtyProof(true);
+				// loadMedicalSpecialtyProof(true);
 			} else {
 				setProof(medicalSpecialtyProof)
 			}
@@ -130,47 +127,6 @@ const useProofsState = () => {
 		loadingMedicalSpecialtyProof
 	])
 
-	const submitProofQuery = useQuery(
-		["submitProof"],
-		async () => {
-      return await Relayer.prove(
-        proof,
-				proofs[params.proofType].contractName,
-        defaultChainToProveOn,
-      );
-    },
-		{
-			enabled: !!(submissionConsent && sortedCreds && proof),
-			onSuccess: (result) => {
-        console.log('result from submitProof')
-        console.log(result)
-				if (result.error) {
-					console.log("error", result);
-					setError({
-            type: SUBMIT_PROOF,
-            message: result?.error?.response?.data?.error?.reason ??
-            result?.error?.message,
-          });
-				} else {
-					addProofMetadataItem(
-						result,
-						proof.inputs[1],
-						params.proofType,
-						params.actionId,
-					);
-          setProofSubmissionSuccess(true);
-        }
-			},
-			onError: (error) => {
-				console.log("error", error);
-				setError({
-					type: SUBMIT_PROOF,
-					message: error?.response?.data?.error?.reason ?? error?.message,
-				});
-			}
-		},
-	);
-
   return {
     params,
     proofs,
@@ -180,9 +136,10 @@ const useProofsState = () => {
     proof,
     submissionConsent,
     setSubmissionConsent,
-    submitProofQuery,
     proofSubmissionSuccess,
+		setProofSubmissionSuccess,
     error,
+		setError,
   }
 };
 
