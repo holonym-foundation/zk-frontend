@@ -15,16 +15,21 @@ import { useCreds } from "../context/Creds";
 import { useProofMetadata } from "../context/ProofMetadata";
 
 const proofTypeToString = {
-  uniqueness: "uniqueness",
+  uniqueness: "uniqueness (government ID)",
   'us-residency': "US residency",
+  'uniqueness-phone': "uniqueness (phone number)",
 }
-
 
 const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
   if (!hasCreds) {
     return (
       <ol>
-        <li>Verify your government ID.</li>
+        <li>{
+          proofType === 'uniqueness-phone' 
+            ? "Verify your phone number." 
+            : "Verify your government ID."
+          }
+        </li>
         <li>Generate a proof of {proofTypeToString[proofType]}.</li>
       </ol>
     )
@@ -33,7 +38,12 @@ const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
     return (
       <ol>
         <li>
-          <s>Verify your government ID.</s>
+          <s>{
+            proofType === 'uniqueness-phone' 
+              ? "Verify your phone number." 
+              : "Verify your government ID."
+            }
+          </s>
           <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
         </li>
         <li>
@@ -46,7 +56,12 @@ const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
     return (
       <ol>
         <li>
-          <s>Verify your government ID.</s>
+          <s>{
+            proofType === 'uniqueness-phone' 
+              ? "Verify your phone number." 
+              : "Verify your government ID."
+            }
+          </s>
           <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
         </li>
         <li>
@@ -66,7 +81,7 @@ const Register = () => {
   const [proofMetadataForSBT, setProofMetadataForSBT] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
-  const { sortedCreds, loadingCreds, reloadCreds, storeCreds } = useCreds();
+  const { sortedCreds, loadingCreds } = useCreds();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
   // URL should include:
@@ -95,13 +110,13 @@ const Register = () => {
         setError("Invalid URL. Missing callback URL.");
         return;
       }
-      // Note the magic strings used here. This needs to be updated if we add cred types
+      // NOTE: the magic strings used here. This needs to be updated if we add cred types
       if (!['idgov', 'phone'].includes(credentialType)) {
         setError("Invalid credential type. Credential type must be 'idgov' or 'phone'.");
         return;
       }
-      // Note the magic strings used here. This needs to be updated if we add cred types
-      if (!['uniqueness', 'us-residency'].includes(proofType)) {
+      // Note the magic strings used here. This needs to be updated if we add proof types
+      if (!Object.keys(proofTypeToString).includes(proofType)) {
         setError("Invalid proof type. Proof type must be 'uniqueness' or 'us-residency'.");
         return;
       }
