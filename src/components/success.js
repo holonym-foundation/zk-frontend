@@ -14,7 +14,7 @@ export const Success = (props) => {
     <div className="x-section product wf-section">
       <div className="x-container product w-container">
         <div className="x-pre-wrapper">
-        <h1 className="h1">{props.title || "Minting Success"}</h1>
+        <h1 className="h1">{props.title || "Verification Success"}</h1>
           {/* <div className="card-heading"> */}
                       
                       {/* <h3 className="h3 no-margin">You are free to submit some proofs or return home</h3> */}

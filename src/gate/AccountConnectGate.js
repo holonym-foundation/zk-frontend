@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { Chains } from '@rize-labs/banana-wallet-sdk/dist/Constants';
-import { Banana } from "@rize-labs/banana-wallet-sdk/dist/BananaProvider"
+import { Banana } from '@rize-labs/banana-wallet-sdk/dist/BananaProvider';
 // import useAccountConnectGate from "./useAccountConnectGate";
 
 export default function AccountConnectGate({ children, fallback, gate }) {

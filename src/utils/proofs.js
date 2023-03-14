@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
-import { preprocEndpoint, defaultChainToProveOn } from "../constants";
+import { preprocEndpoint, defaultChainToProveOn, defaultActionId } from "../constants";
 import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 import Relayer from "./relayer";
@@ -11,20 +11,28 @@ let artifacts = {};
 let provingKeys = {};
 let verifyingKeys = {};
 
-const knowPreimageSrc = `import "hashes/poseidon/poseidon" as poseidon;
-def main(field leaf, field address, private field countryCode, private field nameCitySubdivisionZipStreetHash, private field completedAt, private field scope, private field secret) {
-    field[6] preimage = [address, secret, countryCode, nameCitySubdivisionZipStreetHash, completedAt, scope];
-    assert(poseidon(preimage) == leaf);
-    return;
-}`;
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * @param timeout Time in ms to wait for zokProvider to be initialized
+ */
+async function waitForZokProvider(timeout = 5000) {
+  const start = Date.now();
+  while (!zokProvider && Date.now() - start < timeout) {
+    await sleep(100);
+  }
+}
+
+export async function waitForArtifacts(circuitName, timeout = 5000) {
+  const start = Date.now();
+  while (!(circuitName in artifacts) && Date.now() - start < timeout) {
+    await sleep(100);
+  }
+}
 
 async function loadArtifacts(circuitName) {
   if (circuitName in artifacts) {
-    console.log(
-      `Note: Trying to load ${circuitName} artifacts, which have already been loaded. Not reloading`
-    );
+    // console.log(`Note: Trying to load ${circuitName} artifacts, which have already been loaded. Not reloading`);
     return;
   }
   const program = await (
@@ -40,9 +48,7 @@ async function loadArtifacts(circuitName) {
 
 async function loadProvingKey(circuitName) {
   if (circuitName in provingKeys) {
-    console.log(
-      `Note: Trying to load ${circuitName} provingKey, which has already been loaded. Not reloading`
-    );
+    // console.log(`Note: Trying to load ${circuitName} provingKey, which has already been loaded. Not reloading`);
     return;
   }
   const k = await (
@@ -53,9 +59,7 @@ async function loadProvingKey(circuitName) {
 
 async function loadVerifyingKey(circuitName) {
   if (circuitName in verifyingKeys) {
-    console.log(
-      `Note: Trying to load ${circuitName} verifyingKey, which has already been loaded. Not reloading`
-    );
+    // console.log(`Note: Trying to load ${circuitName} verifyingKey, which has already been loaded. Not reloading`);
     return;
   }
   const k = await (
@@ -88,7 +92,7 @@ initialize().then(async (zokratesProvider) => {
 /* Gets Merkle tree and creates Merkle proof */
 export async function getMerkleProofParams(leaf) {
   const treeData = await Relayer.getTree(defaultChainToProveOn);
-  console.log(treeData, "treeData")
+  // console.log(treeData, "treeData")
   const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
   // NOTE: _nodes and _zeroes are private readonly variables in the `incremental-merkle-tree.d` file,
   // but the JavaScript implementation doesn't seem to enforce these constraints.
@@ -98,9 +102,8 @@ export async function getMerkleProofParams(leaf) {
 
   const leaves = tree._nodes[0];
   if (leaves.indexOf(leaf) === -1) {
-    console.error(
-      `Could not find leaf ${leaf} in leaves ${leaves}`
-    );
+    console.error(`Could not find leaf in leaves`);
+    throw new Error("Leaf is not in Merkle tree");
   }
 
   const index = tree.indexOf(leaf);
@@ -143,14 +146,15 @@ export function serializeProof(proof, hash) {
 
 /**
  * @param {Array<string>} input length-2 Array of numbers represented as strings.
- * @returns {string}
+ * @returns {Promise<string>}
  */
-export function poseidonTwoInputs(input) {
+export async function poseidonTwoInputs(input) {
   if (input.length !== 2 || !Array.isArray(input)) {
     throw new Error("input must be an array of length 2");
   }
   if (!zokProvider) {
-    throw new Error("zokProvider has not been initialized");
+    // throw new Error("zokProvider has not been initialized");
+    await waitForZokProvider(7500);
   }
   if (!("poseidonTwoInputs" in artifacts)) {
     throw new Error("Poseidon hash for two inputs has not been loaded");
@@ -256,49 +260,44 @@ export async function onAddLeafProof (data) {
 // }
 
 /**
- * @param {string} issuer Hex string
- * @param {string} secret Hex string representing 16 bytes
- * @param {string} salt Hex string representing 16 bytes
- * @param {string} footprint Hex string representing 16 bytes
- * @param {number} countryCode
- * @param {string} subdivision UTF-8
- * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} scope Hex string representing 3 bytes
- * @param {Array<Array<string>>} path Numbers represented as strings
- * @param {Array<string>} indices Numbers represented as strings
+ * @param {string} issuer 
+ * @param {string} govIdCreds
  */
-export async function proofOfResidency(
-  sender,
-  issuer,
-  salt,
-  footprint,
-  countryCode,
-  subdivision,
-  completedAt,
-  scope,
-  secret
-) {
+export async function proofOfResidency(sender, govIdCreds) {
   if (!zokProvider) {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
-    await sleep(5000);
+    await waitForZokProvider(5000);
   }
-  console.log("PROOF starting");
+  console.log("PROOF: us-residency: starting");
+
+  // salt == poseidon("IsFromUS")
+  const salt =
+    "18450029681611047275023442534946896643130395402313725026917000686233641593164";
+  const footprint = await poseidonTwoInputs([
+    salt,
+    ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+  ]);
+
+  const [
+    issuer,
+    newSecret,
+    countryCode,
+    nameCitySubdivisionZipStreetHash,
+    completedAt,
+    scope,
+  ] = govIdCreds.creds.serializedAsNewPreimage;
+
   const leaf = await createLeaf(
     [
       issuer,
-      secret,
+      newSecret,
       countryCode,
-      subdivision,
+      nameCitySubdivisionZipStreetHash,
       completedAt,
       scope
     ]
   );
 
-  console.log("PROOF leaf created");
-
   const mp = await getMerkleProofParams(leaf);
-  console.log("PROOF Merkle params done");
 
   const args = [
     mp.root,
@@ -307,88 +306,69 @@ export async function proofOfResidency(
     salt,
     footprint,
     ethers.BigNumber.from(countryCode).toString(),
-    ethers.BigNumber.from(subdivision).toString(), //ethers.BigNumber.from(new TextEncoder("utf-8").encode(subdivision)).toString(),
+    ethers.BigNumber.from(nameCitySubdivisionZipStreetHash).toString(),
     ethers.BigNumber.from(completedAt).toString(),
     ethers.BigNumber.from(scope).toString(),
-    ethers.BigNumber.from(secret).toString(),
+    ethers.BigNumber.from(newSecret).toString(),
     leaf,
     mp.path,
     mp.indices,
   ];
     
-  console.log("PROOF loading artifacts");
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
-  console.log("PROOF loaded artifacts");
 
-  console.log("PROOF computing witness");
   const { witness, output } = zokProvider.computeWitness(
     artifacts.proofOfResidency,
     args
   );
-  console.log("PROOF computed witness");
 
-  console.log("PROOF generating proof");
   const proof = zokProvider.generateProof(
     artifacts.proofOfResidency.program,
     witness,
     provingKeys.proofOfResidency
   );
-  console.log("PROOF generated proof");
+  console.log("PROOF: us-residency: generated proof", proof);
   return proof;
 }
 
 /**
- * @param {string} issuer Hex string
- * @param {string} secret Hex string representing 16 bytes
- * @param {string} salt Hex string representing 16 bytes
- * @param {string} footprint Hex string representing 16 bytes
- * @param {number} countryCode
- * @param {string} subdivision UTF-8
- * @param {string} completedAt Hex string representing 3 bytes
- * @param {string} scope Hex string representing 3 bytes
- * @param {Array<Array<string>>} path Numbers represented as strings
- * @param {Array<string>} indices Numbers represented as strings
+ * @param {string} sender 
+ * @param {object} govIdCreds
+ * @param {string} actionId
  */
-export async function antiSybil(
-  sender,
-  issuer,
-  salt,
-  footprint,
-  countryCode,
-  subdivision,
-  completedAt,
-  scope,
-  secret
-) {
+export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) {
   console.log("antiSybil called")
   if (!zokProvider) {
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
-    await sleep(5000);
+    await waitForZokProvider(5000);
   }
 
-  const leaf = await createLeaf(
-    [
-      issuer,
-      secret,
-      countryCode,
-      subdivision,
-      completedAt,
-      scope
-    ]
-  );
+  const footprint = await poseidonTwoInputs([
+    actionId,
+    ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+  ]);
+
+  const leaf = await createLeaf(govIdCreds.creds.serializedAsNewPreimage);
 
   const mp = await getMerkleProofParams(leaf);
+  
+  const [
+    issuer,
+    secret,
+    countryCode,
+    nameCitySubdivisionZipStreetHash,
+    completedAt,
+    scope,
+  ] = govIdCreds.creds.serializedAsNewPreimage;
 
   const args = [
     mp.root,
     ethers.BigNumber.from(sender).toString(),
     ethers.BigNumber.from(issuer).toString(),
-    salt,
+    actionId,
     footprint,
     ethers.BigNumber.from(countryCode).toString(),
-    ethers.BigNumber.from(subdivision).toString(), //ethers.BigNumber.from(new TextEncoder("utf-8").encode(subdivision)).toString(),
+    ethers.BigNumber.from(nameCitySubdivisionZipStreetHash).toString(),
     ethers.BigNumber.from(completedAt).toString(),
     ethers.BigNumber.from(scope).toString(),
     ethers.BigNumber.from(secret).toString(),
@@ -396,7 +376,6 @@ export async function antiSybil(
     mp.path,
     mp.indices,
   ];
-  
 
   await loadArtifacts("antiSybil");
   await loadProvingKey("antiSybil");
@@ -408,6 +387,127 @@ export async function antiSybil(
     witness,
     provingKeys.antiSybil
   );
+  console.log('uniqueness proof', proof)
+  return proof;
+}
+
+
+/**
+ * @param {string} sender 
+ * @param {object} phoneNumCreds
+ * @param {string} actionId
+ */
+export async function uniquenessPhone(sender, phoneNumCreds, actionId = defaultActionId) {
+  console.log("uniquenessPhone called")
+  if (!zokProvider) {
+    await waitForZokProvider(5000);
+  }
+
+  const hashbrowns = await poseidonTwoInputs([
+    actionId,
+    ethers.BigNumber.from(phoneNumCreds.creds.newSecret).toString(),
+  ]);
+
+  const leaf = await createLeaf(phoneNumCreds.creds.serializedAsNewPreimage);
+
+  const mp = await getMerkleProofParams(leaf);
+  
+  const [
+    issuer,
+    nullifier,
+    phoneNumber,
+    // eslint-disable-next-line no-unused-vars
+    customField2,
+    iat,
+    scope,
+  ] = phoneNumCreds.creds.serializedAsNewPreimage;
+
+  const args = [
+    mp.root,
+    ethers.BigNumber.from(sender).toString(),
+    ethers.BigNumber.from(issuer).toString(),
+    actionId,
+    hashbrowns,
+    ethers.BigNumber.from(phoneNumber).toString(),
+    ethers.BigNumber.from(iat).toString(),
+    ethers.BigNumber.from(scope).toString(),
+    ethers.BigNumber.from(nullifier).toString(),
+    leaf,
+    mp.path,
+    mp.indices,
+  ];
+
+  await loadArtifacts("sybilPhone");
+  await loadProvingKey("sybilPhone");
+
+  const { witness, output } = zokProvider.computeWitness(artifacts.sybilPhone, args);
+
+  const proof = zokProvider.generateProof(
+    artifacts.sybilPhone.program,
+    witness,
+    provingKeys.sybilPhone
+  );
+  console.log('uniqueness-phone proof', proof)
+  return proof;
+}
+
+export async function proofOfMedicalSpecialty(sender, medicalCreds) {
+  if (!zokProvider) {
+    await waitForZokProvider(5000);
+  }
+  console.log("PROOF: medical-specialty: starting");
+
+  // salt == poseidon("MedicalSpecialty")
+  const salt =
+    "320192098064396900878317978103229380372186908085604549333845693700248653086"; 
+  const hashbrowns = await poseidonTwoInputs([
+    salt,
+    ethers.BigNumber.from(medicalCreds.creds.newSecret).toString(),
+  ]);
+
+  const [
+    issuer,
+    newSecret,
+    specialty,
+    npiNumLicenseMedCredsHash,
+    iat,
+    scope,
+  ] = medicalCreds.creds.serializedAsNewPreimage;
+
+  const leaf = await createLeaf(medicalCreds.creds.serializedAsNewPreimage);
+
+  const mp = await getMerkleProofParams(leaf);
+
+  const args = [
+    mp.root,
+    ethers.BigNumber.from(sender).toString(),
+    ethers.BigNumber.from(issuer).toString(),
+    ethers.BigNumber.from(specialty).toString(),
+    salt,
+    hashbrowns,
+    leaf,
+    ethers.BigNumber.from(npiNumLicenseMedCredsHash).toString(),
+    ethers.BigNumber.from(iat).toString(),
+    ethers.BigNumber.from(scope).toString(),
+    ethers.BigNumber.from(newSecret).toString(),
+    mp.path,
+    mp.indices,
+  ];
+    
+  await loadArtifacts("medicalSpecialty");
+  await loadProvingKey("medicalSpecialty");
+
+  const { witness, output } = zokProvider.computeWitness(
+    artifacts.medicalSpecialty,
+    args
+  );
+
+  const proof = zokProvider.generateProof(
+    artifacts.medicalSpecialty.program,
+    witness,
+    provingKeys.medicalSpecialty
+  );
+  console.log("PROOF: medical-specialty: generated proof", proof);
   return proof;
 }
 
@@ -417,30 +517,78 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
   }
+
   const leafArgs = [
     serializedCreds[0], // issuer
     newSecret,
     serializedCreds[2], // countryCode
-    serializedCreds[3], // nameCitySubdivisionZipStreetHash
-    serializedCreds[4], // completedAt
+    serializedCreds[3], // nameDobCitySubdivisionZipStreetExpireHash
+    serializedCreds[4], // iat
     serializedCreds[5], // scope
-  ].map((x) => ethers.BigNumber.from(x).toString())
+  ].map((x) => ethers.BigNumber.from(x).toString());
   const leaf = ethers.BigNumber.from(await createLeaf(leafArgs)).toString();
-  const knowPreimageArtifacts = zokProvider.compile(knowPreimageSrc);
+
+  const mp = await getMerkleProofParams(leaf);
+
+  await loadArtifacts("knowledgeOfLeafPreimage");
+  await loadProvingKey("knowledgeOfLeafPreimage");
+
+  // root, issuerAddr, countryCode, nameDobCitySubdivisionZipStreetExpireHash, iat, scope, secret, field[DEPTH][ARITY] path, private u32[DEPTH] indices
   const proofArgs = [
-    leaf,
+    mp.root,
     serializedCreds[0], // issuer
     serializedCreds[2], // countryCode
-    serializedCreds[3], // nameCitySubdivisionZipStreetHash
-    serializedCreds[4], // completedAt
+    serializedCreds[3], // nameDobCitySubdivisionZipStreetExpireHash
+    serializedCreds[4], // iat
     serializedCreds[5], // scope
     newSecret,
-  ]
-  const { witness, output } = zokProvider.computeWitness(knowPreimageArtifacts, proofArgs);
-  const provingKeyFile = await fetch(`${preprocEndpoint}/knowPreimage.proving.key`);
-  const provingKeyBuffer = await provingKeyFile.arrayBuffer();
-  const provingKey = new Uint8Array(provingKeyBuffer);
-  const proof = zokProvider.generateProof(knowPreimageArtifacts.program, witness, provingKey);
+    mp.path,
+    mp.indices
+  ];
+
+  const { witness, output } = zokProvider.computeWitness(artifacts.knowledgeOfLeafPreimage, proofArgs);
+  const proof = zokProvider.generateProof(
+    artifacts.knowledgeOfLeafPreimage.program,
+    witness,
+    provingKeys.knowledgeOfLeafPreimage
+  );
   console.log('proveKnowledgeOfLeafPreimage proof', proof);
+  return proof;
+}
+
+/**
+ * @param govIdCreds - object issued from id-server
+ */
+export async function proveGovIdFirstNameLastName(govIdCreds) {
+  console.log("proveGovIdFirstNameLastName called")
+  if (!zokProvider) {
+    // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
+    await sleep(5000);
+  }
+  const mp = await getMerkleProofParams(govIdCreds.newLeaf);
+  const encoder = new TextEncoder();
+  const proofArgs = [
+    mp.root,
+    ethers.BigNumber.from(govIdCreds.creds.issuerAddress).toString(),
+    ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.firstName)).toString(),
+    ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.lastName)).toString(),
+    govIdCreds.newLeaf,
+    govIdCreds.metadata.rawCreds.middleName ? ethers.BigNumber.from(encoder.encode(govIdCreds.metadata.rawCreds.middleName)).toString() : "0",
+    ethers.BigNumber.from(govIdCreds.metadata.rawCreds.countryCode).toString(),
+    ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.birthdate)).toString(),
+    govIdCreds.metadata.derivedCreds.addressHash.value,
+    govIdCreds.metadata.rawCreds.expirationDate ? ethers.BigNumber.from(getDateAsInt(govIdCreds.metadata.rawCreds.expirationDate)).toString() : "0",
+    ethers.BigNumber.from(govIdCreds.creds.iat).toString(),
+    ethers.BigNumber.from(govIdCreds.creds.scope).toString(),
+    ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
+    mp.path,
+    mp.indices,
+  ];
+
+  await loadArtifacts("govIdFirstNameLastName");
+  await loadProvingKey("govIdFirstNameLastName");
+  const { witness, output } = zokProvider.computeWitness(artifacts.govIdFirstNameLastName, proofArgs);
+  const proof = zokProvider.generateProof(artifacts.govIdFirstNameLastName.program, witness, provingKeys.govIdFirstNameLastName);
+  console.log('proveGovIdFirstNameLastName proof', proof);
   return proof;
 }

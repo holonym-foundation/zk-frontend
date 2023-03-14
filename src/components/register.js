@@ -1,31 +1,35 @@
 /**
  * Users can be directed to this page from an external site when the owner
- * of the external site wants the user to mint a certain type of credential
+ * of the external site wants the user to verify a certain type of credential
  * and generate a certain proof.
  * 
  * This component displays a loading screen while it parses the URL and
- * then redirects the user to the appropriate page (e.g., mint government ID).
+ * then redirects the user to the appropriate page (e.g., verify government ID).
  */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
 import RoundedWindow from "./RoundedWindow";
-import { useHoloAuthSig } from "../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
-import { getCredentials, getProofMetadata } from "../utils/secrets";
 import { serverAddress } from '../constants';
+import { useCreds } from "../context/Creds";
+import { useProofMetadata } from "../context/ProofMetadata";
 
 const proofTypeToString = {
-  uniqueness: "uniqueness",
+  uniqueness: "uniqueness (government ID)",
   'us-residency': "US residency",
+  'uniqueness-phone': "uniqueness (phone number)",
 }
-
 
 const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
   if (!hasCreds) {
     return (
       <ol>
-        <li>Verify your government ID.</li>
+        <li>{
+          proofType === 'uniqueness-phone' 
+            ? "Verify your phone number." 
+            : "Verify your government ID."
+          }
+        </li>
         <li>Generate a proof of {proofTypeToString[proofType]}.</li>
       </ol>
     )
@@ -34,7 +38,12 @@ const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
     return (
       <ol>
         <li>
-          <s>Verify your government ID.</s>
+          <s>{
+            proofType === 'uniqueness-phone' 
+              ? "Verify your phone number." 
+              : "Verify your government ID."
+            }
+          </s>
           <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
         </li>
         <li>
@@ -47,7 +56,12 @@ const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
     return (
       <ol>
         <li>
-          <s>Verify your government ID.</s>
+          <s>{
+            proofType === 'uniqueness-phone' 
+              ? "Verify your phone number." 
+              : "Verify your government ID."
+            }
+          </s>
           <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
         </li>
         <li>
@@ -67,14 +81,15 @@ const Register = () => {
   const [proofMetadataForSBT, setProofMetadataForSBT] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
-  const { holoAuthSigDigest } = useHoloAuthSig();
+  const { sortedCreds, loadingCreds } = useCreds();
+  const { proofMetadata, loadingProofMetadata } = useProofMetadata();
 
   // URL should include:
   // 1. credential type (e.g., "idgov")
   // 2. proof type (e.g., "uniqueness")
-  // 3. callback URL, must be base64 encoded (e.g., btoa("https://holonym.com"))
+  // 3. callback URL (e.g., "https://example.com/verify")
   useEffect(() => {
+    if (loadingCreds || loadingProofMetadata) return;
     (async () => {
       const credentialType = searchParams.get("credentialType");
       const proofType = searchParams.get("proofType");
@@ -95,32 +110,30 @@ const Register = () => {
         setError("Invalid URL. Missing callback URL.");
         return;
       }
-      // Note the magic strings used here. This needs to be updated if we add cred types
+      // NOTE: the magic strings used here. This needs to be updated if we add cred types
       if (!['idgov', 'phone'].includes(credentialType)) {
         setError("Invalid credential type. Credential type must be 'idgov' or 'phone'.");
         return;
       }
-      // Note the magic strings used here. This needs to be updated if we add cred types
-      if (!['uniqueness', 'us-residency'].includes(proofType)) {
+      // Note the magic strings used here. This needs to be updated if we add proof types
+      if (!Object.keys(proofTypeToString).includes(proofType)) {
         setError("Invalid proof type. Proof type must be 'uniqueness' or 'us-residency'.");
         return;
       }
       try {
-        setHostname(new URL(window.atob(callback)).hostname)
+        setHostname(new URL(callback).hostname)
       } catch (err) {
         setError("Invalid callback URL. Callback is invalid.");
         return;
       }
 
-      const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest);
       const userHasCreds = sortedCreds?.[serverAddress[`${credentialType}-v2`]];
       setHasCreds(userHasCreds);
-      const proofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest);
       const proofMetadataForSBTTemp = proofMetadata?.filter(metadata => metadata.proofType === proofType);
       setProofMetadataForSBT(proofMetadataForSBTTemp);
       setLoading(false);
     })();
-  }, [])
+  }, [loadingCreds, sortedCreds, loadingProofMetadata, proofMetadata])
 
   async function handleClick() {
     const credentialType = searchParams.get("credentialType");
@@ -134,7 +147,7 @@ const Register = () => {
       window.localStorage.removeItem('register-proofType');
       window.localStorage.removeItem('register-callback');
       // Send user to the callback URL. Include address that owns the proof SBT
-      window.location.href = `${window.atob(callback)}?address=${proofMetadataForSBT[0].address}`;
+      window.location.href = `${callback}?address=${proofMetadataForSBT[0].address}`;
       return;
     }
     else if (hasCreds) {
@@ -143,8 +156,8 @@ const Register = () => {
       navigate(`/prove/${proofType}`)
     }
     else {
-      // Send user to minting page for credentialType
-      navigate(`/mint/${credentialType}`)
+      // Send user to verification page for credentialType
+      navigate(`/issuance/${credentialType}`)
     }
 
     window.localStorage.setItem('register-credentialType', credentialType);

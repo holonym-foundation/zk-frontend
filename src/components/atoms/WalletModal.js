@@ -25,7 +25,12 @@ const walletMetadata = {
     name: 'Injected',
     description: 'E.g., Brave Wallet or other browser wallets',
     logo: null,
-  }, 
+  },
+  bananaWallet: {
+    name: 'Banana Wallet',
+    description: 'Connect with Touch ID',
+    logo: null,
+  }
 }
 
 const WalletModal = (props) => {

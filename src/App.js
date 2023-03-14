@@ -16,7 +16,7 @@ import { AppRoutes } from "./AppRoutes";
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 
-export const Proofs = React.lazy(() => import("./components/prove/proofs"));
+export const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 
 const ConnectWalletFallback = () => {
   return (

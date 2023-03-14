@@ -164,7 +164,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                 ) : (
                   <>
                     <div className="private-info-attribute-name">Government ID</div>
-                    <VerifyButton onClick={() => navigate('/mint/idgov')} text="Verify Government ID" />
+                    <VerifyButton onClick={() => navigate('/issuance/idgov')} text="Verify Government ID" />
                   </>
                 )}
                 
@@ -178,7 +178,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                 ) : (
                   <>
                     <div className="private-info-attribute-name">Phone Number</div>
-                    <VerifyButton onClick={() => navigate('/mint/phone')} text="Verify Phone Number" />
+                    <VerifyButton onClick={() => navigate('/issuance/phone')} text="Verify Phone Number" />
                   </>
                 )}
               </div>
