@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../hooks/useAccount";
 import RoundedWindow from "./RoundedWindow";
 import ConnectWalletScreen from "./atoms/connect-wallet-screen";
 import { useHoloAuthSig } from "../context/HoloAuthSig";

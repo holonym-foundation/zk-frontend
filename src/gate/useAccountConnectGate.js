@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../hooks/useAccount";
 
 const pageLoadTimestamp = Date.now();
 

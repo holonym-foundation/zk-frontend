@@ -1,6 +1,7 @@
 import Address from "./Address";
 import WalletModal from "./WalletModal";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../../hooks/useAccount";
 import { useState } from "react";
 
 const ConnectWallet = ()=>{

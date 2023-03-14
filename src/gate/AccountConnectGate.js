@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../hooks/useAccount";
 import { Chains } from '@rize-labs/banana-wallet-sdk/dist/Constants';
 import { Banana } from '@rize-labs/banana-wallet-sdk/dist/BananaProvider';
 // import useAccountConnectGate from "./useAccountConnectGate";

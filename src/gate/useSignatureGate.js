@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../hooks/useAccount";
 import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import { holonymAuthMessage, holonymKeyGenMessage } from "../constants";

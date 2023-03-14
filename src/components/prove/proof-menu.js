@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../../hooks/useAccount";
 import ConnectWalletScreen from "../atoms/connect-wallet-screen";
 import { truncateAddress } from "../../utils/ui-helpers";
 // import { InfoButton } from "./info-button";

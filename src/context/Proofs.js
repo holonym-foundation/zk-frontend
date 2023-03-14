@@ -6,7 +6,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { isEqual } from 'lodash';
-import { useAccount } from 'wagmi';
+// import { useAccount } from 'wagmi';
+import useAccount from '../hooks/useAccount';
 import Relayer from '../utils/relayer';
 import { sha1String } from '../utils/misc';
 import {

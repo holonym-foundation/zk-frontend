@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../../hooks/useAccount";
 import HolonymLogo from '../../img/Holonym-Logo-W.png';
 import UserImage from '../../img/User.svg';
 import { truncateAddress, udReverseResolution } from "../../utils/ui-helpers";

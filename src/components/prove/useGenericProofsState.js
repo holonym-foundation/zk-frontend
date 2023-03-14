@@ -3,7 +3,8 @@
  */
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
+import useAccount from "../../hooks/useAccount";
 import { serverAddress } from "../../constants";
 // import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
 // import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
