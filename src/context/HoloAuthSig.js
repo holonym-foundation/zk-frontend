@@ -3,7 +3,8 @@
  * context so that it doesn't have to be passed as props to every component
  */
 import React, { createContext, useContext, useMemo} from 'react'
-import { useSignMessage } from 'wagmi';
+// import { useSignMessage } from 'wagmi';
+import useSignMessage from '../hooks/useSignMessage';
 import { useLocalStorage } from 'usehooks-ts'
 import { sha256 } from '../utils/secrets';
 import { holonymAuthMessage } from "../constants";

@@ -1,5 +1,6 @@
 import React from "react";
 import { useConnect } from "wagmi";
+import useBananaWallet from "../../hooks/useBananaWallet.js";
 import { Modal } from "./Modal.js";
 import metamaskLogo from "../../img/metamask.svg";
 import coinbaseLogo from "../../img/coinbaseWallet.svg";
@@ -30,6 +31,8 @@ const walletMetadata = {
 
 const WalletModal = (props) => {
   const { connect, connectors, error, isConnecting, pendingConnector } = useConnect();
+  const { setWalletName } = useBananaWallet();
+
   return (
     <Modal visible={props.visible} setVisible={props.setVisible} blur={props.blur}>
       {/* <div className="x-card blue"> */}
@@ -38,28 +41,43 @@ const WalletModal = (props) => {
         <p className="p-2 white">Connect to the site below with one of our available wallet providers.</p>
           {connectors.sort((a, b) => a.id === "injected" ? 1 : b.id === "injected" ? -1 : 0).map((connector) => {
             if(!connector.ready){return null}
-            // console.log(connector.id)
             return (
               <WalletOption 
+                onSelect={() => {
+                  connect(connector);
+                  props.setVisible(false);
+                }}
                 connector={connector}
-                connect={connect}
-                setVisible={props.setVisible}
                 logo={walletMetadata[connector.id].logo} 
                 name={walletMetadata[connector.id].name}
                 description={walletMetadata[connector.id].description}
               />
             )}
           )}
+          {/* Banana wallet */}
+          <WalletOption 
+            onSelect={() => {
+              // TODO: IMPORTANT: Replace window.prompt with an actual modal that prompts for user's email
+              const walletNameTemp = window.prompt('Enter wallet name');
+              console.log('walletNameTemp', walletNameTemp);
+              setWalletName(walletNameTemp);
+              props.setVisible(false);
+            }}
+            connector={{ id: "bananaWallet" }}
+            logo={null} // TODO: add Banana wallet logo 
+            name="Banana Wallet"
+            description="Connect using Touch ID"
+          />
 
         {error && <p>{error.message}</p>}
       </div>
     </Modal>
   )
 }
-const WalletOption = ({ connector, connect, setVisible, logo, name, description }) =>  (
+const WalletOption = ({ onSelect, connector, logo, name, description }) =>  (
   <div key={connector.id} >
     <div
-      onClick={() => {connect(connector); setVisible(false)}}
+      onClick={onSelect}
     >
       <div className="x-card">
         <a style={{ textDecoration: "none" }}>
