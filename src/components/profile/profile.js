@@ -77,7 +77,7 @@ export default function Profile(props) {
   const { sortedCreds, loadingCreds } = useCreds();
 
   useEffect(() => {
-    if (loadingCreds) return;
+    if (loadingCreds || !sortedCreds) return;
     const formattedCreds = formatCreds(sortedCreds);
     setFormattedCreds(formattedCreds);
   }, [sortedCreds, loadingCreds]);
