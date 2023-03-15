@@ -43,7 +43,7 @@ const ExportModal = ({ authSigs, visible, setVisible, blur = true, }) => {
 
   return (
     <>
-      <Modal visible={visible} setVisible={setVisible} blur={blur}>
+      <Modal visible={visible} setVisible={setVisible} blur={blur} heavyBlur={true} transparentBackground={true}>
         <div style={{ textAlign: 'center' }}>
           <h3>Export Your Holo</h3>
           <p>Export your private info to the Holonym mobile app.</p>

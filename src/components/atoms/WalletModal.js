@@ -31,7 +31,7 @@ const walletMetadata = {
 const WalletModal = (props) => {
   const { connect, connectors, error, isConnecting, pendingConnector } = useConnect();
   return (
-    <Modal visible={props.visible} setVisible={props.setVisible} blur={props.blur}>
+    <Modal visible={props.visible} setVisible={props.setVisible} blur={props.blur} heavyBlur={true} transparentBackground={true}>
       {/* <div className="x-card blue"> */}
       <div className="x-wrapper small-center" style={{ padding: "0px", minWidth: "285px", maxWidth: "400px"  }}>
         <h2 className="h2-small">Select Wallet</h2>

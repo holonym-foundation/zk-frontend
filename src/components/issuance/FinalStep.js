@@ -4,7 +4,7 @@
  * 1. Stores the new credentials.
  * 2. Adds to the Merkle tree a leaf containing the new credentials.
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   encryptWithAES,
@@ -17,6 +17,7 @@ import {
   issuerWhitelist,
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
+import { Modal } from "../atoms/Modal";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useCreds } from "../../context/Creds";
 import { useProofs } from "../../context/Proofs";
@@ -29,9 +30,19 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState();
   const [status, setStatus] = useState('loading');
+  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
+  const [credsThatWillBeOverwritten, setCredsThatWillBeOverwritten] = useState();
   const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { reloadCreds } = useCreds();
+  const overwriteRef = useRef({
+    onConfirmOverwrite: () => {},
+    onDenyOverwrite: () => {},
+  });
+
+  useEffect(() => {
+    if (credsThatWillBeOverwritten) setConfirmationModalVisible(true);
+  }, [credsThatWillBeOverwritten]);
 
   function storeSessionId(retrievalEndpoint) {
     if (
@@ -43,7 +54,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
     }
   }
 
-  async function loadCredentials() {
+  async function retrieveNewCredentials() {
     console.log('store-credentials: loading credentials')
     setError(undefined);
     const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
@@ -102,34 +113,35 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   }
 
   function getCredsConfirmation(sortedCreds, credsTemp) {
-    console.log('store-credentials: getting creds confirmation')
-    // Ask user for confirmation if they already have credentials from this issuer
-    if (sortedCreds?.[credsTemp.creds.issuerAddress]) {
-      console.log('Issuer already in sortedCreds')
-      const credsToDisplay = sortedCreds[credsTemp.creds.issuerAddress]?.rawCreds ?? sortedCreds[credsTemp.creds.issuerAddress]
-      const confirmation = window.confirm(
-        `You already have credentials from this issuer. Would you like to overwrite them? ` +
-        "You will not be able to undo this action. " +
-        `You would be overwriting: ${JSON.stringify(credsToDisplay, null, 2)}`
-      )
-      if (confirmation) {
-        console.log(`User is overwriting creds from ${credsTemp.creds.issuerAddress}`)
-        return true
+    return new Promise((resolve, reject) => {
+      console.log('store-credentials: getting creds confirmation')
+      // Ask user for confirmation if they already have credentials from this issuer
+      if (sortedCreds?.[credsTemp.creds.issuerAddress]) {
+        console.log('Issuer already in sortedCreds')
+        setCredsThatWillBeOverwritten(sortedCreds[credsTemp.creds.issuerAddress]);
+        overwriteRef.current.onConfirmOverwrite = () => {
+          console.log(`User is overwriting creds from ${credsTemp.creds.issuerAddress}`);
+          setConfirmationModalVisible(false);
+          resolve(true);
+        };
+        overwriteRef.current.onDenyOverwrite = () => {
+          console.log(`User is not overwriting creds from ${credsTemp.creds.issuerAddress}`);
+          setConfirmationModalVisible(false);
+          resolve(false);
+        };
       } else {
-        console.log(`User is not overwriting creds from ${credsTemp.creds.issuerAddress}`)
-        return false;
+        console.log('store-credentials: no creds confirmation needed')
+        resolve(true);
       }
-    }
-    console.log('store-credentials: no creds confirmation needed')
-    return true;
+    });
   }
 
   async function mergeAndSetCreds(credsTemp) {
     // Merge new creds with old creds
     console.log('store-credentials: merging creds')
-    // const sortedCreds = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest) ?? {};
     const sortedCreds = await reloadCreds() ?? {};
-    const confirmed = getCredsConfirmation(sortedCreds, credsTemp);
+    console.log('!!! sortedCreds in mergeAndSetCreds', Object.assign({}, sortedCreds))
+    const confirmed = await getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);
       return;
@@ -154,7 +166,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   useEffect(() => {
     (async () => {
       try {
-        const credsTemp = await loadCredentials();
+        const credsTemp = await retrieveNewCredentials();
         if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
         if (credsTemp?.newLeaf) {
           // If creds already has new leaf, then they must have been restored from localStorage
@@ -175,9 +187,13 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   }, [])
 
   return {
+    credsThatWillBeOverwritten,
     declinedToStoreCreds,
+    confirmationModalVisible, 
     error,
     status,
+    onConfirmOverwrite: overwriteRef.current.onConfirmOverwrite,
+    onDenyOverwrite: overwriteRef.current.onDenyOverwrite,
   }
 }
 
@@ -255,9 +271,13 @@ const FinalStep = ({ onSuccess }) => {
     setCredsForAddLeaf, 
   } = useAddLeafState({ onSuccess });
   const { 
-    declinedToStoreCreds, 
+    credsThatWillBeOverwritten,
+    declinedToStoreCreds,
+    confirmationModalVisible,
     error: storeCredsError, 
-    status: storeCredsStatus 
+    status: storeCredsStatus,
+    onConfirmOverwrite, 
+    onDenyOverwrite,
   } = useStoreCredentialsState({ setCredsForAddLeaf });
   const error = useMemo(
     () => addLeafError ?? storeCredsError, 
@@ -273,6 +293,22 @@ const FinalStep = ({ onSuccess }) => {
 
   return (
     <>
+      <Modal visible={confirmationModalVisible} setVisible={() => {}} blur={true} heavyBlur={false} transparentBackground={false} >
+        <div style={{ textAlign: 'center' }}>
+          <p>You already have credentials from this issuer.</p>
+          <p>Would you like to overwrite them?</p>
+          <div className="confirmation-modal-buttons" style={{ marginTop: "10px", marginBottom: "10px", marginLeft: "auto", marginRight: "auto" }}>
+            <button className="confirmation-modal-button-cancel" onClick={onDenyOverwrite}>No</button>
+            <button className="confirmation-modal-button-confirm" onClick={onConfirmOverwrite}>Yes</button>
+          </div>
+          <p>You will not be able to undo this action.</p>
+          <p>You would be overwriting...</p>
+        </div>
+          {JSON.stringify(credsThatWillBeOverwritten?.metadata?.rawCreds ?? credsThatWillBeOverwritten, null, 2)
+            ?.replaceAll('}', '')?.replaceAll('{', '')?.replaceAll('"', '')?.split(',')?.map((cred, index) => (
+              <p key={index}><code>{cred}</code></p>
+          ))}
+      </Modal>
       {declinedToStoreCreds ? (
         <>
           <h3>Verification finalization aborted</h3>

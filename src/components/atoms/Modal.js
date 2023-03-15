@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 
-export const Modal = (props) => {
+export const Modal = ({ children, visible, setVisible, blur, heavyBlur, transparentBackground }) => {
   // stop display when clicked outside
   const ref = useRef(null);
   useEffect(() => {
     function handleClick(event) {
       if (ref.current && !ref.current.contains(event.target)) {
-        props.setVisible(false);
+        setVisible(false);
       }
     }
 
@@ -15,18 +15,18 @@ export const Modal = (props) => {
   }, [ref]);
 
   return (
-    <div style={{ display: props.visible ? "block" : "none" }}>
+    <div style={{ display: visible ? "block" : "none" }}>
       <div
-        className={"bg-img x-section wf-section " + (props.blur ? "blur" : "")}
-        style={{ position: "fixed", zIndex: 10000, left: "0px", top: "0px", width: "100vw", height: "100vh" }}
+        className={"bg-img x-section wf-section " + (blur ? "blur" : "")}
+        style={{ backdropFilter: `blur(${heavyBlur ? "17" : "6"}px)`, position: "fixed", zIndex: 10000, left: "0px", top: "0px", width: "100vw", height: "100vh" }}
       >
         <div className="x-container w-container">
           <div 
-            ref={ref} className={"x-card small " + (props.blur ? "large-blur" : "")}
-            style={{ maxHeight: "75vh", overflowY: "auto" }}
+            ref={ref} className={"x-card small " + (blur ? "large-blur" : "")}
+            style={{ backgroundColor: transparentBackground ? "transparent" : "var(--dark-card-background)", maxHeight: "75vh", overflowY: "auto" }}
           >
             <div className="card-heading" style={{ alignItems: "normal" }}>
-              <div>{props.children}</div>
+              <div>{children}</div>
             </div>
           </div>
         </div>
