@@ -21,7 +21,10 @@ export const Modal = (props) => {
         style={{ position: "fixed", zIndex: 10000, left: "0px", top: "0px", width: "100vw", height: "100vh" }}
       >
         <div className="x-container w-container">
-          <div ref={ref} className={"x-card small " + (props.blur ? "large-blur" : "")}>
+          <div 
+            ref={ref} className={"x-card small " + (props.blur ? "large-blur" : "")}
+            style={{ maxHeight: "75vh", overflowY: "auto" }}
+          >
             <div className="card-heading" style={{ alignItems: "normal" }}>
               <div>{props.children}</div>
             </div>
