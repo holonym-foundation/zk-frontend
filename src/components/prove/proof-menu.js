@@ -32,17 +32,17 @@ const ProofMenu = ()=>{
                             type="proofMenu"
                             text={`Anonymity is provided by the anonymity set, a.k.a. Privacy Pool. If we wanted to spy and you only waited a minute, we could see you verified at a certain time and that some wallet submitted a proof a minute later. We could then guess you were that wallet. But if you waited a whole week, a lot of people have also will have registered, so we can't tell it's you. Everyone's verification would be pooled together, so we would only know the prover was one person in the whole pool. Whether you wait a second, a day, or year depends on how much you want to stay anonymous to Holonym Foundation. If you trust us not to track you, you can prove now...`}
                         /> */}
-                    <div className="spacer-large"></div>
+                    <div className="spacer-large" />
                     <button onClick={()=>navigate("/prove/us-residency")} className="x-button">US Residency</button>
-                    <div className="spacer-large"></div>
+                    <div className="spacer-large" />
                     <button onClick={()=>navigate("/prove/uniqueness")} className="x-button">Unique Personhood (government ID)</button>
-                    <div className="spacer-large"></div>
+                    <div className="spacer-large" />
                     <button onClick={()=>navigate("/prove/uniqueness-phone")} className="x-button">Unique Personhood (phone number)</button>
-                    <div className="spacer-large"></div>
+                    <div className="spacer-large" />
                     <button onClick={()=>navigate("/prove/medical-specialty")} className="x-button">
                         Medical Specialty
                     </button>
-                    <div className="spacer-large"></div>
+                    <div className="spacer-large" />
                     {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
 
                 </div>

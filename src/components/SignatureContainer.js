@@ -29,11 +29,11 @@ const SignatureContainer = ({ children }) => {
   } = useHoloKeyGenSig();
 
   useEffect(() => {
-    if (!account?.address || !account?.connector) return;
-    if (!holoAuthSig && !holoAuthSigIsLoading && !holoAuthSigIsSuccess) {
+    if (!(account?.address && account?.connector)) return;
+    if (!((holoAuthSig || holoAuthSigIsLoading ) || holoAuthSigIsSuccess)) {
       signHoloAuthMessage().catch(err => console.error(err))
     }
-    if (!holoAuthSigIsLoading && !holoKeyGenSig && !holoKeyGenSigIsLoading && !holoKeyGenSigIsSuccess) {
+    if (!(((holoAuthSigIsLoading || holoKeyGenSig ) || holoKeyGenSigIsLoading ) || holoKeyGenSigIsSuccess)) {
       signHoloKeyGenMessage().catch(err => console.error(err))
     }
   }, 
@@ -50,7 +50,7 @@ const SignatureContainer = ({ children }) => {
   )
 
   useEffect(() => {
-    if (!account?.address || !account?.connector) return;
+    if (!(account?.address && account?.connector)) return;
     // Check that sigs are from account. If they aren't, re-request them
     if (holoAuthSig && ethers.utils.verifyMessage(holonymAuthMessage, holoAuthSig) !== account.address) {
       console.log('account changed. Re-retrieving holoAuthSig');
@@ -77,11 +77,11 @@ const SignatureContainer = ({ children }) => {
 
   return (
     <>
-      {!account?.address || !account?.connector ? (
+      {!(account?.address && account?.connector ) ? (
         <RoundedWindow>
           <ConnectWalletScreen />
         </RoundedWindow>
-      ) : !holoAuthSigDigest || !holoKeyGenSigDigest ? (
+      ) : !(holoAuthSigDigest && holoKeyGenSigDigest ) ? (
         <RoundedWindow>
           <div style={mainDivStyles}>
             <h2>Please sign the messages in your wallet.</h2>

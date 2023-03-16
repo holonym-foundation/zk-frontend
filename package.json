@@ -64,7 +64,8 @@
     "start:cached-preproc": "PORT=3002 PREPROC_CACHED_LOCALLY=true craco start",
     "build": "craco build",
     "test": "craco test",
-    "eject": "craco eject"
+    "eject": "craco eject",
+    "lint": "npx rome check --apply-suggested src"
   },
   "eslintConfig": {
     "extends": [

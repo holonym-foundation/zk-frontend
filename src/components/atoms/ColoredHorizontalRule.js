@@ -6,6 +6,6 @@ export default function ColoredHorizontalRule({ color = "#5e72eb", leftRightFade
       border: 0, 
       height: "2px", 
       backgroundImage: `linear-gradient(to right, ${color}, ${leftRightFade ? "transparent" : color})` 
-    }}></div>
+    }} />
   )
 }

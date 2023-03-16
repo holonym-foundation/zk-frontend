@@ -16,17 +16,12 @@ export default function useSignatureGate(gate) {
 
 	useEffect(
 		() => {
-			if (!account?.address || !account?.connector)
+			if (!(account?.address && account?.connector))
 				return;
-			if (!holoAuthSig &&
-				!holoAuthSigIsLoading &&
-				!holoAuthSigIsSuccess) {
+			if (!((holoAuthSig ||holoAuthSigIsLoading ) ||holoAuthSigIsSuccess)) {
 				signHoloAuthMessage().catch((err) => console.error(err));
 			}
-			if (!holoAuthSigIsLoading &&
-				!holoKeyGenSig &&
-				!holoKeyGenSigIsLoading &&
-				!holoKeyGenSigIsSuccess) {
+			if (!(((holoAuthSigIsLoading ||holoKeyGenSig ) ||holoKeyGenSigIsLoading ) ||holoKeyGenSigIsSuccess)) {
 				signHoloKeyGenMessage().catch((err) => console.error(err));
 			}
 		},
@@ -43,7 +38,7 @@ export default function useSignatureGate(gate) {
 	);
 
 	useEffect(() => {
-		if (!account?.address || !account?.connector)
+		if (!(account?.address && account?.connector))
 			return;
 		// Check that sigs are from account. If they aren't, re-request them
 		if (holoAuthSig &&

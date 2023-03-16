@@ -195,7 +195,7 @@ export async function getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, res
       // User has multiple sets of credentials for the same issuer. Use the most recently issued set.
       const sortedCredsFromIssuer = credsFromIssuer.sort(
         (a, b) => {
-          if (!a[issuer]?.creds?.iat && !b[issuer]?.creds?.iat) return 0;
+          if (!(a[issuer]?.creds?.iat || b[issuer]?.creds?.iat)) return 0;
           if (!a[issuer]?.creds?.iat) return 1;
           if (!b[issuer]?.creds?.iat) return -1;
 
@@ -289,7 +289,7 @@ export function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) 
   const senderAddr = 
     missingLeadingZeros === 0 
       ? senderAddrHex 
-      : '0x' + '0'.repeat(missingLeadingZeros) + senderAddrHex.slice(2);
+      : `0x${'0'.repeat(missingLeadingZeros)}${senderAddrHex.slice(2)}`;
   const proofMetadataItem = {
     proofType: proofType,
     address: senderAddr, 

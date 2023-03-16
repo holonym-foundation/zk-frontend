@@ -83,8 +83,8 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
 
     const data = await resp.json();
     if (!data) {
-      console.error(`Could not retrieve credentials.`);
-      throw new Error(`Could not retrieve credentials.`);
+      console.error("Could not retrieve credentials.");
+      throw new Error("Could not retrieve credentials.");
     } else {
       // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
       window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
@@ -190,7 +190,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
         window.sessionStorage.holoFinalStepLastLoadedAt = new Date().getTime().toString();
 
         const credsTemp = await retrieveNewCredentials();
-        if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
+        if (!credsTemp) throw new Error("Could not retrieve credentials.");
         if (credsTemp?.newLeaf) {
           // If creds already has new leaf, then they must have been restored from localStorage
           // and we just need to merge and return them
@@ -270,7 +270,7 @@ function useAddLeafState({ onSuccess }) {
   }, [credsForAddLeaf])
 
   useEffect(() => {
-    if (!kolpProof || !readyToSendToServer) return;
+    if (!(kolpProof && readyToSendToServer)) return;
     setStatus('backingUpCreds')
     sendCredsToServer()
       .then(() => {

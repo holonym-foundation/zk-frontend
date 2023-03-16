@@ -23,7 +23,7 @@ const InfoText = (props) => {
                 }} 
                 loading="lazy" 
                 alt="" 
-                className="popup-arrow"></img>
+                className="popup-arrow" />
           </div>
         </>
       )
@@ -32,7 +32,7 @@ const InfoText = (props) => {
       <>
         <div className="card-popup" style={{ display: props.display ? "block" : "none" }}>
           <p className="card-popup-text">{props.text}</p>
-          <img src={arrow} loading="lazy" alt="" className="popup-arrow"></img>
+          <img src={arrow} loading="lazy" alt="" className="popup-arrow" />
         </div>
       </>
       )
@@ -67,18 +67,18 @@ export const InfoButton = (props) => {
               stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
-            ></path>
-            <path d="M9.375 9.375H10V13.75H10.625" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>
+            />
+            <path d="M9.375 9.375H10V13.75H10.625" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
             <path
               d="M10.2812 6.5625C10.2812 6.80412 10.0854 7 9.84375 7C9.60213 7 9.40625 6.80412 9.40625 6.5625C9.40625 6.32088 9.60213 6.125 9.84375 6.125C10.0854 6.125 10.2812 6.32088 10.2812 6.5625Z"
               fill="currentColor"
               stroke="currentColor"
-            ></path>
+            />
           </svg>
         </div>
       </button>
 
-      <InfoText display={display} text={props.text} type={props.type} clickX={clickX} clickY={clickY}></InfoText>
+      <InfoText display={display} text={props.text} type={props.type} clickX={clickX} clickY={clickY} />
     </div>
   );
 };

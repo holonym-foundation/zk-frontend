@@ -22,7 +22,7 @@ function useVerifyPhoneNumberState() {
   const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!phoneNumber && !store) return "Phone#";
+    if (!(phoneNumber || store)) return "Phone#";
     if (phoneNumber && !store) return "Verify";
     if (store) return "Finalize";
   }, [phoneNumber, store]);
@@ -96,7 +96,7 @@ const VerifyPhoneNumber = () => {
             value={code}
             onChange={onChange}
             className="text-field"
-          ></input>
+          />
         </>
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />

@@ -27,23 +27,23 @@ export const Success = (props) => {
                 {/* <a href="#" className="x-button secondary outline w-button">view tranaction</a> */}
                 {/* <div className="spacer-x-small"></div> */}
                   
-                <div className="spacer-large"></div>
+                <div className="spacer-large" />
                 
                 <a onClick={()=>navigate("/")} className="x-button secondary">
                   Go home
                 </a>
 
-                <div className="spacer-x-small"></div>
-                <div className="spacer-x-small"></div>
+                <div className="spacer-x-small" />
+                <div className="spacer-x-small" />
                 <h4>Or</h4>
-                <div className="spacer-x-small"></div>
-                <div className="spacer-x-small"></div>
+                <div className="spacer-x-small" />
+                <div className="spacer-x-small" />
 
                 <a onClick={()=>navigate("/prove")} className="x-button secondary">
                   Prove stuff about yourself
                 </a>
 
-                <div className="spacer-x-small"></div>
+                <div className="spacer-x-small" />
                 </div>
         </div>
       </div>

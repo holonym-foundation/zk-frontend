@@ -73,7 +73,7 @@ const WalletOption = ({ connector, connect, setVisible, logo, name, description 
                   {name}
                 </h3>
               </div>
-              <div className="spacer-xx-small"></div>
+              <div className="spacer-xx-small" />
               <p className="id-designation">{description}</p>
             </div>
           </div>

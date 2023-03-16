@@ -296,7 +296,7 @@ function ProofsProvider({ children }) {
   async function loadKOLPProof(runInMainThread = false, forceReload = false, newSecret = null, serializedAsNewPreimage = null) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
     const phoneNumCreds = sortedCreds?.[serverAddress['phone-v2']];
-    if (!(newSecret && serializedAsNewPreimage) && !govIdCreds && !phoneNumCreds) return;
+    if (!(((newSecret && serializedAsNewPreimage) || govIdCreds ) || phoneNumCreds)) return;
     if (proofsWorker && !runInMainThread) {
       if (newSecret && serializedAsNewPreimage) {
         proofsWorker.postMessage({

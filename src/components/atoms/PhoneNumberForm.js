@@ -18,7 +18,7 @@ const PhoneNumberForm = ({ onSubmit }) => {
         value={phone}
         onChange={setPhone}
       />
-      <div className="spacer-medium"></div>
+      <div className="spacer-medium" />
       <button
         className="x-button secondary outline"
         onClick={() => onSubmit(phone)}

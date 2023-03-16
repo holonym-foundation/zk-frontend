@@ -102,7 +102,7 @@ export async function getMerkleProofParams(leaf) {
 
   const leaves = tree._nodes[0];
   if (leaves.indexOf(leaf) === -1) {
-    console.error(`Could not find leaf in leaves`);
+    console.error("Could not find leaf in leaves");
     throw new Error("Leaf is not in Merkle tree");
   }
 

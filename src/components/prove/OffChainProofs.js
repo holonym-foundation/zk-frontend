@@ -85,7 +85,7 @@ const Proofs = () => {
       // Get sessionId and callback from URL
       const sessionId = searchParams.get("sessionId");
       const callbackUrl = searchParams.get("callback");
-      if (!sessionId && !callbackUrl) setError({ message: "Missing sessionId and callback" });
+      if (!(sessionId || callbackUrl)) setError({ message: "Missing sessionId and callback" });
       if (!sessionId) setError({ message: "Missing sessionId" });
       if (!callbackUrl) setError({ message: "Missing callback" });
       else if (sessionId && callbackUrl) {

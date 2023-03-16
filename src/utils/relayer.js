@@ -7,11 +7,11 @@ const Relayer = {
         let error;
         try {
           res = await axios.post(`${relayerUrl}/v2/addLeaf`, args);
-          if (res.status == 200) {
+          if (res.status === 200) {
             onSuccess(res);
           }
         } catch (e) {
-            (onError && onError(e))
+            (onError?.(e))
             error = e;
           
         }
@@ -30,7 +30,7 @@ const Relayer = {
           res = response.data;
 
         } catch (e) {
-            (onError && onError(e))
+            (onError?.(e))
             error = e;
           
         }

@@ -87,7 +87,7 @@ export default function Profile(props) {
     <div className="x-section wf-section">
       <div className="x-container dashboard w-container">
         <PublicInfoCard />
-        <div className="spacer-large"></div>
+        <div className="spacer-large" />
         <PrivateInfoCard creds={formattedCreds} loading={loadingCreds} />
       </div>
     </div>

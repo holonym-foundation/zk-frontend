@@ -84,7 +84,7 @@ export default function PrivateInfoCard({ creds, loading }) {
   const { holoKeyGenSig } = useHoloKeyGenSig();
 
   useEffect(() => {
-    if (!holoAuthSig || !holoKeyGenSig) return;
+    if (!(holoAuthSig && holoKeyGenSig)) return;
     const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig });
     setAuthSigs(authSigsTemp);
   }, [holoAuthSig, holoKeyGenSig])
@@ -126,7 +126,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                   <div style={{ marginBottom: "12px", position: 'relative', top: '-4px', left: '-4px' }}>
                     <InfoButton
                       type="inPlace"
-                      text={`Data is stored locally and a backup is encrypted and stored in a backup server access-gated by your wallet signature. This server may be replaced with decentralized storage. Nobody can see your data except you.`}
+                      text={"Data is stored locally and a backup is encrypted and stored in a backup server access-gated by your wallet signature. This server may be replaced with decentralized storage. Nobody can see your data except you."}
                     />
                   </div>
                 </div>

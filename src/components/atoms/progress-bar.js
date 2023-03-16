@@ -19,7 +19,7 @@ const Progress = ({steps, currentIdx}) => {
     {steps.map((step, idx) => (
         <Step key={step} transition="scale">
         {({ accomplished }) => (
-          <Container idx={idx} text={step}></Container>
+          <Container idx={idx} text={step} />
         )}
       </Step>
     ))}

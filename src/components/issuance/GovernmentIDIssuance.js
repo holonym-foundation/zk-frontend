@@ -72,7 +72,7 @@ const ConfirmRetry = ({ setRetry }) => (
       >
         No, I want to verify again
       </button>
-      <div style={{ margin: '10px' }}></div>
+      <div style={{ margin: '10px' }} />
       <button
         className="x-button"
         style={{
