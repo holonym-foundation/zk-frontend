@@ -66,6 +66,8 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
       try {
         // These couple lines handle case where this component is rendered multiple times and the API is called multiple times,
         // resulting in a state where the most recent query gets a not ok response, even though the initial query was successful.
+        // The component can re-render if the user reloads the page. Re-renders that happen within 1 second are handled by the
+        // check below for holoFinalStepLastLoadedAt.
         // Note for later: Does using Next.js fix this?
         // We try-catch in case data is for some reason not JSON parsable, in which case we want to return the server's error
         const data = window.localStorage.getItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
@@ -108,6 +110,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
     credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
     credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
     credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
+    window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
     console.log('store-credentials: new secret and new leaf added')
     return credsTemp;
   }
@@ -117,6 +120,12 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
       console.log('store-credentials: getting creds confirmation')
       // Ask user for confirmation if they already have credentials from this issuer
       if (sortedCreds?.[credsTemp.creds.issuerAddress]) {
+        if (JSON.stringify(sortedCreds[credsTemp.creds.issuerAddress]) === JSON.stringify(credsTemp)) {
+          // For cases of immediate re-render
+          console.log('store-credentials: getCredsConfirmation: creds are the same, no confirmation needed')
+          resolve(true);
+          return;
+        }
         console.log('Issuer already in sortedCreds')
         setCredsThatWillBeOverwritten(sortedCreds[credsTemp.creds.issuerAddress]);
         overwriteRef.current.onConfirmOverwrite = () => {
@@ -140,7 +149,6 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
     // Merge new creds with old creds
     console.log('store-credentials: merging creds')
     const sortedCreds = await reloadCreds() ?? {};
-    console.log('!!! sortedCreds in mergeAndSetCreds', Object.assign({}, sortedCreds))
     const confirmed = await getCredsConfirmation(sortedCreds, credsTemp);
     if (!confirmed) {
       setDeclinedToStoreCreds(true);
@@ -166,6 +174,21 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   useEffect(() => {
     (async () => {
       try {
+        // If this component is rendered multiple times, we wait. In case of an immediate second  
+        // re-render, we want the second call to retrieveNewCredentials to return the creds cached 
+        // as "holoPlaintextCreds", and we want those creds to include the new leaf added during 
+        // the first render. If the new leaf is not included, there is a risk that the first new 
+        // leaf is added to the merkle tree but is not stored and so is lost, resulting in the user 
+        // being unable to generate proofs.
+        if (
+          window.sessionStorage.getItem('holoFinalStepLastLoadedAt') && 
+          new Date() - new Date(Number(sessionStorage.getItem('holoFinalStepLastLoadedAt'))) < 1000
+        ) {
+          console.log('store-credentials: Final step already rendered within the last second. Waiting to re-render')
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        window.sessionStorage.holoFinalStepLastLoadedAt = new Date().getTime().toString();
+
         const credsTemp = await retrieveNewCredentials();
         if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
         if (credsTemp?.newLeaf) {
