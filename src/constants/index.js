@@ -48,6 +48,7 @@ export const issuerWhitelist = [
   '0xB625e69aB86db23C23682875Ba10FbC8f8756d16',
   // EdDSA signer 'address' format:
   '0x03fae82f38bf01d9799d57fdda64fad4ac44e4c2c2f16c5bf8e1873d0a3e1993',
+  '0x2a4879fe71757462a1a7e103646bbc3349a15bd52b115153791da39b5e376bb0', // test id-server
   '0x2998cab3d07a64315f1e8399ecef60a19f478231663f8740703bd30a42a91ed4',
   "0x0040b8810cbaed9647b54d18cc98b720e1e8876be5d8e7089d3c079fc61c30a4",
   '0x198c8c83f3e3dfab87ce363bcc2e5587dcda7dfcf56d24fc0bfa5c82454812ba', // MedDAO issuer

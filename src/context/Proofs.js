@@ -31,7 +31,7 @@ const Proofs = createContext(null);
 // const proofsWorker = window.Worker ? new Worker(new URL('../web-workers/load-proofs.js', import.meta.url)) : null;
 
 // Use worker in Webpack 4
-const proofsWorker = new ProofsWorker();
+const proofsWorker = window.Worker ? new ProofsWorker() : null;
 
 function ProofsProvider({ children }) {
   const [uniquenessProof, setUniquenessProof] = useState(null);
@@ -348,48 +348,50 @@ function ProofsProvider({ children }) {
   }
 
   useEffect(() => {
-    proofsWorker.onmessage = async (event) => {
-      if (event?.data?.error) {
-        console.error(event.data.error);
-        // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
-        // user retrieved their credentials but something failed during the add leaf process.
-        if (event.data.error?.message === "Leaf is not in Merkle tree") {
-          if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
-            console.log('Attempting to add leaf for idgov-v2 creds')
-            await addLeaf(sortedCreds[serverAddress['idgov-v2']])
-            console.log('Attempted to add leaf for idgov-v2 creds');
-          } else if (event.data.proofType === "uniqueness-phone") {
-            console.log('Attempting to add leaf for phone-v2 creds')
-            await addLeaf(sortedCreds[serverAddress['phone-v2']]);
-            console.log('Attempted to add leaf for phone-v2 creds');
-          } else if (event.data.proofType === "medical-specialty") {
-            console.log('Attempting to add leaf for med creds')
-            await addLeaf(sortedCreds[serverAddress['med']])
-            console.log('Attempted to add leaf for med creds');
+    if (proofsWorker) {
+      proofsWorker.onmessage = async (event) => {
+        if (event?.data?.error) {
+          console.error(event.data.error);
+          // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
+          // user retrieved their credentials but something failed during the add leaf process.
+          if (event.data.error?.message === "Leaf is not in Merkle tree") {
+            if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
+              console.log('Attempting to add leaf for idgov-v2 creds')
+              await addLeaf(sortedCreds[serverAddress['idgov-v2']])
+              console.log('Attempted to add leaf for idgov-v2 creds');
+            } else if (event.data.proofType === "uniqueness-phone") {
+              console.log('Attempting to add leaf for phone-v2 creds')
+              await addLeaf(sortedCreds[serverAddress['phone-v2']]);
+              console.log('Attempted to add leaf for phone-v2 creds');
+            } else if (event.data.proofType === "medical-specialty") {
+              console.log('Attempting to add leaf for med creds')
+              await addLeaf(sortedCreds[serverAddress['med']])
+              console.log('Attempted to add leaf for med creds');
+            }
+            // Reload proofs after adding leaf. The proof that erred should succeed now.
+            loadProofs(true);
           }
-          // Reload proofs after adding leaf. The proof that erred should succeed now.
-          loadProofs(true);
+        } else if (event?.data?.proofType === "us-residency") {
+          setUSResidencyProof(event.data.proof);
+          setLoadingUSResidencyProof(false);
+        } else if (event?.data?.proofType === "uniqueness") {
+          setUniquenessProof(event.data.proof);
+          setLoadingUniquenessProof(false);
+        } else if (event?.data?.proofType === "uniqueness-phone") {
+          setUniquenessPhoneProof(event.data.proof);
+          setLoadingUniquenessPhoneProof(false);
+        } else if (event?.data?.proofType === "medical-specialty") {
+          setMedicalSpecialtyProof(event.data.proof);
+          setLoadingMedicalSpecialtyProof(false);
+        } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
+          setGovIdFirstNameLastNameProof(event.data.proof);
+          setLoadingGovIdFirstNameLastNameProof(false);
+        } else if (event?.data?.proofType === "kolp") {
+          setKOLPProof(event.data.proof);
+          setLoadingKOLPProof(false);
         }
-      } else if (event?.data?.proofType === "us-residency") {
-        setUSResidencyProof(event.data.proof);
-        setLoadingUSResidencyProof(false);
-      } else if (event?.data?.proofType === "uniqueness") {
-        setUniquenessProof(event.data.proof);
-        setLoadingUniquenessProof(false);
-      } else if (event?.data?.proofType === "uniqueness-phone") {
-        setUniquenessPhoneProof(event.data.proof);
-        setLoadingUniquenessPhoneProof(false);
-      } else if (event?.data?.proofType === "medical-specialty") {
-        setMedicalSpecialtyProof(event.data.proof);
-        setLoadingMedicalSpecialtyProof(false);
-      } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
-        setGovIdFirstNameLastNameProof(event.data.proof);
-        setLoadingGovIdFirstNameLastNameProof(false);
-      } else if (event?.data?.proofType === "kolp") {
-        setKOLPProof(event.data.proof);
-        setLoadingKOLPProof(false);
-      }
-    };
+      };
+    }
     // Force a reload of the proofs if sortedCreds has actually changed. Otherwise just load
     // proofs that haven't yet been loaded.
     const forceReload = !isEqual(sortedCreds, prevSortedCredsRef.current)

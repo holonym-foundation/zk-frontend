@@ -26,7 +26,7 @@ import { createLeaf, onAddLeafProof } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-function useStoreCredentialsState({ setCredsForAddLeaf }) {
+export function useStoreCredentialsState({ setCredsForAddLeaf }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState();
   const [status, setStatus] = useState('loading');
@@ -220,7 +220,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
   }
 }
 
-function useAddLeafState({ onSuccess }) {
+export function useAddLeafState({ onSuccess }) {
   const [error, setError] = useState();
   const [status, setStatus] = useState('idle');
   const [credsForAddLeaf, setCredsForAddLeaf] = useState();
