@@ -295,23 +295,31 @@ function ProofsProvider({ children }) {
 
   async function loadKOLPProof(runInMainThread = false, forceReload = false, newSecret = null, serializedAsNewPreimage = null) {
     const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
-    const phoneNumCreds = sortedCreds[serverAddress['phone-v2']];
+    const phoneNumCreds = sortedCreds?.[serverAddress['phone-v2']];
     if (!(newSecret && serializedAsNewPreimage) && !govIdCreds && !phoneNumCreds) return;
     if (proofsWorker && !runInMainThread) {
+      if (newSecret && serializedAsNewPreimage) {
+        proofsWorker.postMessage({
+          message: "kolp",
+          newSecret,
+          serializedAsNewPreimage,
+          forceReload,
+        });
+      }
       // We just need one KOLP proof. The proof is only used by storage server to verify that
       // the request is in fact from a Holonym user.
-      if (govIdCreds?.creds?.serializedAsNewPreimage) {
+      else if (govIdCreds?.creds?.serializedAsNewPreimage) {
         proofsWorker.postMessage({ 
           message: "kolp", 
-          newSecret: newSecret ?? govIdCreds.creds.newSecret, 
-          serializedAsNewPreimage: serializedAsNewPreimage ?? govIdCreds.creds.serializedAsNewPreimage,
+          newSecret: govIdCreds.creds.newSecret, 
+          serializedAsNewPreimage: govIdCreds.creds.serializedAsNewPreimage,
           forceReload,
         });
       } else if (phoneNumCreds?.creds?.serializedAsNewPreimage) {
         proofsWorker.postMessage({ 
           message: "kolp", 
-          newSecret: newSecret ?? phoneNumCreds.creds.newSecret, 
-          serializedAsNewPreimage: serializedAsNewPreimage ?? phoneNumCreds.creds.serializedAsNewPreimage,
+          newSecret: phoneNumCreds.creds.newSecret, 
+          serializedAsNewPreimage: phoneNumCreds.creds.serializedAsNewPreimage,
           forceReload,
         });
       }
