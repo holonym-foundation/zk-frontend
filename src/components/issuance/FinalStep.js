@@ -66,7 +66,7 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
       try {
         // These couple lines handle case where this component is rendered multiple times and the API is called multiple times,
         // resulting in a state where the most recent query gets a not ok response, even though the initial query was successful.
-        // The component can re-render if the user reloads the page. Re-renders that happen within 1 second are handled by the
+        // The component can re-render if the user reloads the page. Re-renders that happen within 700ms are handled by the
         // check below for holoFinalStepLastLoadedAt.
         // Note for later: Does using Next.js fix this?
         // We try-catch in case data is for some reason not JSON parsable, in which case we want to return the server's error
@@ -182,10 +182,10 @@ function useStoreCredentialsState({ setCredsForAddLeaf }) {
         // being unable to generate proofs.
         if (
           window.sessionStorage.getItem('holoFinalStepLastLoadedAt') && 
-          new Date() - new Date(Number(sessionStorage.getItem('holoFinalStepLastLoadedAt'))) < 1000
+          new Date() - new Date(Number(sessionStorage.getItem('holoFinalStepLastLoadedAt'))) < 700
         ) {
           console.log('store-credentials: Final step already rendered within the last second. Waiting to re-render')
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 700));
         }
         window.sessionStorage.holoFinalStepLastLoadedAt = new Date().getTime().toString();
 
