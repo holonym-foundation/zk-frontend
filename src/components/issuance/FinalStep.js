@@ -28,14 +28,20 @@ import { createLeaf, onAddLeafProof } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
+// TODO: Low priority: Change retrievalEndpoint s.t. base64 encoding is not necessary. This
+// requires changing all places that point to this component, including all issuance flows in
+// this repo and in example-issuer.
 // const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
-function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
+export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   const [newCreds, setNewCreds] = useSessionStorage(`holoNewCredsFromIssuer-${retrievalEndpoint}`, undefined);
   const clearCachedNewCredsFromSessionStorage = () => setNewCreds(undefined);
 
+  // TODO: Validate creds before setting newCreds. If creds are invalid, set error, and do
+  // not set newCreds.
+
   useEffect(() => {
-    if (!retrievalEndpoint) return;
-    console.log('store-credentials: loading credentials');
+    if (!retrievalEndpoint || !setError) return;
+    console.log('useRetrieveNewCredentials: loading credentials');
     setError(undefined);
     storeSessionId(retrievalEndpoint);
     retrieveNewCredentials()
@@ -46,9 +52,17 @@ function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   async function retrieveNewCredentials() {
     console.log('useRetrieveNewCredentials: retrievalEndpoint', retrievalEndpoint);
     // We try to fetch before trying to restore from sessionStorage because we want to be
-    // 100% sure that we have the latest available credentials.
-    const resp = await fetch(retrievalEndpoint);
-    if (resp.status === 200) {
+    // 100% sure that we have the latest available credentials. The try-catch around fetch
+    // handles cases where fetch fails (e.g., due to network error); in such cases, we still
+    // want to check if newCreds are present in sessionStorage.
+    let resp = {};
+    try {
+      resp = await fetch(retrievalEndpoint);
+    } catch (err) {
+      console.log('useRetrieveNewCredentials:', err);
+      resp.text = () => new Promise((resolve) => resolve(err.message));
+    }
+    if (resp?.status === 200) {
       const data = await resp.json();
       if (!data) {
         console.error(`Could not retrieve credentials. No credentials found.`);

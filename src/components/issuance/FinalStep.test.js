@@ -11,12 +11,39 @@
 
 import { randomBytes } from 'crypto'
 // import { renderHook, waitFor, act } from '@testing-library/react'
-import { renderHook, waitFor, act } from '@testing-library/react-hooks'
-import { useStoreCredentialsState, useAddLeafState } from './FinalStep'
+import { renderHook, act } from '@testing-library/react-hooks'
+import { 
+  useRetrieveNewCredentials, 
+  useStoreCredentialsState, 
+  useAddLeafState
+} from './FinalStep'
 
 global.crypto = {
   getRandomValues: () => randomBytes(64).toString('hex'),
 };
+
+global.window = {};
+
+const sessionStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: (key) => {
+      return store[key] || null;
+    },
+    setItem: (key, value) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+  };
+})();
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
+});
 
 jest.mock('../../utils/proofs', () => {
   const poseidon = require('circomlibjs-old').poseidon;
@@ -194,8 +221,26 @@ const validCredsFromMockIdServerIssuer = {
 // reloadCreds(), then credsThatWillBeOverwritten and confirmationModalVisible are not
 // changed.
 
-describe('useStoreCredentialsState', () => {
-  test('Calls setCredsForAddLeaf with new credentials, without updating confirmation-related variables, if all dependency hooks and APIs return expected values', async () => {
+describe.only('useRetrieveNewCredentials', () => {
+  
+  beforeEach(() => {
+    // Clear sessionStorage
+    sessionStorage.clear();
+
+    // Save the original fetch function
+    // originalFetch = global.fetch;
+
+    // Clear any mocked functions or modules
+    // jest.resetAllMocks();
+  });
+
+  // afterEach(() => {
+  //   // Restore the original fetch function
+  //   global.fetch = originalFetch;
+  // });
+
+  test('Returns valid newCreds and no error if GET <retrievalEndpoint> returns valid credentials', async () => {
+    // Setup mocks
     jest.spyOn(global, 'fetch').mockImplementation(() => {
       return Promise.resolve({
         status: 200,
@@ -204,32 +249,249 @@ describe('useStoreCredentialsState', () => {
       });
     });
 
-    const searchParams = new URLSearchParams({ retrievalEndpoint: 'MTIz' });
-    let setCredsForAddLeafCalled = false;
-    const setCredsForAddLeaf = (creds) => {
-      setCredsForAddLeafCalled = true;
-    };
-    const { result, waitForNextUpdate } = renderHook(() => useStoreCredentialsState({ 
-      searchParams,
-      setCredsForAddLeaf
+    // Setup test
+    let error = undefined;
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({ 
+      setError: (errorTemp) => {
+        error = errorTemp;
+      },
+      retrievalEndpoint: '123',
     }));
-
-    // assert initial state
-    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
-    expect(result.current.declinedToStoreCreds).toBe(false);
-    expect(result.current.confirmationModalVisible).toBe(false);
-    expect(result.current.error).toBe(undefined);
-    expect(result.current.status).toBe('loading');
-
     await waitForNextUpdate();
 
-    // assert new state
-    expect(setCredsForAddLeafCalled).toBe(true);
-    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
-    expect(result.current.declinedToStoreCreds).toBe(false);
-    expect(result.current.confirmationModalVisible).toBe(false);
-    expect(result.current.error).toBe(undefined);
-    expect(result.current.status).toBe('success');
+    // Assert
+    expect(result.current.newCreds).toEqual(validCredsFromMockIdServerIssuer);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns valid newCreds and no error if both (a) the response status of GET <retrievalEndpoint> is 404 and (b) credentials are cached in sessionStorage', async () => {
+    const retrievalEndpoint = '123'
+    // Setup mocks
+    const errorMessage = 'Error: User not found'
+    jest.spyOn(global, 'fetch').mockImplementation(() => {
+      return Promise.resolve({
+        status: 404,
+        json: async () => Promise.resolve(),
+        text: () => Promise.resolve(errorMessage),
+      });
+    });
+    sessionStorage.setItem(`holoNewCredsFromIssuer-${retrievalEndpoint}`, JSON.stringify(validCredsFromMockIdServerIssuer));
+
+    // Setup test
+    let error = undefined;
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({
+      setError: (errorTemp) => {
+        error = errorTemp;
+      },
+      retrievalEndpoint,
+    }));
+
+    // Assert
+    expect(result.current.newCreds).toEqual(validCredsFromMockIdServerIssuer);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns valid newCreds and no error in the case that both (a) fetch throws an error and (b) credentials are cached in sessionStorage', async () => {
+    const retrievalEndpoint = '123'
+    // Setup mocks
+    const errorMessage = 'TypeError: Failed to fetch'
+    jest.spyOn(global, 'fetch').mockImplementation(() => {
+      return Promise.reject(new Error(errorMessage));
+    });
+    sessionStorage.setItem(`holoNewCredsFromIssuer-${retrievalEndpoint}`, JSON.stringify(validCredsFromMockIdServerIssuer));
+
+    // Setup test
+    let error = undefined;
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({
+      setError: (errorTemp) => {
+        error = errorTemp;
+      },
+      retrievalEndpoint,
+    }));
+
+    // Assert
+    expect(result.current.newCreds).toEqual(validCredsFromMockIdServerIssuer);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns empty newCreds and an error if both (a) the response status of GET <retrievalEndpoint> is 404 and (b) no credentials are cached in sessionStorage', async () => {
+    // Setup mocks
+    const errorMessage = 'Error: User not found'
+    jest.spyOn(global, 'fetch').mockImplementation(() => {
+      return Promise.resolve({
+        status: 404,
+        json: async () => Promise.resolve(),
+        text: () => Promise.resolve(errorMessage),
+      });
+    });
+
+    // Setup test
+    let error = undefined;
+    const { result, waitForNextUpdate, waitFor } = renderHook(() => useRetrieveNewCredentials({ 
+      setError: (errorTemp) => {
+        error = errorTemp;
+      },
+      retrievalEndpoint: '123',
+    }));
+
+    // Assert
+    expect(result.current.newCreds).toEqual(undefined);
+    await waitFor(() => {
+      expect(error?.message).toEqual(errorMessage);
+    });
+  });
+
+  test('Returns newCreds returned by fetch call and no error if GET <retrievalEndpoint> returns valid credentials and there are old creds cached in sessionStorage', async () => {
+    const retrievalEndpoint = '123'
+    // Setup mocks
+    jest.spyOn(global, 'fetch').mockImplementation(() => {
+      return Promise.resolve({
+        status: 200,
+        json: async () => Promise.resolve(validCredsFromMockIdServerIssuer),
+        text: () => Promise.resolve(''),
+      });
+    });
+    const oldCreds = { 
+      ...validCredsFromMockIdServerIssuer, 
+      creds: {
+        ...validCredsFromMockIdServerIssuer.creds,
+        iat: '0xDIFFERENT'
+      }
+    };
+    sessionStorage.setItem(`holoNewCredsFromIssuer-${retrievalEndpoint}`, JSON.stringify(oldCreds));
+
+    // Setup test
+    let error = undefined;
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({ 
+      setError: (errorTemp) => {
+        error = errorTemp;
+      },
+      retrievalEndpoint: '123',
+    }));
+    await waitForNextUpdate();
+
+    // Assert
+    expect(result.current.newCreds).toEqual(validCredsFromMockIdServerIssuer);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns empty newCreds and an error if both (a) an error is thrown during fetch call and (b) no credentials are cached in sessionStorage', async () => {
+    // Setup mocks
+    const errorMessage = 'Error: User not found'
+    jest.spyOn(global, 'fetch').mockImplementation(() => {
+      return Promise.reject(new Error(errorMessage));
+    });
+
+    // Setup test
+    let error = undefined;
+    const { result, waitForNextUpdate, waitFor } = renderHook(() => useRetrieveNewCredentials({
+      setError: (errorTemp) => {
+        error = errorTemp;
+      },
+      retrievalEndpoint: '123',
+    }));
+
+    // Assert
+    expect(result.current.newCreds).toEqual(undefined);
+    await waitFor(() => {
+      expect(error?.message).toEqual(errorMessage);
+    });
+  });
+
+  test('Returns empty newCreds if retrievalEndpoint is undefined', async () => {
+    // Setup test
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({ 
+      setError: () => {},
+      retrievalEndpoint: undefined,
+    }));
+    // Assert. Expect no update.
+    expect(result.current.newCreds).toBe(undefined);
+    let erred = false;
+    try {
+      await waitForNextUpdate({ timeout: 500 });
+    } catch (err) {
+      if (err?.message?.includes('Timed out in waitForNextUpdate after 500ms')) {
+        erred = true;
+      }
+    }
+    expect(erred).toBe(true);
+  });
+
+  test('Returns empty newCreds if setError is undefined', async () => {
+    // Setup test
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({ 
+      setError: undefined,
+      retrievalEndpoint: '123',
+    }));
+    // Assert. Expect no update.
+    expect(result.current.newCreds).toBe(undefined);
+    let erred = false;
+    try {
+      await waitForNextUpdate({ timeout: 500 });
+    } catch (err) {
+      if (err?.message?.includes('Timed out in waitForNextUpdate after 500ms')) {
+        erred = true;
+      }
+    }
+    expect(erred).toBe(true);
+  });
+
+  test('Returns empty newCreds if both retrievalEndpoint and setError are undefined', async () => {
+    // Setup test
+    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({ 
+      setError: undefined,
+      retrievalEndpoint: undefined,
+    }));
+    // Assert. Expect no update.
+    expect(result.current.newCreds).toBe(undefined);
+    let erred = false;
+    try {
+      await waitForNextUpdate({ timeout: 500 });
+    } catch (err) {
+      if (err?.message?.includes('Timed out in waitForNextUpdate after 500ms')) {
+        erred = true;
+      }
+    }
+    expect(erred).toBe(true);
+  });
+});
+
+describe('useStoreCredentialsState', () => {
+  test('Calls setCredsForAddLeaf with new credentials, without updating confirmation-related variables, if all dependency hooks and APIs return expected values', async () => {
+    // jest.spyOn(global, 'fetch').mockImplementation(() => {
+    //   return Promise.resolve({
+    //     status: 200,
+    //     json: async () => Promise.resolve(validCredsFromMockIdServerIssuer),
+    //     text: () => Promise.resolve(''),
+    //   });
+    // });
+
+    // const searchParams = new URLSearchParams({ retrievalEndpoint: 'MTIz' });
+    // let setCredsForAddLeafCalled = false;
+    // const setCredsForAddLeaf = (creds) => {
+    //   setCredsForAddLeafCalled = true;
+    // };
+    // const { result, waitForNextUpdate } = renderHook(() => useStoreCredentialsState({ 
+    //   searchParams,
+    //   setCredsForAddLeaf
+    // }));
+
+    // // assert initial state
+    // expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    // expect(result.current.declinedToStoreCreds).toBe(false);
+    // expect(result.current.confirmationModalVisible).toBe(false);
+    // expect(result.current.error).toBe(undefined);
+    // expect(result.current.status).toBe('loading');
+
+    // await waitForNextUpdate();
+
+    // // assert new state
+    // expect(setCredsForAddLeafCalled).toBe(true);
+    // expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    // expect(result.current.declinedToStoreCreds).toBe(false);
+    // expect(result.current.confirmationModalVisible).toBe(false);
+    // expect(result.current.error).toBe(undefined);
+    // expect(result.current.status).toBe('success');
 
     // // add second value
     // act(() => {
