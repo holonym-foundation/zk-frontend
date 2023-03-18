@@ -146,7 +146,7 @@ function useAddNewSecret({ retrievalEndpoint, newCreds }) {
 // in sortedCreds.
 // sortedCreds == user's complete sorted credentials
 // newCreds == new creds from the current retrieval endpoint
-function useMergeCreds({ sortedCreds, loadingCreds, newCreds }) {
+function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds }) {
   const [confirmationStatus, setConfirmationStatus] = useState('init'); // 'init' | 'confirmed' | 'denied' | 'confirmationRequired'
   const [credsThatWillBeOverwritten, setCredsThatWillBeOverwritten] = useState();
   const [mergedSortedCreds, setMergedSortedCreds] = useState();
@@ -164,6 +164,17 @@ function useMergeCreds({ sortedCreds, loadingCreds, newCreds }) {
     if (confirmationStatus !== 'init') return;
     if ((!loadingCreds && !sortedCreds) || loadingCreds) return;
     if (!newCreds?.creds?.issuerAddress) return;
+
+    console.log('useMergeCreds: Checking that issuer is whitelisted');
+    const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
+    console.log("useMergeCreds: newCreds:", newCreds);
+    if (!lowerCaseIssuerWhitelist.includes(newCreds.creds.issuerAddress.toLowerCase())) {
+      console.log(`Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
+      setError(`Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
+      return;
+    }
+    console.log('store-credentials: Issuer is whitelisted')
+
     console.log('useMergeCreds: Getting creds confirmation');
     // Ask user for confirmation if they already have credentials from this issuer
     if (sortedCreds?.[newCreds.creds.issuerAddress]) {
@@ -227,6 +238,7 @@ function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
     onConfirmOverwrite,
     onDenyOverwrite,
   } = useMergeCreds({ 
+    setError,
     sortedCreds: sortedCreds ?? {}, 
     loadingCreds, 
     newCreds: newCredsWithNewSecret 
