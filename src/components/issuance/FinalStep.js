@@ -6,6 +6,8 @@
  */
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { isEqual } from 'lodash';
+import { useSessionStorage } from "usehooks-ts";
 import {
   encryptWithAES,
   setLocalUserCredentials,
@@ -26,23 +28,50 @@ import { createLeaf, onAddLeafProof } from "../../utils/proofs";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
-export function useStoreCredentialsState({ setCredsForAddLeaf }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [error, setError] = useState();
-  const [status, setStatus] = useState('loading');
-  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
-  const [credsThatWillBeOverwritten, setCredsThatWillBeOverwritten] = useState();
-  const [declinedToStoreCreds, setDeclinedToStoreCreds] = useState(false);
-  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
-  const { reloadCreds } = useCreds();
-  const overwriteRef = useRef({
-    onConfirmOverwrite: () => {},
-    onDenyOverwrite: () => {},
-  });
+// const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
+function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
+  const [newCreds, setNewCreds] = useSessionStorage(`holoNewCredsFromIssuer-${retrievalEndpoint}`, undefined);
+  const clearCachedNewCredsFromSessionStorage = () => setNewCreds(undefined);
 
   useEffect(() => {
-    if (credsThatWillBeOverwritten) setConfirmationModalVisible(true);
-  }, [credsThatWillBeOverwritten]);
+    if (!retrievalEndpoint) return;
+    console.log('store-credentials: loading credentials');
+    setError(undefined);
+    storeSessionId(retrievalEndpoint);
+    retrieveNewCredentials()
+      .then((newCredsTemp) => setNewCreds(newCredsTemp))
+      .catch((error) => setError(error))
+  }, [retrievalEndpoint]);
+
+  async function retrieveNewCredentials() {
+    console.log('useRetrieveNewCredentials: retrievalEndpoint', retrievalEndpoint);
+    // We try to fetch before trying to restore from sessionStorage because we want to be
+    // 100% sure that we have the latest available credentials.
+    const resp = await fetch(retrievalEndpoint);
+    if (resp.status === 200) {
+      const data = await resp.json();
+      if (!data) {
+        console.error(`Could not retrieve credentials. No credentials found.`);
+        throw new Error(`Could not retrieve credentials. No credentials found.`);
+      } else {
+        // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
+        // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
+        console.log('useRetrieveNewCredentials: Returning credentials from fetch result', data)
+        return data;
+      }
+    } else {
+      // We only attempt to restore from sessionStorage if the fetch failed.
+      if (newCreds) {
+        console.log(`store-credentials: Returning creds recovered from sessionStorage credentials from retrieval endpoint ${retrievalEndpoint}`)
+        return newCreds;
+      }
+      console.log('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code');
+      // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
+      // must have returned an error, which we want to display to the user.
+      // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
+      throw new Error(await resp.text())
+    }
+  }
 
   function storeSessionId(retrievalEndpoint) {
     if (
@@ -54,169 +83,177 @@ export function useStoreCredentialsState({ setCredsForAddLeaf }) {
     }
   }
 
-  async function retrieveNewCredentials() {
-    console.log('store-credentials: loading credentials')
-    setError(undefined);
-    const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
-    storeSessionId(retrievalEndpoint)
-    console.log('retrievalEndpoint', retrievalEndpoint)
-    const resp = await fetch(retrievalEndpoint)
-
-    if (resp.status !== 200) {
-      try {
-        // These couple lines handle case where this component is rendered multiple times and the API is called multiple times,
-        // resulting in a state where the most recent query gets a not ok response, even though the initial query was successful.
-        // The component can re-render if the user reloads the page. Re-renders that happen within 700ms are handled by the
-        // check below for holoFinalStepLastLoadedAt.
-        // Note for later: Does using Next.js fix this?
-        // We try-catch in case data is for some reason not JSON parsable, in which case we want to return the server's error
-        const data = window.localStorage.getItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`)
-        if (data) {
-          console.log(`store-credentials: cached credentials from retrieval endpoint ${retrievalEndpoint} found in localStorage`)
-          return JSON.parse(data);
-        }
-      } catch (err) {}
-
-      // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
-      throw new Error(await resp.text())
-    }
-
-    const data = await resp.json();
-    if (!data) {
-      console.error(`Could not retrieve credentials.`);
-      throw new Error(`Could not retrieve credentials.`);
-    } else {
-      // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
-      window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
-      return data;
-    }
+  return {
+    newCreds,
+    // It is the responsibility of the caller of this hook to clearCachedNewCredsFromSessionStorage once issuance
+    // has been completed (i.e., once the leaf has been successfully added to the tree).
+    clearCachedNewCredsFromSessionStorage,
   }
+}
 
-  async function checkIssuer(credsTemp) {
-    console.log('store-credentials: checking issuer');
-    const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
-    console.log("credsTemp", credsTemp);
-    if (!lowerCaseIssuerWhitelist.includes(credsTemp.creds.issuerAddress.toLowerCase())) {
-      console.log(`Issuer ${credsTemp.creds.issuerAddress} is not whitelisted.`)
-      throw new Error(`Issuer ${credsTemp.creds.issuerAddress} is not whitelisted.`);
-    }
-    console.log('store-credentials: Issuer is whitelisted')
-  }
+// This function:
+// - Must add a new secret (and newLeaf and serializedAsNewPreimage) to credentials.
+// - Cannot add the same secret to credentials from different retrieval endpoints.
+// - Cannot add the same secret to credentials from the same issuer retrieved at a different time.
+// - Must add THE SAME new secret to credentials in case of a re-render or refresh where the user
+//   is in the same issuance session. TODO: How can we demarcate an issuance session?
+function useAddNewSecret({ retrievalEndpoint, newCreds }) {
+  const newSecretRef = useRef();
+  // const [newSecret, setNewSecret] = useSessionStorage(`holoNewSecret-${retrievalEndpoint}`, undefined);
+  const [newCredsWithNewSecret, setNewCredsWithNewSecret] = useState();
 
-  async function addNewSecret(credsTemp) {
-    console.log('store-credentials: adding new secret and new leaf')
-    // Update the creds with the new secret
-    credsTemp.creds.newSecret = generateSecret();
-    credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
-    credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
-    credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
-    window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
-    console.log('store-credentials: new secret and new leaf added')
-    return credsTemp;
-  }
-
-  function getCredsConfirmation(sortedCreds, credsTemp) {
-    return new Promise((resolve, reject) => {
-      console.log('store-credentials: getting creds confirmation')
-      // Ask user for confirmation if they already have credentials from this issuer
-      if (sortedCreds?.[credsTemp.creds.issuerAddress]) {
-        if (JSON.stringify(sortedCreds[credsTemp.creds.issuerAddress]) === JSON.stringify(credsTemp)) {
-          // For cases of immediate re-render
-          console.log('store-credentials: getCredsConfirmation: creds are the same, no confirmation needed')
-          resolve(true);
-          return;
-        }
-        console.log('Issuer already in sortedCreds')
-        setCredsThatWillBeOverwritten(sortedCreds[credsTemp.creds.issuerAddress]);
-        overwriteRef.current.onConfirmOverwrite = () => {
-          console.log(`User is overwriting creds from ${credsTemp.creds.issuerAddress}`);
-          setConfirmationModalVisible(false);
-          resolve(true);
-        };
-        overwriteRef.current.onDenyOverwrite = () => {
-          console.log(`User is not overwriting creds from ${credsTemp.creds.issuerAddress}`);
-          setConfirmationModalVisible(false);
-          resolve(false);
-        };
-      } else {
-        console.log('store-credentials: no creds confirmation needed')
-        resolve(true);
-      }
-    });
-  }
-
-  async function mergeAndSetCreds(credsTemp) {
-    // Merge new creds with old creds
-    console.log('store-credentials: merging creds')
-    const sortedCreds = await reloadCreds() ?? {};
-    const confirmed = await getCredsConfirmation(sortedCreds, credsTemp);
-    if (!confirmed) {
-      setDeclinedToStoreCreds(true);
-      return;
-    }
-    sortedCreds[credsTemp.creds.issuerAddress] = credsTemp;
-
-    // Store creds. Encrypt with AES, using holoKeyGenSigDigest as the key.
-    console.log('store-credentials: setting creds')
-    const encryptedCredentialsAES = encryptWithAES(sortedCreds, holoKeyGenSigDigest);
-    // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
-    window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
-    setLocalUserCredentials(encryptedCredentialsAES);
-    setCredsForAddLeaf(sortedCreds[credsTemp.creds.issuerAddress]);
-    setStatus('success');
-  }
-  
-  // Steps:
-  // 1. Get creds from retrievalEndpoint (e.g., phone-number-server or id-server)
-  // 2. Merge new creds with current creds
-  // 3. Call callback with merged creds
-
+  // Since a useEffect with an empty dependency array is only called once and is run
+  // synchronously, we can use it to set the new secret without worrying about a re-render
+  // or refresh causing one "thread" to set one secret and another "thread" to set a different
+  // secret.
   useEffect(() => {
-    (async () => {
-      try {
-        // If this component is rendered multiple times, we wait. In case of an immediate second  
-        // re-render, we want the second call to retrieveNewCredentials to return the creds cached 
-        // as "holoPlaintextCreds", and we want those creds to include the new leaf added during 
-        // the first render. If the new leaf is not included, there is a risk that the first new 
-        // leaf is added to the merkle tree but is not stored and so is lost, resulting in the user 
-        // being unable to generate proofs.
-        if (
-          window.sessionStorage.getItem('holoFinalStepLastLoadedAt') && 
-          new Date() - new Date(Number(sessionStorage.getItem('holoFinalStepLastLoadedAt'))) < 700
-        ) {
-          console.log('store-credentials: Final step already rendered within the last second. Waiting to re-render')
-          await new Promise(resolve => setTimeout(resolve, 700));
-        }
-        window.sessionStorage.holoFinalStepLastLoadedAt = new Date().getTime().toString();
+    // We assume the user will not need to retrieve credentials multiple times--for different 
+    // leaves--from the same issuer during the same browser session, so we are safe to use
+    // sessionStorage to store the new secret.
+    const storedSecret = sessionStorage.getItem(`holoNewSecret-${retrievalEndpoint}`);
+    if (storedSecret) {
+      console.log('useAddNewSecret: useEffect called. Setting newSecret recovered from sessionStorage.')
+      newSecretRef.current = storedSecret;
+    } else {
+      console.log('useAddNewSecret: useEffect called. Setting newSecret to result of generateSecret().')
+      newSecretRef.current = generateSecret();
+      sessionStorage.setItem(`holoNewSecret-${retrievalEndpoint}`, newSecretRef.current);
+    }
+  }, []);
 
-        const credsTemp = await retrieveNewCredentials();
-        if (!credsTemp) throw new Error(`Could not retrieve credentials.`);
-        if (credsTemp?.newLeaf) {
-          // If creds already has new leaf, then they must have been restored from localStorage
-          // and we just need to merge and return them
-          await mergeAndSetCreds(credsTemp);
-        } else {
-          await checkIssuer(credsTemp);
-          await addNewSecret(credsTemp);
-          await mergeAndSetCreds(credsTemp);
-        }
-      } catch (err) {
-        console.error(err);
-        setError(`Error loading credentials: ${err.message}`);
-        setStatus('error');
-      }
+  // Since newSecret is set synchronously and for the whole user session upon the rendering
+  // of this component, we don't have to worry about how many times this useEffect is called.
+  useEffect(() => {
+    if (!retrievalEndpoint || !newCreds || !newSecretRef.current) return;
+    (async () => {
+      const credsTemp = { ...newCreds };
+      credsTemp.creds.newSecret = newSecretRef.current
+      credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
+      credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
+      credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
+      setNewCredsWithNewSecret(credsTemp);
+      // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
+      console.log('useAddNewSecret: Called setNewCredsWithNewSecret ')
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [retrievalEndpoint, newCreds, newSecretRef]);
 
   return {
+    newCredsWithNewSecret,
+  }
+}
+
+// This hook MUST NOT set mergedSortedCreds unless the new creds have been confirmed to be stored
+// in sortedCreds.
+// sortedCreds == user's complete sorted credentials
+// newCreds == new creds from the current retrieval endpoint
+function useMergeCreds({ sortedCreds, loadingCreds, newCreds }) {
+  const [confirmationStatus, setConfirmationStatus] = useState('init'); // 'init' | 'confirmed' | 'denied' | 'confirmationRequired'
+  const [credsThatWillBeOverwritten, setCredsThatWillBeOverwritten] = useState();
+  const [mergedSortedCreds, setMergedSortedCreds] = useState();
+
+  const onConfirmOverwrite = () => {
+    console.log(`User is overwriting creds from ${newCreds?.creds?.issuerAddress}`);
+    setConfirmationStatus('confirmed');
+  };
+  const onDenyOverwrite = () => {
+    console.log(`User is not overwriting creds from ${newCreds?.creds?.issuerAddress}`);
+    setConfirmationStatus('denied');
+  };
+
+  useEffect(() => {
+    if (confirmationStatus !== 'init') return;
+    if ((!loadingCreds && !sortedCreds) || loadingCreds) return;
+    if (!newCreds?.creds?.issuerAddress) return;
+    console.log('useMergeCreds: Getting creds confirmation');
+    // Ask user for confirmation if they already have credentials from this issuer
+    if (sortedCreds?.[newCreds.creds.issuerAddress]) {
+      if (JSON.stringify(sortedCreds[newCreds.creds.issuerAddress]) === JSON.stringify(newCreds)) {
+        // For cases of immediate re-render
+        console.log('useMergeCreds: getCredsConfirmation: creds are the same, no confirmation needed');
+        setConfirmationStatus('confirmed');
+        return;
+      }
+      console.log('useMergeCreds: Issuer already in sortedCreds');
+      setConfirmationStatus('confirmationRequired');
+      setCredsThatWillBeOverwritten(sortedCreds[newCreds.creds.issuerAddress]);
+    } else {
+      console.log('useMergeCreds: no creds confirmation needed');
+      setConfirmationStatus('confirmed');
+    }
+  }, [sortedCreds, loadingCreds, newCreds])
+
+  useEffect(() => {
+    if (!sortedCreds || !newCreds?.creds?.issuerAddress || confirmationStatus !== 'confirmed') return;
+    
+    // sortedCreds[newCreds.creds.issuerAddress] = newCreds;
+    const mergedSortedCredsTemp = { 
+      ...sortedCreds,
+      [newCreds.creds.issuerAddress]: newCreds,
+    };
+    if (isEqual(mergedSortedCreds, mergedSortedCredsTemp)) {
+      console.log('useMergeCreds: mergedSortedCreds is the same, no need to set it again');
+      return;
+    }
+    console.log('useMergeCreds: calling setMergedSortedCreds');
+    setMergedSortedCreds(mergedSortedCredsTemp);
+  }, [sortedCreds, newCreds, confirmationStatus])
+
+  return {
+    confirmationStatus,
     credsThatWillBeOverwritten,
-    declinedToStoreCreds,
-    confirmationModalVisible, 
+    mergedSortedCreds,
+    onConfirmOverwrite,
+    onDenyOverwrite,
+  }
+}
+
+function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
+  const [error, setError] = useState();
+  const [status, setStatus] = useState('loading'); // 'loading' | 'success'
+  const { sortedCreds, loadingCreds } = useCreds();
+  const { holoKeyGenSigDigest } = useHoloKeyGenSig();
+  const { newCreds, clearCachedNewCredsFromSessionStorage } = useRetrieveNewCredentials({ 
+    setError,
+    retrievalEndpoint: window.atob(searchParams.get('retrievalEndpoint')),
+  });
+  const { newCredsWithNewSecret } = useAddNewSecret({ 
+    retrievalEndpoint: window.atob(searchParams.get('retrievalEndpoint')), 
+    newCreds
+  });
+  const {
+    confirmationStatus,
+    credsThatWillBeOverwritten,
+    mergedSortedCreds,
+    onConfirmOverwrite,
+    onDenyOverwrite,
+  } = useMergeCreds({ 
+    sortedCreds: sortedCreds ?? {}, 
+    loadingCreds, 
+    newCreds: newCredsWithNewSecret 
+  });
+
+  useEffect(() => {
+    if (confirmationStatus === 'confirmed' && mergedSortedCreds && newCreds?.creds?.issuerAddress) {
+      console.log('useStoreCredentialsStateNEW: confirmationStatus === "confirmed" && mergedSortedCreds. mergedSortedCreds:', Object.assign({}, mergedSortedCreds))
+      // Store creds. Encrypt with AES, using holoKeyGenSigDigest as the key.
+      const encryptedCredentialsAES = encryptWithAES(mergedSortedCreds, holoKeyGenSigDigest);
+      // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
+      // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(newCreds))
+      setLocalUserCredentials(encryptedCredentialsAES);
+      console.log('useStoreCredentialsStateNEW: calling setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress])', Object.assign({}, mergedSortedCreds[newCreds.creds.issuerAddress]))
+      setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress]);
+      setStatus('success');
+      clearCachedNewCredsFromSessionStorage();
+    }
+  }, [confirmationStatus, mergedSortedCreds])
+
+  return {
     error,
     status,
-    onConfirmOverwrite: overwriteRef.current.onConfirmOverwrite,
-    onDenyOverwrite: overwriteRef.current.onDenyOverwrite,
+    confirmationStatus,
+    credsThatWillBeOverwritten,
+    onConfirmOverwrite,
+    onDenyOverwrite,
   }
 }
 
@@ -288,20 +325,20 @@ export function useAddLeafState({ onSuccess }) {
 }
 
 const FinalStep = ({ onSuccess }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { 
     error: addLeafError, 
     status: addLeafStatus, 
     setCredsForAddLeaf, 
   } = useAddLeafState({ onSuccess });
-  const { 
-    credsThatWillBeOverwritten,
-    declinedToStoreCreds,
-    confirmationModalVisible,
-    error: storeCredsError, 
+  const {
+    error: storeCredsError,
     status: storeCredsStatus,
-    onConfirmOverwrite, 
+    confirmationStatus,
+    credsThatWillBeOverwritten,
+    onConfirmOverwrite,
     onDenyOverwrite,
-  } = useStoreCredentialsState({ setCredsForAddLeaf });
+  } = useStoreCredentialsState({ searchParams, setCredsForAddLeaf });
   const error = useMemo(
     () => addLeafError ?? storeCredsError, 
     [addLeafError, storeCredsError]
@@ -316,7 +353,10 @@ const FinalStep = ({ onSuccess }) => {
 
   return (
     <>
-      <Modal visible={confirmationModalVisible} setVisible={() => {}} blur={true} heavyBlur={false} transparentBackground={false} >
+      <Modal 
+        // visible={confirmationModalVisible} 
+        visible={confirmationStatus === 'confirmationRequired'}
+        setVisible={() => {}} blur={true} heavyBlur={false} transparentBackground={false} >
         <div style={{ textAlign: 'center' }}>
           <p>You already have credentials from this issuer.</p>
           <p>Would you like to overwrite them?</p>
@@ -332,7 +372,7 @@ const FinalStep = ({ onSuccess }) => {
               <p key={index}><code>{cred}</code></p>
           ))}
       </Modal>
-      {declinedToStoreCreds ? (
+      {confirmationStatus === 'denied' ? ( // declinedToStoreCreds ? (
         <>
           <h3>Verification finalization aborted</h3>
           <p>Made a mistake? Please open a ticket in the{" "}

@@ -35,18 +35,6 @@ jest.mock('../../web-workers/proofs.worker.js', () => {
   }
 });
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useSearchParams: () => {
-    return [
-      new URLSearchParams({
-        retrievalEndpoint: 'MTIz',
-      }),
-      jest.fn(),
-    ];
-  },
-}));
-
 jest.mock('../../context/HoloKeyGenSig', () => ({
   ...jest.requireActual('../../context/HoloKeyGenSig'),
   useHoloKeyGenSig: () => {
@@ -207,7 +195,6 @@ const validCredsFromMockIdServerIssuer = {
 // changed.
 
 describe('useStoreCredentialsState', () => {
-  // TODO: Write test descriptions
   test('Calls setCredsForAddLeaf with new credentials, without updating confirmation-related variables, if all dependency hooks and APIs return expected values', async () => {
     jest.spyOn(global, 'fetch').mockImplementation(() => {
       return Promise.resolve({
@@ -217,11 +204,15 @@ describe('useStoreCredentialsState', () => {
       });
     });
 
+    const searchParams = new URLSearchParams({ retrievalEndpoint: 'MTIz' });
     let setCredsForAddLeafCalled = false;
     const setCredsForAddLeaf = (creds) => {
       setCredsForAddLeafCalled = true;
     };
-    const { result, waitForNextUpdate } = renderHook(() => useStoreCredentialsState({ setCredsForAddLeaf }));
+    const { result, waitForNextUpdate } = renderHook(() => useStoreCredentialsState({ 
+      searchParams,
+      setCredsForAddLeaf
+    }));
 
     // assert initial state
     expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
