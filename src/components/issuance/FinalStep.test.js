@@ -16,12 +16,15 @@ import { poseidon } from 'circomlibjs-old';
 import { 
   useRetrieveNewCredentials,
   useAddNewSecret,
+  useMergeCreds,
   useStoreCredentialsState,
   useAddLeafState,
 } from './FinalStep'
 
 global.crypto = {
-  getRandomValues: () => randomBytes(64).toString('hex'),
+  getRandomValues: (typedArray) => {
+    typedArray.set(randomBytes(typedArray.length))
+  }
 };
 
 global.window = {};
@@ -206,6 +209,23 @@ const validCredsFromMockIdServerIssuer = {
      },
      S: "0x501e2ffce9f9ad855a9d0315449fcd551cbd80d722f28a79bfb0103d3472527"
   }
+}
+
+const validCredsFromMockIdServerIssuerWithNewSecret = {
+  ...validCredsFromMockIdServerIssuer,
+  creds: {
+    ...validCredsFromMockIdServerIssuer.creds,
+    newSecret: "0x00",
+    serializedAsNewPreimage: [
+      "0x2a4879fe71757462a1a7e103646bbc3349a15bd52b115153791da39b5e376bb0",
+      "0x00",
+      "0x0000000000000000000000000000000000000000000000000000000000000002",
+      "0x157c1cd1baa1b476d697324439e45668c701068235271bc7f1ab41dd8ee73b85",
+      "0x00000000000000000000000000000000000000000000000000000000e7bde8ce",
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+    ]
+  },
+  newLeaf: "17361148687935615103964253102633676710222154436928152682250937993664674839353"
 }
 
 // TODO: The test that must be written involves testing that, even if the FinalStep component
@@ -460,21 +480,8 @@ describe('useRetrieveNewCredentials', () => {
 describe('useAddNewSecret', () => {
   
   beforeEach(() => {
-    // Clear sessionStorage
     sessionStorage.clear();
-
-    // Save the original fetch function
-    // originalFetch = global.fetch;
-
-    // Clear any mocked functions or modules
-    // jest.resetAllMocks();
   });
-
-  // afterEach(() => {
-  //   // Restore the original fetch function
-  //   global.fetch = originalFetch;
-  // });
-
 
   test('Returns newCredsWithNewSecret, a valid transformation of inputted newCreds, if valid params are provided and if sessionStorage is empty prior to render', async () => {
     // Setup test
@@ -564,9 +571,285 @@ describe('useAddNewSecret', () => {
     }
     expect(erred).toBe(true);
   });
-
 });
 
+
+describe('useMergeCreds', () => {
+  
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  test('Returns confirmationStatus of "confirmed", undefined credsThatWillBeOverwritten, and mergedSortedCreds (newCreds merged into sortedCreds) and sets no error if given sortedCreds of {}, loadingCreds of false, and valid newCreds', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const sortedCreds = {};
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    
+    // Assert
+    expect(result.current.confirmationStatus).toBe('confirmed');
+    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    expect(result.current.mergedSortedCreds).toEqual({
+      [validCredsFromMockIdServerIssuer.creds.issuerAddress]: validCredsFromMockIdServerIssuer,
+    });
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns confirmationStatus of "confirmed", undefined credsThatWillBeOverwritten, and mergedSortedCreds (newCreds merged into sortedCreds) and sets no error if given sortedCreds that include creds from issuer of newCreds and newCreds is same as already stored creds', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const sortedCreds = {
+      [validCredsFromMockIdServerIssuer.creds.issuerAddress]: validCredsFromMockIdServerIssuer,
+    };
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+
+    // Assert
+    expect(result.current.confirmationStatus).toBe('confirmed');
+    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    expect(result.current.mergedSortedCreds).toEqual(sortedCreds);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns confirmationStatus of "confirmationRequired", correctly populated credsThatWillBeOverwritten, and undefined mergedSortedCreds and sets no error if given sortedCreds that include creds from issuer of newCreds but newCreds is different than already stored creds', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const oldCreds = {
+      ...validCredsFromMockIdServerIssuer,
+      creds: {
+        ...validCredsFromMockIdServerIssuer.creds,
+        iat: "0x123",
+      },
+    };
+    const sortedCreds = {
+      [validCredsFromMockIdServerIssuer.creds.issuerAddress]: oldCreds,
+    };
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    
+    // Assert
+    expect(result.current.confirmationStatus).toBe('confirmationRequired');
+    expect(result.current.credsThatWillBeOverwritten).toEqual(oldCreds);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+    expect(error).toBe(undefined);
+  });
+
+  test('Merges newCreds into sortedCreds and returns confirmationStatus of "confirmed", populated credsThatWillBeOverwritten, and mergedSortedCreds and sets no error if given sortedCreds that include creds from issuer of newCreds but newCreds is different than already stored creds and user confirms overwrite', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const oldCreds = {
+      ...validCredsFromMockIdServerIssuer,
+      creds: {
+        ...validCredsFromMockIdServerIssuer.creds,
+        iat: "0x123",
+      },
+    };
+    const sortedCreds = {
+      [validCredsFromMockIdServerIssuer.creds.issuerAddress]: oldCreds,
+    };
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    
+    // Assert initial state
+    expect(result.current.confirmationStatus).toBe('confirmationRequired');
+    expect(result.current.credsThatWillBeOverwritten).toBe(oldCreds);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+
+    // Act
+    act(() => {
+      result.current.onConfirmOverwrite();
+    });
+
+    // Assert final state
+    expect(result.current.confirmationStatus).toBe('confirmed');
+    expect(result.current.mergedSortedCreds).toEqual({
+      [validCredsFromMockIdServerIssuer.creds.issuerAddress]: validCredsFromMockIdServerIssuer,
+    });
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns confirmationStatus of "denied", correctly populated credsThatWillBeOverwritten, and undefined mergedSortedCreds and sets no error if given sortedCreds that include creds from issuer of newCreds but newCreds is different than already stored creds and user cancels overwrite', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const oldCreds = {
+      ...validCredsFromMockIdServerIssuer,
+      creds: {
+        ...validCredsFromMockIdServerIssuer.creds,
+        iat: "0x123",
+      },
+    };
+    const sortedCreds = {
+      [validCredsFromMockIdServerIssuer.creds.issuerAddress]: oldCreds,
+    };
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    
+    // Assert initial state
+    expect(result.current.confirmationStatus).toBe('confirmationRequired');
+    expect(result.current.credsThatWillBeOverwritten).toBe(oldCreds);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+
+    // Act
+    act(() => {
+      result.current.onDenyOverwrite();
+    });
+
+    // Assert final state
+    expect(result.current.confirmationStatus).toBe('denied');
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+    expect(error).toBe(undefined);
+  });
+
+  test('Sets error and returns confirmationStatus of "init", undefined credsThatWillBeOverwritten, and undefined mergedSortedCreds if issuer in newCreds is not whitelisted', async () => {
+    // Setup test
+    const issuerAddress = '0xNOTWHITELISTED';
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const newCreds = {
+      ...validCredsFromMockIdServerIssuer,
+      creds: {
+        ...validCredsFromMockIdServerIssuer.creds,
+        issuerAddress: issuerAddress,
+      },
+    };
+    const sortedCreds = {};
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds,
+    }));
+
+    // Assert
+    expect(result.current.confirmationStatus).toBe('init');
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+    expect(error).toBe(`Issuer ${issuerAddress} is not whitelisted.`);
+  });
+
+  test('Returns confirmationStatus of "init", undefined credsThatWillBeOverwritten, and undefined mergedSortedCreds if setError is undefined', async () => {
+    // Setup test
+    const sortedCreds = {};
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+
+    // Assert
+    expect(result.current.confirmationStatus).toBe('init');
+    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+  });
+
+  test('Returns confirmationStatus of "init", undefined credsThatWillBeOverwritten, and undefined mergedSortedCreds and sets no error if sortedCreds is undefined', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+
+    // Assert
+    expect(result.current.confirmationStatus).toBe('init');
+    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns confirmationStatus of "init", undefined credsThatWillBeOverwritten, and undefined mergedSortedCreds and sets no error if loadingCreds is true', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const sortedCreds = {};
+    const loadingCreds = true;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+
+    // Assert
+    expect(result.current.confirmationStatus).toBe('init');
+    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+    expect(error).toBe(undefined);
+  });
+
+  test('Returns confirmationStatus of "init", undefined credsThatWillBeOverwritten, and undefined mergedSortedCreds and sets no error if newCreds is undefined', async () => {
+    // Setup test
+    let error = undefined;
+    const setError = (err) => {
+      error = err;
+    };
+    const sortedCreds = {};
+    const loadingCreds = false;
+    const { result } = renderHook(() => useMergeCreds({
+      setError,
+      sortedCreds,
+      loadingCreds,
+    }));
+
+    // Assert
+    expect(result.current.confirmationStatus).toBe('init');
+    expect(result.current.credsThatWillBeOverwritten).toBe(undefined);
+    expect(result.current.mergedSortedCreds).toBe(undefined);
+    expect(error).toBe(undefined);
+  });
+
+});
 
 describe('useStoreCredentialsState', () => {
   test('Calls setCredsForAddLeaf with new credentials, without updating confirmation-related variables, if all dependency hooks and APIs return expected values', async () => {

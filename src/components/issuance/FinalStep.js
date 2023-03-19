@@ -34,7 +34,6 @@ import { createLeaf, onAddLeafProof } from "../../utils/proofs";
 // const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
 export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   const [newCreds, setNewCreds] = useSessionStorage(`holoNewCredsFromIssuer-${retrievalEndpoint}`, undefined);
-  const clearCachedNewCredsFromSessionStorage = () => setNewCreds(undefined);
 
   // TODO: Validate creds before setting newCreds. If creds are invalid, set error, and do
   // not set newCreds.
@@ -99,9 +98,6 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
 
   return {
     newCreds,
-    // It is the responsibility of the caller of this hook to clearCachedNewCredsFromSessionStorage once issuance
-    // has been completed (i.e., once the leaf has been successfully added to the tree).
-    clearCachedNewCredsFromSessionStorage,
   }
 }
 
@@ -160,7 +156,7 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
 // in sortedCreds.
 // sortedCreds == user's complete sorted credentials
 // newCreds == new creds from the current retrieval endpoint
-function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds }) {
+export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds }) {
   const [confirmationStatus, setConfirmationStatus] = useState('init'); // 'init' | 'confirmed' | 'denied' | 'confirmationRequired'
   const [credsThatWillBeOverwritten, setCredsThatWillBeOverwritten] = useState();
   const [mergedSortedCreds, setMergedSortedCreds] = useState();
@@ -178,16 +174,17 @@ function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds }) {
     if (confirmationStatus !== 'init') return;
     if ((!loadingCreds && !sortedCreds) || loadingCreds) return;
     if (!newCreds?.creds?.issuerAddress) return;
+    if (!setError) return;
 
     console.log('useMergeCreds: Checking that issuer is whitelisted');
     const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
     console.log("useMergeCreds: newCreds:", newCreds);
     if (!lowerCaseIssuerWhitelist.includes(newCreds.creds.issuerAddress.toLowerCase())) {
-      console.log(`Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
+      console.log(`useMergeCreds: Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
       setError(`Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
       return;
     }
-    console.log('store-credentials: Issuer is whitelisted')
+    console.log('useMergeCreds: Issuer is whitelisted')
 
     console.log('useMergeCreds: Getting creds confirmation');
     // Ask user for confirmation if they already have credentials from this issuer
@@ -210,7 +207,6 @@ function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds }) {
   useEffect(() => {
     if (!sortedCreds || !newCreds?.creds?.issuerAddress || confirmationStatus !== 'confirmed') return;
     
-    // sortedCreds[newCreds.creds.issuerAddress] = newCreds;
     const mergedSortedCredsTemp = { 
       ...sortedCreds,
       [newCreds.creds.issuerAddress]: newCreds,
@@ -232,12 +228,12 @@ function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds }) {
   }
 }
 
-function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
+export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
   const [error, setError] = useState();
   const [status, setStatus] = useState('loading'); // 'loading' | 'success'
   const { sortedCreds, loadingCreds } = useCreds();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
-  const { newCreds, clearCachedNewCredsFromSessionStorage } = useRetrieveNewCredentials({ 
+  const { newCreds } = useRetrieveNewCredentials({ 
     setError,
     retrievalEndpoint: window.atob(searchParams.get('retrievalEndpoint')),
   });
@@ -260,16 +256,15 @@ function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
 
   useEffect(() => {
     if (confirmationStatus === 'confirmed' && mergedSortedCreds && newCreds?.creds?.issuerAddress) {
-      console.log('useStoreCredentialsStateNEW: confirmationStatus === "confirmed" && mergedSortedCreds. mergedSortedCreds:', Object.assign({}, mergedSortedCreds))
+      console.log('useStoreCredentialsState: confirmationStatus === "confirmed" && mergedSortedCreds. mergedSortedCreds:', Object.assign({}, mergedSortedCreds))
       // Store creds. Encrypt with AES, using holoKeyGenSigDigest as the key.
       const encryptedCredentialsAES = encryptWithAES(mergedSortedCreds, holoKeyGenSigDigest);
       // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
       // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(newCreds))
       setLocalUserCredentials(encryptedCredentialsAES);
-      console.log('useStoreCredentialsStateNEW: calling setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress])', Object.assign({}, mergedSortedCreds[newCreds.creds.issuerAddress]))
+      console.log('useStoreCredentialsState: calling setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress])', Object.assign({}, mergedSortedCreds[newCreds.creds.issuerAddress]))
       setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress]);
       setStatus('success');
-      clearCachedNewCredsFromSessionStorage();
     }
   }, [confirmationStatus, mergedSortedCreds])
 
