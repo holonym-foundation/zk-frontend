@@ -12,10 +12,12 @@
 import { randomBytes } from 'crypto'
 // import { renderHook, waitFor, act } from '@testing-library/react'
 import { renderHook, act } from '@testing-library/react-hooks'
+import { poseidon } from 'circomlibjs-old';
 import { 
-  useRetrieveNewCredentials, 
-  useStoreCredentialsState, 
-  useAddLeafState
+  useRetrieveNewCredentials,
+  useAddNewSecret,
+  useStoreCredentialsState,
+  useAddLeafState,
 } from './FinalStep'
 
 global.crypto = {
@@ -49,9 +51,8 @@ jest.mock('../../utils/proofs', () => {
   const poseidon = require('circomlibjs-old').poseidon;
   return {
     ...jest.requireActual('../../utils/proofs'),
-    createLeaf: jest.fn((args) => {
-      return poseidon(args);
-    }),
+    createLeaf: (args) => 
+      new Promise((resolve) => resolve(poseidon(args).toString())),
   }
 });
 
@@ -221,7 +222,7 @@ const validCredsFromMockIdServerIssuer = {
 // reloadCreds(), then credsThatWillBeOverwritten and confirmationModalVisible are not
 // changed.
 
-describe.only('useRetrieveNewCredentials', () => {
+describe('useRetrieveNewCredentials', () => {
   
   beforeEach(() => {
     // Clear sessionStorage
@@ -455,6 +456,117 @@ describe.only('useRetrieveNewCredentials', () => {
     expect(erred).toBe(true);
   });
 });
+
+describe('useAddNewSecret', () => {
+  
+  beforeEach(() => {
+    // Clear sessionStorage
+    sessionStorage.clear();
+
+    // Save the original fetch function
+    // originalFetch = global.fetch;
+
+    // Clear any mocked functions or modules
+    // jest.resetAllMocks();
+  });
+
+  // afterEach(() => {
+  //   // Restore the original fetch function
+  //   global.fetch = originalFetch;
+  // });
+
+
+  test('Returns newCredsWithNewSecret, a valid transformation of inputted newCreds, if valid params are provided and if sessionStorage is empty prior to render', async () => {
+    // Setup test
+    sessionStorage.clear();
+    const { result, waitForNextUpdate } = renderHook(() => useAddNewSecret({ 
+      retrievalEndpoint: '123',
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    await waitForNextUpdate();
+
+    // Assert
+    const newCredsWithNewSecret = result.current.newCredsWithNewSecret;
+    expect(newCredsWithNewSecret.creds.newSecret).toBeDefined();
+    expect(newCredsWithNewSecret.creds.serializedAsNewPreimage).toBeDefined();
+    expect(newCredsWithNewSecret.newLeaf).toBeDefined();
+    expect(newCredsWithNewSecret.creds.serializedAsNewPreimage[1])
+      .toEqual(newCredsWithNewSecret.creds.newSecret);
+    expect(newCredsWithNewSecret.newLeaf)
+      .toEqual(poseidon(newCredsWithNewSecret.creds.serializedAsNewPreimage).toString());
+
+    // Expect new preimage to be the same as the old preimage, except for the new secret
+    for (let i = 0; i < 6; i++) {
+      if (i === 1) continue;
+      expect(newCredsWithNewSecret.creds.serializedAsNewPreimage[i])
+        .toEqual(validCredsFromMockIdServerIssuer.creds.serializedAsPreimage[i]);
+    }
+    
+    // Expect newCredsWithNewSecret to be the same as validCredsFromMockIdServerIssuer in all other respects
+    const returnedCredsWithoutNewSecret = { ...newCredsWithNewSecret };
+    delete returnedCredsWithoutNewSecret.creds.newSecret;
+    delete returnedCredsWithoutNewSecret.creds.serializedAsNewPreimage;
+    delete returnedCredsWithoutNewSecret.newLeaf;
+    expect(returnedCredsWithoutNewSecret).toEqual(validCredsFromMockIdServerIssuer);
+  });
+
+  test('Returns the same newCredsWithNewSecret across re-renders during same browser session if valid params are provided', async () => {
+    // Setup test
+    const { result, waitForNextUpdate, rerender } = renderHook(() => useAddNewSecret({ 
+      retrievalEndpoint: '123',
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    await waitForNextUpdate();
+    const newCredsWithNewSecret1 = result.current.newCredsWithNewSecret;
+    rerender({
+      retrievalEndpoint: '123',
+      newCreds: validCredsFromMockIdServerIssuer,
+    });
+    const newCredsWithNewSecret2 = result.current.newCredsWithNewSecret;
+    // Assert
+    expect(newCredsWithNewSecret1).toEqual(newCredsWithNewSecret2);
+  });
+
+  test('Returns empty newCredsWithNewSecret if newCreds is undefined', async () => {
+    // Setup test
+    const { result, waitForNextUpdate } = renderHook(() => useAddNewSecret({ 
+      retrievalEndpoint: '123',
+      newCreds: undefined,
+    }));
+    // Assert. Expect no update.
+    expect(result.current.newCredsWithNewSecret).toBe(undefined);
+    let erred = false;
+    try {
+      await waitForNextUpdate({ timeout: 500 });
+    } catch (err) {
+      if (err?.message?.includes('Timed out in waitForNextUpdate after 500ms')) {
+        erred = true;
+      }
+    }
+    expect(erred).toBe(true);
+  });
+
+  test('Returns empty newCredsWithNewSecret if retrievalEndpoint is undefined', async () => {
+    // Setup test
+    const { result, waitForNextUpdate } = renderHook(() => useAddNewSecret({ 
+      retrievalEndpoint: undefined,
+      newCreds: validCredsFromMockIdServerIssuer,
+    }));
+    // Assert. Expect no update.
+    expect(result.current.newCredsWithNewSecret).toBe(undefined);
+    let erred = false;
+    try {
+      await waitForNextUpdate({ timeout: 500 });
+    } catch (err) {
+      if (err?.message?.includes('Timed out in waitForNextUpdate after 500ms')) {
+        erred = true;
+      }
+    }
+    expect(erred).toBe(true);
+  });
+
+});
+
 
 describe('useStoreCredentialsState', () => {
   test('Calls setCredsForAddLeaf with new credentials, without updating confirmation-related variables, if all dependency hooks and APIs return expected values', async () => {

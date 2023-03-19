@@ -111,7 +111,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
 // - Cannot add the same secret to credentials from the same issuer retrieved at a different time.
 // - Must add THE SAME new secret to credentials in case of a re-render or refresh where the user
 //   is in the same issuance session. TODO: How can we demarcate an issuance session?
-function useAddNewSecret({ retrievalEndpoint, newCreds }) {
+export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
   const newSecretRef = useRef();
   // const [newSecret, setNewSecret] = useSessionStorage(`holoNewSecret-${retrievalEndpoint}`, undefined);
   const [newCredsWithNewSecret, setNewCredsWithNewSecret] = useState();
@@ -369,7 +369,7 @@ const FinalStep = ({ onSuccess }) => {
     () => addLeafError ?? storeCredsError, 
     [addLeafError, storeCredsError]
   );
-  // TODO: Display these messages in a nice progress bar.
+  // TODO: Display these messages in a nice progress bar. Maybe in the big progress bar?
   const loadingMessage = useMemo(() => {
     if (storeCredsStatus === 'loading') return 'Loading credentials';
     else if (storeCredsStatus === 'success' && addLeafStatus === 'idle') return 'Adding leaf to Merkle tree';
