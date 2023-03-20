@@ -45,7 +45,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
     storeSessionId(retrievalEndpoint);
     retrieveNewCredentials()
       .then((newCredsTemp) => setNewCreds(newCredsTemp))
-      .catch((error) => setError(error))
+      .catch((error) => setError(error.message))
   }, [retrievalEndpoint]);
 
   async function retrieveNewCredentials() {
