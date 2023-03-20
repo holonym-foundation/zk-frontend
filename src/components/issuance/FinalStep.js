@@ -256,7 +256,6 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
 
   useEffect(() => {
     if (confirmationStatus === 'confirmed' && mergedSortedCreds && newCreds?.creds?.issuerAddress) {
-      console.log('useStoreCredentialsState: confirmationStatus === "confirmed" && mergedSortedCreds. mergedSortedCreds:', Object.assign({}, mergedSortedCreds))
       // Store creds. Encrypt with AES, using holoKeyGenSigDigest as the key.
       const encryptedCredentialsAES = encryptWithAES(mergedSortedCreds, holoKeyGenSigDigest);
       // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
@@ -308,6 +307,7 @@ export function useAddLeafState({ onSuccess }) {
     await Relayer.addLeaf(
       circomProof, 
       async () => {
+        console.log('useAddLeafState: Added leaf')
         setStatus('generatingKOLPProof')
         loadKOLPProof(false, false, credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
