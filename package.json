@@ -94,7 +94,14 @@
       "last 1 safari version"
     ]
   },
+  "jest": {
+    "moduleNameMapper": {
+      "axios": "axios/dist/node/axios.cjs"
+    }
+  },
   "devDependencies": {
+    "@testing-library/react-hooks": "^8.0.1",
+    "circomlibjs-old": "npm:circomlibjs@^0.0.8",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
