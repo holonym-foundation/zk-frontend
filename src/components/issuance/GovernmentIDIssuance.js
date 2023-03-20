@@ -1,57 +1,60 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
-import { useQuery } from '@tanstack/react-query'
+// import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
+// import { useQuery } from '@tanstack/react-query'
+import loadVouched from '../../load-vouched';
+import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
 
-const StepIDV = () => {
-  const navigate = useNavigate();
-  const veriffSessionQuery = useQuery({
-    queryKey: ['veriffSession'],
-    queryFn: async () => {
-      const resp = await fetch(`${idServerUrl}/veriff/session`, {
-        method: "POST",
-      })
-      return await resp.json()
-    } 
-  });
+const StepIDV = ({ phoneNumber }) => {
+  // const navigate = useNavigate();
+  // const veriffSessionQuery = useQuery({
+  //   queryKey: ['veriffSession'],
+  //   queryFn: async () => {
+  //     const resp = await fetch(`${idServerUrl}/veriff/session`, {
+  //       method: "POST",
+  //     })
+  //     return await resp.json()
+  //   } 
+  // });
+
+  // useEffect(() => {
+  //   if (!veriffSessionQuery.data?.url) return;
+  //   const verification = veriffSessionQuery.data;
+  //   const handleVeriffEvent = (msg) => {
+  //     if (msg === MESSAGES.FINISHED) {
+  //       const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
+  //       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+  //       navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+  //     }
+  //   }
+  //   createVeriffFrame({
+  //     url: verification.url,
+  //     onEvent: handleVeriffEvent
+  //   });
+  // }, [veriffSessionQuery])
 
   useEffect(() => {
-    if (!veriffSessionQuery.data?.url) return;
-    
-    const verification = veriffSessionQuery.data;
-    const handleVeriffEvent = (msg) => {
-      if (msg === MESSAGES.FINISHED) {
-        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
-        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+    if (!phoneNumber) return;
+    (async () => {
+      const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+      const data = await resp.json();
+      if (data.today >= maxDailyVouchedJobCount) {
+        alert("Sorry, we cannot verify any more IDs at this time");
+        return;
       }
-    }
-    createVeriffFrame({
-      url: verification.url,
-      onEvent: handleVeriffEvent
-    });
-  }, [veriffSessionQuery])
-
-  // Old code for vouched. Should probably implement similar "maxJobCount" check for Veriff
-  // useEffect(() => {
-  //   (async () => {
-  //     const resp = await fetch(`${idServerUrl}/vouched/job-count`)
-  //     const data = await resp.json();
-  //     if (data.jobCount >= maxVouchedJobCount) {
-  //       alert("Sorry, we cannot verify any more IDs at this time");
-  //       return;
-  //     }
-  //     loadVouched(phoneNumber);
-  //   })();
-  // }, []);
+      console.log('loading vouched QR code')
+      loadVouched(phoneNumber);
+    })();
+  }, []);
 
   return (
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
+      <div id="vouched-element" style={{ height: "10vh" }}></div>
     </>
   );
 }
@@ -93,22 +96,26 @@ const ConfirmRetry = ({ setRetry }) => (
 
 function useGovernmentIDIssuanceState() {
   const { store } = useParams();
+  const [phoneNumber, setPhoneNumber] = useState();
   const [success, setSuccess] = useState();
   const [retry, setRetry] = useState(!!localStorage.getItem('veriff-sessionId'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const steps = ["Verify", "Finalize"];
+  const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
-    if (!store) return "Verify";
+    if (!(store || phoneNumber)) return "Phone#";
+    if (!store && phoneNumber) return "Verify";
     if (store) return "Finalize";
-  }, [store]);
+  }, [store, phoneNumber]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
   }, [currentStep])
 
   return {
+    phoneNumber,
+    setPhoneNumber,
     success,
     setSuccess,
     retry,
@@ -123,6 +130,8 @@ function useGovernmentIDIssuanceState() {
 const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
   const {
+    phoneNumber,
+    setPhoneNumber,
     success,
     setSuccess,
     retry,
@@ -143,10 +152,12 @@ const GovernmentIDIssuance = () => {
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccess />
+      ) : currentStep === "Phone#" ? (
+        <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : retry && currentStep !== "Finalize" ? (
         <ConfirmRetry setRetry={setRetry} />
       ) : currentStep === "Verify" ? (
-        <StepIDV />
+        <StepIDV phoneNumber={phoneNumber} />
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}
