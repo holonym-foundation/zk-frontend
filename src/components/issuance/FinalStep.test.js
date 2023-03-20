@@ -39,7 +39,7 @@ const sessionStorageMock = (() => {
       store[key] = value.toString();
     },
     removeItem: (key) => {
-      delete store[key];
+      store[key] = undefined;
     },
     clear: () => {
       store = {};
@@ -511,9 +511,9 @@ describe('useAddNewSecret', () => {
     
     // Expect newCredsWithNewSecret to be the same as validCredsFromMockIdServerIssuer in all other respects
     const returnedCredsWithoutNewSecret = { ...newCredsWithNewSecret };
-    delete returnedCredsWithoutNewSecret.creds.newSecret;
-    delete returnedCredsWithoutNewSecret.creds.serializedAsNewPreimage;
-    delete returnedCredsWithoutNewSecret.newLeaf;
+    returnedCredsWithoutNewSecret.creds.newSecret = undefined;
+    returnedCredsWithoutNewSecret.creds.serializedAsNewPreimage = undefined;
+    returnedCredsWithoutNewSecret.newLeaf = undefined;
     expect(returnedCredsWithoutNewSecret).toEqual(validCredsFromMockIdServerIssuer);
   });
 

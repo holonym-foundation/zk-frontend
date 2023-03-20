@@ -39,7 +39,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   // not set newCreds.
 
   useEffect(() => {
-    if (!retrievalEndpoint || !setError) return;
+    if (!(retrievalEndpoint && setError)) return;
     console.log('useRetrieveNewCredentials: loading credentials');
     setError(undefined);
     storeSessionId(retrievalEndpoint);
@@ -64,8 +64,8 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
     if (resp?.status === 200) {
       const data = await resp.json();
       if (!data) {
-        console.error(`Could not retrieve credentials. No credentials found.`);
-        throw new Error(`Could not retrieve credentials. No credentials found.`);
+        console.error("Could not retrieve credentials. No credentials found.");
+        throw new Error("Could not retrieve credentials. No credentials found.");
       } else {
         // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
         // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
@@ -134,7 +134,7 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
   // Since newSecret is set synchronously and for the whole user session upon the rendering
   // of this component, we don't have to worry about how many times this useEffect is called.
   useEffect(() => {
-    if (!retrievalEndpoint || !newCreds || !newSecretRef.current) return;
+    if (!((retrievalEndpoint && newCreds) && newSecretRef.current)) return;
     (async () => {
       const credsTemp = { ...newCreds };
       credsTemp.creds.newSecret = newSecretRef.current
@@ -172,7 +172,7 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
 
   useEffect(() => {
     if (confirmationStatus !== 'init') return;
-    if ((!loadingCreds && !sortedCreds) || loadingCreds) return;
+    if ((!(loadingCreds || sortedCreds)) || loadingCreds) return;
     if (!newCreds?.creds?.issuerAddress) return;
     if (!setError) return;
 
@@ -205,7 +205,7 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
   }, [sortedCreds, loadingCreds, newCreds])
 
   useEffect(() => {
-    if (!sortedCreds || !newCreds?.creds?.issuerAddress || confirmationStatus !== 'confirmed') return;
+    if (!(sortedCreds && newCreds?.creds?.issuerAddress ) || confirmationStatus !== 'confirmed') return;
     
     const mergedSortedCredsTemp = { 
       ...sortedCreds,
