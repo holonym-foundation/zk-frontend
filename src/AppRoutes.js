@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import Landing from "./components/Landing";
 import Profile from './components/profile/profile';
 import IssuanceOptions from "./components/issuance/IssuanceOptions";
 import ProofMenu from "./components/prove/proof-menu";
@@ -14,7 +15,8 @@ import Register from './components/register';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route exact path={"/"} element={<IssuanceOptions />} />
+      {/* <Route exact path={"/"} element={<IssuanceOptions />} /> */}
+      <Route exact path={"/"} element={<Landing />} />
       <Route exact path={"/issuance"} element={<IssuanceOptions />} />
       <Route exact path={"/issuance/idgov"} element={<GovernmentIDIssuance />} />
       <Route exact path={"/issuance/idgov/:store"} element={<GovernmentIDIssuance />} />
