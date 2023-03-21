@@ -49,12 +49,12 @@ const StepIDV = ({ phoneNumber }) => {
       console.log('loading vouched QR code')
       loadVouched(phoneNumber);
     })();
-  }, []);
+  }, [phoneNumber]);
 
   return (
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
-      <div id="vouched-element" style={{ height: "10vh" }}></div>
+      <div id="vouched-element" style={{ height: "10vh" }} />
     </>
   );
 }
@@ -93,6 +93,7 @@ const ConfirmRetry = ({ setRetry }) => (
     </div>
   </div>
 )
+const steps = ["Phone#", "Verify", "Finalize"];
 
 function useGovernmentIDIssuanceState() {
   const { store } = useParams();
@@ -101,7 +102,6 @@ function useGovernmentIDIssuanceState() {
   const [retry, setRetry] = useState(!!localStorage.getItem('veriff-sessionId'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
     if (!(store || phoneNumber)) return "Phone#";
@@ -137,7 +137,6 @@ const GovernmentIDIssuance = () => {
     retry,
     setRetry,
     currentIdx,
-    setCurrentIdx,
     steps,
     currentStep,
   } = useGovernmentIDIssuanceState();
@@ -146,7 +145,7 @@ const GovernmentIDIssuance = () => {
     if (success && window.localStorage.getItem('register-credentialType')) {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
     }
-  }, [success]);
+  }, [navigate, success]);
 
   return (
     <VerificationContainer steps={steps} currentIdx={currentIdx}>

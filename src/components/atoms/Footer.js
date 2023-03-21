@@ -1,4 +1,3 @@
-import HolonymLogo from '../../img/Holonym-Logo-W.png';
 import HoloTwitterLogo from "../../img/Holo-Twitter_1.svg";
 import HoloMediumLogo from "../../img/Holo-Medium_1.svg";
 import HoloGithubLogo from "../../img/Holo-Github_1.svg";

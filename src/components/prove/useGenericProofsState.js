@@ -21,16 +21,12 @@ const useProofsState = () => {
 	const { sortedCreds } = useCreds();
 	const { 
 		uniquenessProof,
-		loadUniquenessProof,
 		loadingUniquenessProof,
 		uniquenessPhoneProof,
-		loadUniquenessPhoneProof,
 		loadingUniquenessPhoneProof,
 		usResidencyProof,
-		loadUSResidencyProof,
 		loadingUSResidencyProof,
 		medicalSpecialtyProof,
-		loadMedicalSpecialtyProof,
 		loadingMedicalSpecialtyProof,
 	} = useProofs();
 	const { proofMetadata } = useProofMetadata();
@@ -50,7 +46,7 @@ const useProofsState = () => {
 		} else if (params.proofType === "medical-specialty") {
 			return !!sortedCreds?.[serverAddress['med']]?.creds;
 		}
-	}, [sortedCreds])
+	}, [sortedCreds, params.proofType])
 
 	const proofs = {
 		"us-residency": {

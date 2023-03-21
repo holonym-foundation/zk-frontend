@@ -10,7 +10,9 @@ import StepSuccess from "./StepSuccess";
 import IssuanceContainer from "./IssuanceContainer";
 
 // Add to this when a new issuer is added
-const allowedCredTypes = ["idgov", "phone"];
+// const allowedCredTypes = ["idgov", "phone"];
+
+const steps = ["Phone#", "Verify", "Finalize"];
 
 function useVerifyPhoneNumberState() {
   const { store } = useParams();
@@ -19,7 +21,6 @@ function useVerifyPhoneNumberState() {
   const [code, setCode] = useState("");
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const steps = ["Phone#", "Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
     if (!(phoneNumber || store)) return "Phone#";
@@ -51,7 +52,6 @@ const VerifyPhoneNumber = () => {
     success,
     setSuccess,
     currentIdx,
-    setCurrentIdx,
     steps,
     currentStep,
     phoneNumber,
@@ -64,7 +64,7 @@ const VerifyPhoneNumber = () => {
     if (success && window.localStorage.getItem('register-credentialType')) {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
     }
-  }, [success]);
+  }, [success, navigate]);
   
   useEffect(() => {
     if (!phoneNumber) return;

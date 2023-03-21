@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { initialize } from "zokrates-js";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { preprocEndpoint, defaultChainToProveOn, defaultActionId } from "../constants";
@@ -6,10 +6,11 @@ import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 import Relayer from "./relayer";
 import { groth16 } from "snarkjs";
+
 let zokProvider;
 let artifacts = {};
 let provingKeys = {};
-let verifyingKeys = {};
+// let verifyingKeys = {};
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -57,16 +58,16 @@ async function loadProvingKey(circuitName) {
   provingKeys[circuitName] = [...new Uint8Array(k)];
 }
 
-async function loadVerifyingKey(circuitName) {
-  if (circuitName in verifyingKeys) {
-    // console.log(`Note: Trying to load ${circuitName} verifyingKey, which has already been loaded. Not reloading`);
-    return;
-  }
-  const k = await (
-    await fetch(`${preprocEndpoint}/${circuitName}.verifying.key`)
-  ).json();
-  verifyingKeys[circuitName] = k;
-}
+// async function loadVerifyingKey(circuitName) {
+//   if (circuitName in verifyingKeys) {
+//     // console.log(`Note: Trying to load ${circuitName} verifyingKey, which has already been loaded. Not reloading`);
+//     return;
+//   }
+//   const k = await (
+//     await fetch(`${preprocEndpoint}/${circuitName}.verifying.key`)
+//   ).json();
+//   verifyingKeys[circuitName] = k;
+// }
 
 loadArtifacts("poseidonQuinary").then(() =>
   console.log("Poseidon hash for five inputs loaded")
@@ -84,7 +85,7 @@ initialize().then(async (zokratesProvider) => {
  */
  export function getDateAsInt(date) {
   // Format input
-  const [year, month, day] = date.split("-");
+  const [year] = date.split("-");
   assert.ok((year >= 1900) && (year < 2099)); // Make sure date is in a reasonable range, otherwise it's likely the input was malformatted and it's best to be safe by stopping -- we can always allow more edge cases if needed later 
   return (new Date(date)).getTime() / 1000 + 2208988800 // 2208988800000 is 70 year offset; Unix timestamps below 1970 are negative and we want to allow from approximately 1900. 
 }
@@ -160,7 +161,7 @@ export async function poseidonTwoInputs(input) {
     throw new Error("Poseidon hash for two inputs has not been loaded");
   }
 
-  const { witness, output } = zokProvider.computeWitness(
+  const { output } = zokProvider.computeWitness(
     artifacts.poseidonTwoInputs,
     input
   );
@@ -182,7 +183,7 @@ export function poseidonHashQuinary(input) {
     throw new Error("Poseidon hash has not been loaded");
   }
 
-  let { witness, output } = zokProvider.computeWitness(
+  let { output } = zokProvider.computeWitness(
     artifacts.poseidonQuinary,
     input
   );
@@ -195,7 +196,7 @@ export function poseidonHashQuinary(input) {
 export async function createLeaf(serializedCreds) {
   await loadArtifacts("createLeaf");
   await loadProvingKey("createLeaf");
-  const { witness, output } = zokProvider.computeWitness(artifacts.createLeaf, serializedCreds);
+  const { output } = zokProvider.computeWitness(artifacts.createLeaf, serializedCreds);
   return output.replaceAll('"', "");
 }
 
@@ -318,7 +319,7 @@ export async function proofOfResidency(sender, govIdCreds) {
   await loadArtifacts("proofOfResidency");
   await loadProvingKey("proofOfResidency");
 
-  const { witness, output } = zokProvider.computeWitness(
+  const { witness } = zokProvider.computeWitness(
     artifacts.proofOfResidency,
     args
   );
@@ -380,7 +381,7 @@ export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) 
   await loadArtifacts("antiSybil");
   await loadProvingKey("antiSybil");
 
-  const { witness, output } = zokProvider.computeWitness(artifacts.antiSybil, args);
+  const { witness } = zokProvider.computeWitness(artifacts.antiSybil, args);
 
   const proof = zokProvider.generateProof(
     artifacts.antiSybil.program,
@@ -440,7 +441,7 @@ export async function uniquenessPhone(sender, phoneNumCreds, actionId = defaultA
   await loadArtifacts("sybilPhone");
   await loadProvingKey("sybilPhone");
 
-  const { witness, output } = zokProvider.computeWitness(artifacts.sybilPhone, args);
+  const { witness } = zokProvider.computeWitness(artifacts.sybilPhone, args);
 
   const proof = zokProvider.generateProof(
     artifacts.sybilPhone.program,
@@ -497,7 +498,7 @@ export async function proofOfMedicalSpecialty(sender, medicalCreds) {
   await loadArtifacts("medicalSpecialty");
   await loadProvingKey("medicalSpecialty");
 
-  const { witness, output } = zokProvider.computeWitness(
+  const { witness } = zokProvider.computeWitness(
     artifacts.medicalSpecialty,
     args
   );
@@ -546,7 +547,7 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
     mp.indices
   ];
 
-  const { witness, output } = zokProvider.computeWitness(artifacts.knowledgeOfLeafPreimage, proofArgs);
+  const { witness } = zokProvider.computeWitness(artifacts.knowledgeOfLeafPreimage, proofArgs);
   const proof = zokProvider.generateProof(
     artifacts.knowledgeOfLeafPreimage.program,
     witness,
@@ -587,7 +588,7 @@ export async function proveGovIdFirstNameLastName(govIdCreds) {
 
   await loadArtifacts("govIdFirstNameLastName");
   await loadProvingKey("govIdFirstNameLastName");
-  const { witness, output } = zokProvider.computeWitness(artifacts.govIdFirstNameLastName, proofArgs);
+  const { witness } = zokProvider.computeWitness(artifacts.govIdFirstNameLastName, proofArgs);
   const proof = zokProvider.generateProof(artifacts.govIdFirstNameLastName.program, witness, provingKeys.govIdFirstNameLastName);
   console.log('proveGovIdFirstNameLastName proof', proof);
   return proof;

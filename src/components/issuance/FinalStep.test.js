@@ -17,8 +17,6 @@ import {
   useRetrieveNewCredentials,
   useAddNewSecret,
   useMergeCreds,
-  useStoreCredentialsState,
-  useAddLeafState,
 } from './FinalStep'
 
 global.crypto = {
@@ -211,22 +209,22 @@ const validCredsFromMockIdServerIssuer = {
   }
 }
 
-const validCredsFromMockIdServerIssuerWithNewSecret = {
-  ...validCredsFromMockIdServerIssuer,
-  creds: {
-    ...validCredsFromMockIdServerIssuer.creds,
-    newSecret: "0x00",
-    serializedAsNewPreimage: [
-      "0x2a4879fe71757462a1a7e103646bbc3349a15bd52b115153791da39b5e376bb0",
-      "0x00",
-      "0x0000000000000000000000000000000000000000000000000000000000000002",
-      "0x157c1cd1baa1b476d697324439e45668c701068235271bc7f1ab41dd8ee73b85",
-      "0x00000000000000000000000000000000000000000000000000000000e7bde8ce",
-      "0x0000000000000000000000000000000000000000000000000000000000000000"
-    ]
-  },
-  newLeaf: "17361148687935615103964253102633676710222154436928152682250937993664674839353"
-}
+// const validCredsFromMockIdServerIssuerWithNewSecret = {
+//   ...validCredsFromMockIdServerIssuer,
+//   creds: {
+//     ...validCredsFromMockIdServerIssuer.creds,
+//     newSecret: "0x00",
+//     serializedAsNewPreimage: [
+//       "0x2a4879fe71757462a1a7e103646bbc3349a15bd52b115153791da39b5e376bb0",
+//       "0x00",
+//       "0x0000000000000000000000000000000000000000000000000000000000000002",
+//       "0x157c1cd1baa1b476d697324439e45668c701068235271bc7f1ab41dd8ee73b85",
+//       "0x00000000000000000000000000000000000000000000000000000000e7bde8ce",
+//       "0x0000000000000000000000000000000000000000000000000000000000000000"
+//     ]
+//   },
+//   newLeaf: "17361148687935615103964253102633676710222154436928152682250937993664674839353"
+// }
 
 // TODO: The test that must be written involves testing that, even if the FinalStep component
 // renders multiple times within a short period of time (i.e., less than ~500ms)--resulting
@@ -300,7 +298,7 @@ describe('useRetrieveNewCredentials', () => {
 
     // Setup test
     let error = undefined;
-    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({
+    const { result } = renderHook(() => useRetrieveNewCredentials({
       setError: (errorTemp) => {
         error = errorTemp;
       },
@@ -323,7 +321,7 @@ describe('useRetrieveNewCredentials', () => {
 
     // Setup test
     let error = undefined;
-    const { result, waitForNextUpdate } = renderHook(() => useRetrieveNewCredentials({
+    const { result } = renderHook(() => useRetrieveNewCredentials({
       setError: (errorTemp) => {
         error = errorTemp;
       },
@@ -348,7 +346,7 @@ describe('useRetrieveNewCredentials', () => {
 
     // Setup test
     let error = undefined;
-    const { result, waitForNextUpdate, waitFor } = renderHook(() => useRetrieveNewCredentials({ 
+    const { result, waitFor } = renderHook(() => useRetrieveNewCredentials({ 
       setError: (errorTemp) => {
         error = errorTemp;
       },
@@ -405,7 +403,7 @@ describe('useRetrieveNewCredentials', () => {
 
     // Setup test
     let error = undefined;
-    const { result, waitForNextUpdate, waitFor } = renderHook(() => useRetrieveNewCredentials({
+    const { result, waitFor } = renderHook(() => useRetrieveNewCredentials({
       setError: (errorTemp) => {
         error = errorTemp;
       },

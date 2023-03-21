@@ -23,7 +23,7 @@ function HoloAuthSigProvider({ children }) {
     [holoAuthSigDigest]
   )
   const {
-    data: signedAuthMessage,
+    // data: signedAuthMessage,
     isError: holoAuthSigIsError,
     isLoading: holoAuthSigIsLoading,
     isSuccess: holoAuthSigIsSuccess, 

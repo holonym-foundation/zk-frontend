@@ -4,7 +4,7 @@
  * 1. Stores the new credentials.
  * 2. Adds to the Merkle tree a leaf containing the new credentials.
  */
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { isEqual } from 'lodash';
 import { useSessionStorage } from "usehooks-ts";
@@ -15,7 +15,6 @@ import {
 } from "../../utils/secrets";
 import { 
   idServerUrl,
-  relayerUrl,
   issuerWhitelist,
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
@@ -38,17 +37,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   // TODO: Validate creds before setting newCreds. If creds are invalid, set error, and do
   // not set newCreds.
 
-  useEffect(() => {
-    if (!(retrievalEndpoint && setError)) return;
-    console.log('useRetrieveNewCredentials: loading credentials');
-    setError(undefined);
-    storeSessionId(retrievalEndpoint);
-    retrieveNewCredentials()
-      .then((newCredsTemp) => setNewCreds(newCredsTemp))
-      .catch((error) => setError(error.message))
-  }, [retrievalEndpoint]);
-
-  async function retrieveNewCredentials() {
+  const retrieveNewCredentials = useCallback(async () => {
     console.log('useRetrieveNewCredentials: retrievalEndpoint', retrievalEndpoint);
     // We try to fetch before trying to restore from sessionStorage because we want to be
     // 100% sure that we have the latest available credentials. The try-catch around fetch
@@ -84,7 +73,17 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
       throw new Error(await resp.text())
     }
-  }
+  }, [retrievalEndpoint, newCreds]);
+
+  useEffect(() => {
+    if (!(retrievalEndpoint && setError)) return;
+    console.log('useRetrieveNewCredentials: loading credentials');
+    setError(undefined);
+    storeSessionId(retrievalEndpoint);
+    retrieveNewCredentials()
+      .then((newCredsTemp) => setNewCreds(newCredsTemp))
+      .catch((error) => setError(error.message))
+  }, [retrievalEndpoint, retrieveNewCredentials, setError, setNewCreds]);
 
   function storeSessionId(retrievalEndpoint) {
     if (
@@ -129,7 +128,7 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
       newSecretRef.current = generateSecret();
       sessionStorage.setItem(`holoNewSecret-${retrievalEndpoint}`, newSecretRef.current);
     }
-  }, []);
+  }, [retrievalEndpoint]);
 
   // Since newSecret is set synchronously and for the whole user session upon the rendering
   // of this component, we don't have to worry about how many times this useEffect is called.
@@ -202,7 +201,7 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
       console.log('useMergeCreds: no creds confirmation needed');
       setConfirmationStatus('confirmed');
     }
-  }, [sortedCreds, loadingCreds, newCreds])
+  }, [sortedCreds, loadingCreds, newCreds, confirmationStatus, setError])
 
   useEffect(() => {
     if (!(sortedCreds && newCreds?.creds?.issuerAddress ) || confirmationStatus !== 'confirmed') return;
@@ -217,7 +216,7 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
     }
     console.log('useMergeCreds: calling setMergedSortedCreds');
     setMergedSortedCreds(mergedSortedCredsTemp);
-  }, [sortedCreds, newCreds, confirmationStatus])
+  }, [sortedCreds, newCreds, confirmationStatus, mergedSortedCreds])
 
   return {
     confirmationStatus,
@@ -265,7 +264,7 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
       setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress]);
       setStatus('success');
     }
-  }, [confirmationStatus, mergedSortedCreds])
+  }, [confirmationStatus, holoKeyGenSigDigest, mergedSortedCreds, newCreds.creds.issuerAddress, setCredsForAddLeaf])
 
   return {
     error,
@@ -285,7 +284,7 @@ export function useAddLeafState({ onSuccess }) {
   const { reloadCreds, storeCreds } = useCreds();
   const { loadKOLPProof, kolpProof, loadProofs } = useProofs();
 
-  async function sendCredsToServer() {
+  const sendCredsToServer = useCallback(async () => {
     const sortedCredsTemp = await reloadCreds();
     const success = await storeCreds(sortedCredsTemp, kolpProof);
     if (!success) {
@@ -299,9 +298,9 @@ export function useAddLeafState({ onSuccess }) {
         }
       }
     }
-  }
+  },[kolpProof, reloadCreds, storeCreds]);
 
-  async function addLeaf() {
+  const addLeaf = useCallback(async () => {
     const circomProof = await onAddLeafProof(credsForAddLeaf);
     console.log("circom proooooof", circomProof);
     await Relayer.addLeaf(
@@ -316,7 +315,7 @@ export function useAddLeafState({ onSuccess }) {
         setError('Error: An error occurred while adding leaf to Merkle tree.')
       }
     );
-  }
+  }, [credsForAddLeaf, loadKOLPProof]);
 
   // Steps:
   // 1. Generate addLeaf proof and call relayer addLeaf endpoint
@@ -325,7 +324,7 @@ export function useAddLeafState({ onSuccess }) {
   useEffect(() => {
     if (!credsForAddLeaf) return;
     addLeaf();
-  }, [credsForAddLeaf])
+  }, [addLeaf, credsForAddLeaf])
 
   useEffect(() => {
     if (!(kolpProof && readyToSendToServer)) return;
@@ -336,7 +335,7 @@ export function useAddLeafState({ onSuccess }) {
         console.log('Sent creds to server. Now suggesting a reload of all proofs');
         loadProofs(true); // force a reload of all proofs since a new leaf has been added
       });
-  }, [kolpProof, readyToSendToServer])
+  }, [kolpProof, loadProofs, onSuccess, readyToSendToServer, sendCredsToServer])
   
   return {
     error,
@@ -346,7 +345,7 @@ export function useAddLeafState({ onSuccess }) {
 }
 
 const FinalStep = ({ onSuccess }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { 
     error: addLeafError, 
     status: addLeafStatus, 

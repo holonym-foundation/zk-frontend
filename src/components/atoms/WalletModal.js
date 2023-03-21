@@ -29,7 +29,7 @@ const walletMetadata = {
 }
 
 const WalletModal = (props) => {
-  const { connect, connectors, error, isConnecting, pendingConnector } = useConnect();
+  const { connect, connectors, error } = useConnect();
   return (
     <Modal visible={props.visible} setVisible={props.setVisible} blur={props.blur} heavyBlur={true} transparentBackground={true}>
       {/* <div className="x-card blue"> */}
@@ -62,7 +62,7 @@ const WalletOption = ({ connector, connect, setVisible, logo, name, description 
       onClick={() => {connect(connector); setVisible(false)}}
     >
       <div className="x-card">
-        <a style={{ textDecoration: "none" }}>
+        <a href={() => false} style={{ textDecoration: "none" }}>
           <div className="id-card profile" style={{maxWidth: "100%"}}>
             <div className="id-card-1">
               <img src={logo} loading="lazy" alt="" className="id-img" style={{height:"69px", width:"69px", maxWidth:"200%",marginRight:"30px"}} />

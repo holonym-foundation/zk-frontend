@@ -26,7 +26,7 @@ function ProofMetadataProvider({ children }) {
         console.error(error);
         setLoadingProofMetadata(false);
       })
-  }, []);
+  }, [holoKeyGenSigDigest, holoAuthSigDigest, setProofMetadata]);
 
   // TODO: Move calls to localStorage for storing proofMetadata out of secrets.js. Just use
   // useLocalStorage from within this provider. (Be sure to store the values under the same keys as secrets.js)

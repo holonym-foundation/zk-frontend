@@ -29,7 +29,7 @@ export const Success = (props) => {
                   
                 <div className="spacer-large" />
                 
-                <a onClick={()=>navigate("/")} className="x-button secondary">
+                <a href={() => false }onClick={()=>navigate("/")} className="x-button secondary">
                   Go home
                 </a>
 
@@ -39,7 +39,7 @@ export const Success = (props) => {
                 <div className="spacer-x-small" />
                 <div className="spacer-x-small" />
 
-                <a onClick={()=>navigate("/prove")} className="x-button secondary">
+                <a href={() => false}onClick={()=>navigate("/prove")} className="x-button secondary">
                   Prove stuff about yourself
                 </a>
 

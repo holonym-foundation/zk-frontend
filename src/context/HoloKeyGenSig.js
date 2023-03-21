@@ -23,7 +23,7 @@ function HoloKeyGenSigProvider({ children }) {
     [holoKeyGenSigDigest]
   )
   const {
-    data: signedKeyGenMessage,
+    // data: signedKeyGenMessage,
     isError: holoKeyGenSigIsError,
     isLoading: holoKeyGenSigIsLoading,
     isSuccess: holoKeyGenSigIsSuccess, 

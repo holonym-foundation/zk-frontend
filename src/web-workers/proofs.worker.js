@@ -5,10 +5,8 @@
  * page, which in turn decreases the time the user spends waiting for
  * a proof to load.
  */
-import { ethers } from "ethers";
 import {
 	waitForArtifacts,
-	poseidonTwoInputs,
 	proofOfResidency,
 	antiSybil,
 	uniquenessPhone,

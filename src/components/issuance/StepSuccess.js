@@ -3,7 +3,7 @@ import { WithCheckMark } from "../atoms/checkmark";
 
 const StepSuccess = () => {
   const navigate = useNavigate();
-  const toTweet = "Just tried out the Holonym beta version and verified myself: https://app.holonym.id/issuance Each verification makes on-chain privacy stronger ⛓🎭";
+  // const toTweet = "Just tried out the Holonym beta version and verified myself: https://app.holonym.id/issuance Each verification makes on-chain privacy stronger ⛓🎭";
   return (
     <>
       <WithCheckMark size={3}>
