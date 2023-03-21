@@ -194,6 +194,9 @@ export function poseidonHashQuinary(input) {
  * @param {Array<string>} serializedCreds All other values in the leaf's preimage, as an array of strings
  */
 export async function createLeaf(serializedCreds) {
+  if (!zokProvider) {
+    await waitForZokProvider(5000);
+  }
   await loadArtifacts("createLeaf");
   await loadProvingKey("createLeaf");
   const { output } = zokProvider.computeWitness(artifacts.createLeaf, serializedCreds);
