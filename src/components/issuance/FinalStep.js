@@ -135,14 +135,18 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
   useEffect(() => {
     if (!((retrievalEndpoint && newCreds) && newSecretRef.current)) return;
     (async () => {
-      const credsTemp = { ...newCreds };
-      credsTemp.creds.newSecret = newSecretRef.current
-      credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
-      credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
-      credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
-      setNewCredsWithNewSecret(credsTemp);
-      // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
-      console.log('useAddNewSecret: Called setNewCredsWithNewSecret ')
+      try {
+        const credsTemp = { ...newCreds };
+        credsTemp.creds.newSecret = newSecretRef.current
+        credsTemp.creds.serializedAsNewPreimage = [...credsTemp.creds.serializedAsPreimage];
+        credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
+        credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
+        setNewCredsWithNewSecret(credsTemp);
+        // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
+        console.log('useAddNewSecret: Called setNewCredsWithNewSecret ')
+      } catch (err) {
+        console.error('useAddNewSecret:', err);
+      }
     })();
   }, [retrievalEndpoint, newCreds, newSecretRef]);
 
