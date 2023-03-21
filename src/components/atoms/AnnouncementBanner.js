@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import useSessionStorage from '../../hooks/useSessionStorage';
+import React from 'react';
+
 
 function Banner() {
   // const [showBanner, setShowBanner] = useSessionStorage('showBanner', true);

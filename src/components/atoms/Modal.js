@@ -12,7 +12,7 @@ export const Modal = ({ children, visible, setVisible, blur, heavyBlur, transpar
 
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [ref]);
+  }, [ref, setVisible]);
 
   return (
     <div style={{ display: visible ? "block" : "none" }}>
@@ -47,7 +47,7 @@ export const SimpleModal = (props) => {
 
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [ref]);
+  }, [ref, props.setVisible, props]);
 
   return (
       <div className={`x-section bg-img ${(props.blur ? "blur" : "")}`} style={{ display: props.visible ? "block" : "none" , position:"absolute", top: "0px", left: "0px", width: "100vw", height: "100vh"}}>

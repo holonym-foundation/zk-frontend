@@ -2,17 +2,16 @@
  * Component for finalizing the verification flow for credentials from external issuers.
  */
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import IssuanceContainer from "./IssuanceContainer";
 
+const steps = ["Verify", "Finalize"];
+
 function useExternalIssuanceState() {
-  const { store } = useParams();
   const [success, setSuccess] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const steps = ["Verify", "Finalize"];
 
   const currentStep = "Finalize";
 
@@ -35,9 +34,7 @@ const ExternalIssuance = () => {
     success,
     setSuccess,
     currentIdx,
-    setCurrentIdx,
     steps,
-    currentStep,
   } = useExternalIssuanceState();
 
   return (

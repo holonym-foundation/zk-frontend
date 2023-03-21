@@ -11,8 +11,6 @@ import Relayer from '../utils/relayer';
 import { sha1String } from '../utils/misc';
 import {
   onAddLeafProof,
-	waitForArtifacts,
-	poseidonTwoInputs,
 	proofOfResidency,
 	antiSybil,
   uniquenessPhone,
@@ -64,6 +62,7 @@ function ProofsProvider({ children }) {
    * and even if they are currently being loaded UNLESS sortedCreds is the same as it was the last time
    * this function was called.
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   async function loadProofs(suggestForceReload = false) {
     if (loadingProofMetadata || loadingCreds || !sortedCreds) return;
     if (location.pathname.includes('issuance') && location.pathname.includes('store')) {
@@ -136,6 +135,7 @@ function ProofsProvider({ children }) {
   /**
    * @param creds An object from an issuer (not a sortedCreds object).
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   async function addLeaf(creds) {
     const circomProof = await onAddLeafProof(creds);
     await Relayer.addLeaf(
@@ -155,7 +155,7 @@ function ProofsProvider({ children }) {
       setNumQueuedStoreCredsInvocations(numQueuedStoreCredsInvocations - 1);
       storeCreds(sortedCreds, kolpProof);
     }
-  }, [numQueuedStoreCredsInvocations, sortedCreds, kolpProof])
+  }, [numQueuedStoreCredsInvocations, sortedCreds, kolpProof, storeCreds])
   
   /**
    * Load anti-sybil proof (based on government ID) into context.
@@ -398,7 +398,7 @@ function ProofsProvider({ children }) {
     loadProofs(forceReload);
 
     prevSortedCredsRef.current = sortedCreds;
-  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, location])
+  }, [proofMetadata, loadingProofMetadata, sortedCreds, loadingCreds, location, addLeaf, loadProofs])
 
   return (
     <Proofs.Provider value={{

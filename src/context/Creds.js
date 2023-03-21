@@ -1,7 +1,7 @@
 /**
  * Context provider for creds.
  */
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useSessionStorage } from 'usehooks-ts'
 import { getCredentials, storeCredentials } from "../utils/secrets";
 import { useHoloAuthSig } from './HoloAuthSig';
@@ -21,7 +21,7 @@ function CredsProvider({ children }) {
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
 
-  async function loadCreds() {
+  const loadCreds = useCallback( async () => {
     setLoadingCreds(true);
     try {
       const sortedCredsTemp = await getCredentials(holoKeyGenSigDigest, holoAuthSigDigest, false)
@@ -32,12 +32,12 @@ function CredsProvider({ children }) {
       console.error(error);
       setLoadingCreds(false);
     }
-  }
+  }, [holoKeyGenSigDigest, holoAuthSigDigest, setSortedCreds]);
 
   useEffect(() => {
     // TODO: Use useQuery for this so that you only call this function once
     loadCreds();
-  }, []);
+  }, [loadCreds]);
 
   async function storeCreds(sortedCreds, kolpProof) {
     const result = await storeCredentials(sortedCreds, holoKeyGenSigDigest, holoAuthSigDigest, kolpProof);

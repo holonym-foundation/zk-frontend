@@ -42,7 +42,7 @@ const LoadingProofsButton = (props) => (
 
 
 const Proofs = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 	const {
     params,
     proofs,
@@ -102,7 +102,7 @@ const Proofs = () => {
         }
       }
     })()
-  }, [sessionQuery?.data]);
+  }, [searchParams, sessionQuery, sessionQuery.data, sessionQuery.isError, sessionQuery.isLoading, sessionQuery.isSuccess, setError]);
 
   function handleSubmit() {
     if (error || !sessionQuery?.data || sessionQuery?.isError || !proof) return;

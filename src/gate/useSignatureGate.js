@@ -55,7 +55,7 @@ export default function useSignatureGate(gate) {
 			clearHoloKeyGenSig();
 			signHoloKeyGenMessage().catch((err) => console.error(err));
 		}
-	}, [account]);
+	}, [account, holoAuthSig, holoKeyGenSig, clearHoloAuthSig, clearHoloKeyGenSig, signHoloAuthMessage, signHoloKeyGenMessage]);
 
 	return gate({ holoAuthSig, holoAuthSigDigest, holoKeyGenSig, holoKeyGenSigDigest });
 }

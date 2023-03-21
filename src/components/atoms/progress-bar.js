@@ -5,7 +5,7 @@ import { ProgressBar, Step } from "react-step-progress-bar";
 const Container = ({idx, text}) => 
   <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column"}}>
     <span style={{position:"relative"}} className="progress-bar-item">
-        <a style={{"fontFamily" : "Montserrat"}}>{idx+1}</a>
+        <a href={() => false }style={{"fontFamily" : "Montserrat"}}>{idx+1}</a>
     </span>
     <h5 style={{position:"absolute", bottom:"-40px"}}>{text}</h5>
 </div>

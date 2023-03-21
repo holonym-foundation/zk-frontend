@@ -75,7 +75,7 @@ const InstructionsList = ({ proofType, hasCreds, hasProofMetadata }) => {
 
 const Register = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [hostname, setHostname] = useState();
   const [hasCreds, setHasCreds] = useState(false);
   const [proofMetadataForSBT, setProofMetadataForSBT] = useState();
@@ -133,7 +133,7 @@ const Register = () => {
       setProofMetadataForSBT(proofMetadataForSBTTemp);
       setLoading(false);
     })();
-  }, [loadingCreds, sortedCreds, loadingProofMetadata, proofMetadata])
+  }, [loadingCreds, sortedCreds, loadingProofMetadata, proofMetadata, searchParams])
 
   async function handleClick() {
     const credentialType = searchParams.get("credentialType");

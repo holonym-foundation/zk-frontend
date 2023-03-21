@@ -19,7 +19,7 @@ export default function useAccountConnectGate(gate) {
 				setAccountShim(account);
 			}, 1000);
 		}
-	}, []);
+	}, [account]);
 
   useEffect(() => {
     if (pageLoadTimestamp + 1000 < Date.now()) {

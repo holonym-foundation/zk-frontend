@@ -158,13 +158,14 @@ const VerificationRequestForm = () => {
   )
 }
 
+// TODO: Do we need phone # for this?
+const steps = ["Verify", "Finalize"];
+
 function useMedicalCredentialsIssuance() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  // TODO: Do we need phone # for this?
-  const steps = ["Verify", "Finalize"];
 
   const currentStep = useMemo(() => {
     if (!store) return "Verify";
@@ -191,7 +192,6 @@ const MedicalCredentialsIssuance = () => {
     success,
     setSuccess,
     currentIdx,
-    setCurrentIdx,
     steps,
     currentStep,
   } = useMedicalCredentialsIssuance();
@@ -200,7 +200,7 @@ const MedicalCredentialsIssuance = () => {
     if (success && window.localStorage.getItem('register-credentialType')) {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
     }
-  }, [success]);
+  }, [success, navigate]);
 
   return (
     <IssuanceContainer steps={steps} currentIdx={currentIdx}>

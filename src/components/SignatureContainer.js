@@ -62,7 +62,7 @@ const SignatureContainer = ({ children }) => {
       clearHoloKeyGenSig()
       signHoloKeyGenMessage().catch(err => console.error(err))
     }
-  }, [account])
+  }, [account, holoAuthSig, holoKeyGenSig, clearHoloAuthSig, clearHoloKeyGenSig, signHoloAuthMessage, signHoloKeyGenMessage])
   
   const mainDivStyles = {
     position: "relative",

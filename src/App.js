@@ -2,7 +2,7 @@ import "./App.css";
 import "./normalize.css";
 import "./webflow.css";
 import "./holo-wtf.webflow.css";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import WebFont from "webfontloader";
 import LoadingElement from "./components/loading-element";
@@ -52,7 +52,7 @@ const SignMessagesFallback = () => {
 }
 
 function App() {
-  const [read, setReady] = useState(false);
+  // const [read, setReady] = useState(false);
   useEffect(() => {
     Promise.all([
       WebFont.load({

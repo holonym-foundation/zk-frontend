@@ -54,7 +54,7 @@ const IssuanceOption = (props) => {
                 }
             }} className={`x-card blue${(props.disabled ? " disable" : "")}`} style={{width:"100%", /*marginTop: "16px", marginLeft : "100px", marginRight : "100px", */fontSize: "x-large"}}>
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row"}}>
-                    <img src={props.image} style={{height:"50px", marginRight: "20px"}} />
+                    <img alt="" src={props.image} style={{height:"50px", marginRight: "20px"}} />
                     <h5>{props.name}</h5>
                 </div>
 
