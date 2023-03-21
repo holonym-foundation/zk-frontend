@@ -31,7 +31,8 @@ const Landing = () => {
     padding: '20px',
     marginBottom: '20px',
     maxWidth: '600px',
-    filter: 'drop-shadow(0px 0px 15px #9f5af0)'
+    filter: 'drop-shadow(0px 0px 15px #9f5af0)',
+    borderRadius: '80px',
   };
 
   const textDivStyle = {
@@ -82,55 +83,53 @@ const Landing = () => {
     <>
       <div style={outerContainer}>
         <div style={innerContainer}>
-          {/* <RoundedWindow> */}
-            <h3 
-              style={{ 
-                marginTop: '30px',
-                textAlign: 'center',
+          <h3 
+            style={{ 
+              marginTop: '30px',
+              textAlign: 'center',
+            }}
+          >
+            Build Your Holo
+          </h3>
+          <div style={{ marginBottom: '50px' }}>
+            <div style={cardStyle}>
+              <div style={textDivStyle}>
+                <h2 style={headingStyle}>1. Choose a Credential Type</h2>
+                <p style={paragraphStyle}>You can come back later and verify other credentials too.</p>
+              </div>
+              <img src={ChooseCredentialStep} alt="Choose a credential type" style={imageStyle} />
+            </div>
+            <div style={cardStyle}>
+              <img src={VerifyStep} alt="Verify Yourself" style={imageStyle} />
+              <div style={textDivStyle}>
+                <h2 style={headingStyle}>2. Verify Yourself</h2>
+                <p style={paragraphStyle}>Verify yourself using the chosen credential type.</p>
+              </div>
+            </div>
+            <div style={cardStyle}>
+              <div style={textDivStyle}>
+                <h2 style={headingStyle}>3. Generate a Proof</h2>
+                <p style={paragraphStyle}>Generate a zero knowledge proof about some aspect of your identity, and receive a soulbound token.</p>
+              </div>
+              <img src={GenerateProofStep} alt="Generate a Proof" style={imageStyle} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '75px' }}>
+            {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
+            <a
+              href="/issuance"
+              className="glowy-green-button"
+              style={{ lineHeight: "1", fontSize: "18px", }}
+              rel="noreferrer"
+              onClick={(event) => {
+                event.preventDefault();
+                navigate("/issuance");
               }}
             >
-              Build Your Holo
-            </h3>
-            <div style={{ marginBottom: '50px' }}>
-              <div style={cardStyle}>
-                <div style={textDivStyle}>
-                  <h2 style={headingStyle}>1. Choose a Credential Type</h2>
-                  <p style={paragraphStyle}>You can come back later and verify other credentials too.</p>
-                </div>
-                <img src={ChooseCredentialStep} alt="Choose a credential type" style={imageStyle} />
-              </div>
-              <div style={cardStyle}>
-                <img src={VerifyStep} alt="Verify Yourself" style={imageStyle} />
-                <div style={textDivStyle}>
-                  <h2 style={headingStyle}>2. Verify Yourself</h2>
-                  <p style={paragraphStyle}>Verify yourself using the chosen credential type.</p>
-                </div>
-              </div>
-              <div style={cardStyle}>
-                <div style={textDivStyle}>
-                  <h2 style={headingStyle}>3. Generate a Proof</h2>
-                  <p style={paragraphStyle}>Generate a zero knowledge proof about some aspect of your identity, and receive a soulbound token.</p>
-                </div>
-                <img src={GenerateProofStep} alt="Generate a Proof" style={imageStyle} />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '75px' }}>
-              {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
-              <a
-                href="/issuance"
-                className="glowy-green-button"
-                style={{ lineHeight: "1", fontSize: "18px", }}
-                rel="noreferrer"
-                onClick={(event) => {
-                  event.preventDefault();
-                  navigate("/issuance");
-                }}
-              >
-                Get Started
-              </a>
-            </div>
-          {/* </RoundedWindow> */}
+              Get Started
+            </a>
+          </div>
         </div>
       </div>
     </>
