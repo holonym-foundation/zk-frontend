@@ -8,10 +8,7 @@ const Landing = () => {
   const navigate = useNavigate();
 
   const cardStyle = {
-    // backgroundColor: '#060612',
-    // backgroundColor: '#fff',
     color: '#fff',
-    // color: '#000',
     display: 'flex',
     // alignItems: 'center',
     justifyContent: 'center',
@@ -19,13 +16,6 @@ const Landing = () => {
     padding: '50px'
   };
 
-  // const imageStyle = {
-  //   width: '100%',
-  //   marginBottom: '20px',
-  //   marginLeft: '20px',
-  //   marginRight: '20px',
-  //   maxWidth: '600px'
-  // };
   const imageStyle = {
     width: '100%',
     padding: '20px',
@@ -42,9 +32,6 @@ const Landing = () => {
 
   const headingStyle = {
     fontSize: '24px',
-    // marginBottom: '10px'
-    // padding: '20px',
-    // margin: "auto auto"
   };
 
   const paragraphStyle = {
@@ -114,7 +101,6 @@ const Landing = () => {
               <img src={GenerateProofStep} alt="Generate a Proof" style={imageStyle} />
             </div>
           </div>
-
           <div style={{ marginBottom: '75px' }}>
             {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
             <a
@@ -134,7 +120,7 @@ const Landing = () => {
       </div>
     </>
 
-    // TODO: Add a "What can I do with my Holo?" section. Include links to Lobby3, etc.
+    // TODO: Add a "What Can You Do With Your Holo?" section. Include links to Lobby3, etc.
   );
 }
 
