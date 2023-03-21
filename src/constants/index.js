@@ -327,3 +327,30 @@ export const primeToCountryCode = {
   1153: 'ZM', // Zambia,
   1163: 'ZW', // Zimbabwe
 };
+
+// NOTE: There might be additions to this list in the future. See medical credentials issuer for ground truth.
+export const tokenIdToMedSpecialty = {
+  "0": "Allergy & Immunology",
+  "1": "Anesthesiology",
+  "2": "Colon & Rectal Surgery",
+  "3": "Dermatology",
+  "4": "Emergency Medicine",
+  "5": "Family Medicine",
+  "6": "Internal Medicine",
+  "7": "Medical Genetics & Genomics",
+  "8": "Neurological Surgery",
+  "9": "Obstetrics & Gynecology",
+  "10": "Ophthalmology",
+  "11": "Orthopaedic Surgery",
+  "12": "Otolaryngology Head & Neck",
+  "13": "Pathology",
+  "14": "Pediatrics",
+  "15": "Physical Medicine & Rehabilitation",
+  "16": "Plastic Surgery",
+  "17": "Preventive Medicine",
+  "18": "Psychiatry & Neurology",
+  "19": "Radiology",
+  "20": "Surgery",
+  "21": "Thoracic Surgery",
+  "22": "Urology",
+};

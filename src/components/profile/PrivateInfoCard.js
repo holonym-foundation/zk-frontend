@@ -28,6 +28,13 @@ const govIdCredNames = [
   "Country",
 ]
 
+const medicalCredNames = [
+  'Medical Credentials',
+  'Medical Specialty',
+  // 'License',
+  'NPI Number',
+]
+
 
 const ExportModal = ({ authSigs, visible, setVisible, blur = true, }) => {
   const [showCopied, setShowCopied] = useState(false);
@@ -181,6 +188,20 @@ export default function PrivateInfoCard({ creds, loading }) {
                     <VerifyButton onClick={() => navigate('/issuance/phone')} text="Verify Phone Number" />
                   </>
                 )}
+
+                {creds && Object.keys(creds).filter(item => medicalCredNames.includes(item)).length > 0 ? (
+                  Object.keys(creds).filter(item => medicalCredNames.includes(item)).map((credName, index) => 
+                  // TODO: Fix: Warning: Each child in a list should have a unique "key" prop.
+                    (
+                      <>
+                        <div className="private-info-attribute-name">{credName}</div>
+                        <div className="private-info-attribute-value">{creds[credName]?.cred}</div>
+                        <div className="private-info-attribute-date-issued">{creds[credName]?.iat}</div>
+                        <div className="private-info-attribute-issuer">{issuerAddrToName[creds[credName]?.issuer] ?? creds[credName]?.issuer}</div>
+                      </>
+                    )
+                  )
+                ) : null}
               </div>
             </div>
           </>

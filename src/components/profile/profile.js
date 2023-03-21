@@ -5,7 +5,8 @@ import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
 import { 
   primeToCountryCode,
-  serverAddress
+  serverAddress,
+  tokenIdToMedSpecialty,
 } from "../../constants";
 import { useCreds } from "../../context/Creds";
 
@@ -51,6 +52,10 @@ function formatCreds(sortedCreds) {
     Object.entries(filteredCreds).map(([fieldName, value]) => {
       if (fieldName === "countryCode") {
         return ['Country', { ...value, cred: primeToCountryCode[value.cred] }]
+      } else if (fieldName === "npiNumber") {
+        return ['NPI Number', value]
+      } else if (fieldName === "specialty" && value.issuer === serverAddress['med']) {
+        return ['Medical Specialty', { ...value, cred: tokenIdToMedSpecialty[value.cred] }]
       } else {
         let formattedFieldName = fieldName.replace(/([A-Z])/g, " $1");
         formattedFieldName =
@@ -59,7 +64,7 @@ function formatCreds(sortedCreds) {
       }
     })
   );
-  // Special case: phone number
+  // Handle phone number creds
   const phoneNumber = sortedCreds[serverAddress['phone-v2']]?.creds?.customFields[0];
   if (phoneNumber) {
     const secondsSince1900 = (parseInt(ethers.BigNumber.from(sortedCreds[serverAddress['phone-v2']]?.creds?.iat ?? 2208988800).toString()) * 1000) - 2208988800000;
@@ -68,7 +73,7 @@ function formatCreds(sortedCreds) {
       cred: phoneNumber ? ethers.BigNumber.from(phoneNumber).toString() : undefined,
       iat: secondsSince1900 ? new Date(secondsSince1900).toISOString().slice(0, 10) : undefined,
     }
-  }
+  }  
   return formattedCreds;
 }
 
