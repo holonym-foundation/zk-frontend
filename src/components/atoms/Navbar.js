@@ -7,6 +7,8 @@ import WalletModal from "./WalletModal";
 import AnnouncementBanner from "./AnnouncementBanner";
 import { useNavigate } from "react-router-dom";
 
+const thisUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : 'https://app.holonym.id';
+
 export default function Navbar(props) {
   const navigate = useNavigate();
   const { data: account } = useAccount();
@@ -33,7 +35,7 @@ export default function Navbar(props) {
       />
       <div data-animation="default" data-collapse="medium" data-duration="700" data-easing="ease-out-quint" data-easing2="ease-out-quint" role="banner" className="navbar w-nav">
         <div className="x-container nav w-container">
-          <a href="https://www.holonym.id/" className="logo-div w-nav-brand">
+          <a href={thisUrl} className="logo-div w-nav-brand">
             <div className="logo hide w-embed"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.17 50">
                 <defs>
                   <style>{".cls-1{fill:currentColor;}"}</style>
@@ -56,8 +58,11 @@ export default function Navbar(props) {
           <img src={HolonymLogo} loading="lazy" alt="" sizes="200px" className="logo" />
           </a>
           <nav role="navigation" className="nav-menu flex w-nav-menu" style={{ fontSize: "1rem" }}>
+            {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
             <a href="/issuance" onClick={handleNavigate} className="nav-link w-nav-link">Verify</a>
+            {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
             <a href="/prove" onClick={handleNavigate} className="nav-link w-nav-link">Prove</a>
+            {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
             <a href="/profile" onClick={handleNavigate} className="nav-link w-nav-link">Profile</a>
             <div className="nav-wallet" style={{ backgroundColor: 'var(--dark-card-background)' }}>
               <img src={UserImage} loading="lazy" alt="" className="nav-wallet-img" />
