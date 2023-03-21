@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import HolonymLogo from '../../img/Holonym-Logo-W.png';
 import UserImage from '../../img/User.svg';
-import { truncateAddress, udReverseResolution } from "../../utils/ui-helpers";
+import { truncateAddress } from "../../utils/ui-helpers";
 import WalletModal from "./WalletModal";
 import AnnouncementBanner from "./AnnouncementBanner";
 import { useNavigate } from "react-router-dom";
@@ -10,14 +10,7 @@ import { useNavigate } from "react-router-dom";
 export default function Navbar(props) {
   const navigate = useNavigate();
   const { data: account } = useAccount();
-  const [udDomain, setUdDomain] = useState();
   const [walletModalShowing, setWalletModalShowing] = useState(false);
-
-  useEffect(() => {
-    if (account?.address) {
-      udReverseResolution(account.address).then((domain) => setUdDomain(domain));
-    }
-  }, [account])
 
   function handleNavigate(e) {
     e.preventDefault();
@@ -63,7 +56,7 @@ export default function Navbar(props) {
               <img src={UserImage} loading="lazy" alt="" className="nav-wallet-img" />
               {account?.address && account?.connector ? (
                 <div className="nav-wallet-text">
-                  {udDomain ?? truncateAddress(account?.address)}
+                  {truncateAddress(account?.address)}
                 </div>
                 ) : (
                 <div className="nav-wallet-text nav-link w-nav-link" onClick={() => setWalletModalShowing(true)}>
