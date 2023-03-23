@@ -84,7 +84,7 @@ function ProofsProvider({ children }) {
     // if the user has the credentials to do so.
     const missingProofs = { 
       'uniqueness': !uniquenessProof,
-      'unique-phone': !uniquenessPhoneProof,
+      'uniqueness-phone': !uniquenessPhoneProof,
       'us-residency': !usResidencyProof, 
       'medical-specialty': !medicalSpecialtyProof,
       'gov-id-firstname-lastname': !govIdFirstNameLastNameProof, // Not an SBT. No good way to determine whether user needs it, so always generate
