@@ -268,7 +268,7 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
       setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress]);
       setStatus('success');
     }
-  }, [confirmationStatus, holoKeyGenSigDigest, mergedSortedCreds, newCreds.creds.issuerAddress, setCredsForAddLeaf])
+  }, [confirmationStatus, holoKeyGenSigDigest, mergedSortedCreds, newCreds?.creds?.issuerAddress, setCredsForAddLeaf])
 
   return {
     error,
