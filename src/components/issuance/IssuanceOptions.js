@@ -24,10 +24,11 @@ const opts = [
     },
     {
         name: "Medical Credentials", 
-        url: "/issuance/med", 
+        // url: "/issuance/med", 
+        url: "/issuance",
         image: stethoscopeImg, 
         description: "This adds medical credentials to your Holo. It lets you prove that you are a doctor and what specialty you are in.", 
-        disabled: false 
+        disabled: true // TODO: Re-enable once it is working
     },
     { 
         name: "Accredited Investor Status", 
