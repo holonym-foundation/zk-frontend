@@ -282,7 +282,7 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
 
 export function useAddLeafState({ onSuccess }) {
   const [error, setError] = useState();
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState('idle'); // 'idle' | 'addingLeaf' | 'generatingKOLPProof' | 'backingUpCreds'
   const [credsForAddLeaf, setCredsForAddLeaf] = useState();
   const [readyToSendToServer, setReadyToSendToServer] = useState(false);
   const { reloadCreds, storeCreds } = useCreds();
@@ -326,9 +326,10 @@ export function useAddLeafState({ onSuccess }) {
   // 2. Generate KOLP proof using creds in newly added leaf, send to server, and call onSuccess
 
   useEffect(() => {
-    if (!credsForAddLeaf) return;
+    if (!credsForAddLeaf || status === 'addingLeaf') return;
+    setStatus('addingLeaf');
     addLeaf();
-  }, [addLeaf, credsForAddLeaf])
+  }, [addLeaf, credsForAddLeaf, status])
 
   useEffect(() => {
     if (!(kolpProof && readyToSendToServer)) return;
@@ -370,7 +371,8 @@ const FinalStep = ({ onSuccess }) => {
   // TODO: Display these messages in a nice progress bar. Maybe in the big progress bar?
   const loadingMessage = useMemo(() => {
     if (storeCredsStatus === 'loading') return 'Loading credentials';
-    else if (storeCredsStatus === 'success' && addLeafStatus === 'idle') return 'Adding leaf to Merkle tree';
+    else if (storeCredsStatus === 'success' && (addLeafStatus === 'idle' || addLeafStatus === 'addingLeaf')) 
+      return 'Adding leaf to Merkle tree';
     else if (addLeafStatus === 'generatingKOLPProof') return 'Generating proof';
     else if (addLeafStatus === 'backingUpCreds') return 'Backing up encrypted credentials';
   }, [storeCredsStatus, addLeafStatus])
@@ -393,6 +395,7 @@ const FinalStep = ({ onSuccess }) => {
         </div>
           {JSON.stringify(credsThatWillBeOverwritten?.metadata?.rawCreds ?? credsThatWillBeOverwritten, null, 2)
             ?.replaceAll('}', '')?.replaceAll('{', '')?.replaceAll('"', '')?.split(',')?.map((cred, index) => (
+              // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
               <p key={index}><code>{cred}</code></p>
           ))}
       </Modal>
