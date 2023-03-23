@@ -316,6 +316,7 @@ export function useAddLeafState({ onSuccess }) {
         setReadyToSendToServer(true);
       }, 
       () => {
+        setStatus('idle');
         setError('Error: An error occurred while adding leaf to Merkle tree.')
       }
     );
