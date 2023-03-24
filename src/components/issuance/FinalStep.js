@@ -33,6 +33,9 @@ import { createLeaf, onAddLeafProof } from "../../utils/proofs";
 // const retrievalEndpoint = window.atob(searchParams.get('retrievalEndpoint'))
 export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   const [newCreds, setNewCreds] = useSessionStorage(`holoNewCredsFromIssuer-${retrievalEndpoint}`, undefined);
+  // We use a ref so that retrieveNewCredentials can access the latest value of newCreds without having
+  // newCreds as a dependency of retrieveNewCredentials.
+  const newCredsRef = useRef(newCreds);
 
   // TODO: Validate creds before setting newCreds. If creds are invalid, set error, and do
   // not set newCreds.
@@ -63,9 +66,9 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       }
     } else {
       // We only attempt to restore from sessionStorage if the fetch failed.
-      if (newCreds) {
+      if (newCredsRef?.current) {
         console.log(`store-credentials: Returning creds recovered from sessionStorage credentials from retrieval endpoint ${retrievalEndpoint}`)
-        return newCreds;
+        return newCredsRef.current;
       }
       console.log('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code');
       // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
@@ -73,7 +76,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
       throw new Error(await resp.text())
     }
-  }, [retrievalEndpoint, newCreds]);
+  }, [retrievalEndpoint]);
 
   useEffect(() => {
     if (!(retrievalEndpoint && setError)) return;
@@ -81,7 +84,10 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
     setError(undefined);
     storeSessionId(retrievalEndpoint);
     retrieveNewCredentials()
-      .then((newCredsTemp) => setNewCreds(newCredsTemp))
+      .then((newCredsTemp) => {
+        setNewCreds(newCredsTemp);
+        newCredsRef.current = newCredsTemp;
+      })
       .catch((error) => setError(error.message))
   }, [retrievalEndpoint, retrieveNewCredentials, setError, setNewCreds]);
 
@@ -316,7 +322,6 @@ export function useAddLeafState({ onSuccess }) {
         setReadyToSendToServer(true);
       }, 
       () => {
-        setStatus('idle');
         setError('Error: An error occurred while adding leaf to Merkle tree.')
       }
     );
