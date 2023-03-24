@@ -117,6 +117,8 @@ const useProofsState = () => {
 		params,
 		uniquenessProof,
 		loadingUniquenessProof,
+		uniquenessPhoneProof,
+		loadingUniquenessPhoneProof,
 		usResidencyProof,
 		loadingUSResidencyProof,
 		medicalSpecialtyProof,
