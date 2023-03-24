@@ -288,7 +288,7 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
 
 export function useAddLeafState({ onSuccess }) {
   const [error, setError] = useState();
-  const [status, setStatus] = useState('idle'); // 'idle' | 'addingLeaf' | 'generatingKOLPProof' | 'backingUpCreds'
+  const status = useRef('idle'); // 'idle' | 'addingLeaf' | 'generatingKOLPProof' | 'backingUpCreds'
   const [credsForAddLeaf, setCredsForAddLeaf] = useState();
   const [readyToSendToServer, setReadyToSendToServer] = useState(false);
   const { reloadCreds, storeCreds } = useCreds();
@@ -317,7 +317,7 @@ export function useAddLeafState({ onSuccess }) {
       circomProof, 
       async () => {
         console.log('useAddLeafState: Added leaf')
-        setStatus('generatingKOLPProof')
+        status.current = 'generatingKOLPProof'
         loadKOLPProof(false, false, credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
       }, 
@@ -332,14 +332,14 @@ export function useAddLeafState({ onSuccess }) {
   // 2. Generate KOLP proof using creds in newly added leaf, send to server, and call onSuccess
 
   useEffect(() => {
-    if (!credsForAddLeaf || status === 'addingLeaf') return;
-    setStatus('addingLeaf');
+    if (!credsForAddLeaf || status?.current === 'addingLeaf') return;
+    status.current = 'addingLeaf';
     addLeaf();
   }, [addLeaf, credsForAddLeaf, status])
 
   useEffect(() => {
     if (!(kolpProof && readyToSendToServer)) return;
-    setStatus('backingUpCreds')
+    status.current = 'backingUpCreds';
     sendCredsToServer()
       .then(() => {
         onSuccess()
@@ -350,7 +350,7 @@ export function useAddLeafState({ onSuccess }) {
   
   return {
     error,
-    status,
+    status: status?.current,
     setCredsForAddLeaf,
   };
 }
