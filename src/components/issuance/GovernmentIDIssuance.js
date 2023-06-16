@@ -40,14 +40,18 @@ const StepIDV = ({ phoneNumber }) => {
   useEffect(() => {
     if (!phoneNumber) return;
     (async () => {
-      const resp = await fetch(`${idServerUrl}/vouched/job-count`)
-      const data = await resp.json();
-      if (data.today >= maxDailyVouchedJobCount) {
-        alert("Sorry, we cannot verify any more IDs at this time");
-        return;
+      try {
+        const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+        const data = await resp.json();
+        if (data.today >= maxDailyVouchedJobCount) {
+          alert("Sorry, we cannot verify any more IDs at this time");
+          return;
+        }
+        console.log('loading vouched QR code')
+        loadVouched(phoneNumber);  
+      } catch (err) {
+        console.error(err);
       }
-      console.log('loading vouched QR code')
-      loadVouched(phoneNumber);
     })();
   }, [phoneNumber]);
 
