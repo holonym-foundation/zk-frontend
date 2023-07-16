@@ -13,7 +13,7 @@ const opts = [
         url: "/issuance/phone", 
         image: phoneImg, 
         description: "Verifies a real phone number, blocking burners. Helps show you're not a bot.", 
-        price: "5",
+        price: ".005",
         disabled: false 
     },
     { 
@@ -21,7 +21,7 @@ const opts = [
         url: "/issuance/idgov", 
         image: idImg, 
         description: <><b>🤖 Get the <span style={{color: "greenyellow"}}>NFT </span> for a higher Gitcoin sybil-resistance score 🤖</b><br />Verifies your government ID in a ZK-compatible way. It does not store your data or doxx you</>, 
-        price: "5",
+        price: ".005",
         disabled: false 
     },
     // {
@@ -63,7 +63,7 @@ const IssuanceOption = (props) => {
 
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row", textAlign: "left"}}>
                     <p>{props.description}</p>
-                    {props.price ? <p style={{color: "greenyellow"}}><b>NFT:</b> {props.price} OP</p> : null}
+                    {props.price ? <p style={{color: "greenyellow"}}><b>NFT:</b> {props.price} ETH</p> : null}
                 </div>
             </button>
 }
