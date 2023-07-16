@@ -9,6 +9,7 @@ import LoadingElement from "./components/loading-element";
 import { isMobile } from "react-device-detect";
 import RoundedWindow from "./components/RoundedWindow";
 import ConnectWalletScreen from "./components/atoms/connect-wallet-screen";
+import SwitchChains from './components/atoms/SwitchChains'
 import { RootProvider } from "./RootProvider";
 import { Layout } from "./Layout";
 import { AppRoutes } from "./AppRoutes";
@@ -23,6 +24,16 @@ const ConnectWalletFallback = () => {
     <Layout>
       <RoundedWindow>
         <ConnectWalletScreen />
+      </RoundedWindow>
+    </Layout>
+  );
+}
+
+const NetworkGateFallback = () => {
+  return (
+    <Layout>
+      <RoundedWindow>
+        <SwitchChains />
       </RoundedWindow>
     </Layout>
   );
@@ -73,7 +84,11 @@ function App() {
   if (isMobile) return <NotDesktop />
   return (
     <Router>
-      <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
+      <RootProvider
+        connectWalletFallback={<ConnectWalletFallback />}
+        signMessagesFallback={<SignMessagesFallback />}
+        networkGateFallback={<NetworkGateFallback />}
+      >
         <Suspense fallback={<LoadingElement />}>
           <Layout>
             <AppRoutes />
