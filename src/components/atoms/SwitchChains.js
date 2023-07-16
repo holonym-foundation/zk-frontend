@@ -19,7 +19,10 @@ const SwitchChains = () => {
           <h1>Please Switch to Optimism</h1>
           <div style={{ width: "100", fontSize: "18px", marginTop: "20px", marginBottom: "30px", maxWidth: "400px" }}>
             <div className="nav-wallet" style={{ backgroundColor: 'var(--dark-card-background)' }}>
-              <div className="nav-wallet-text nav-link w-nav-link" onClick={() => switchNetwork()}>
+              <div className="nav-wallet-text nav-link w-nav-link" onClick={() => {
+                console.log('SwitchChains component: switchNetwork', switchNetwork)
+                switchNetwork()
+              }}>
                 Switch Chains
               </div>
             </div>       
