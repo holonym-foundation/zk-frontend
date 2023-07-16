@@ -13,6 +13,7 @@ import SwitchChains from './components/atoms/SwitchChains'
 import { RootProvider } from "./RootProvider";
 import { Layout } from "./Layout";
 import { AppRoutes } from "./AppRoutes";
+import useScriptWithURL from "./hooks/useScriptWithURL";
 
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
@@ -63,6 +64,7 @@ const SignMessagesFallback = () => {
 }
 
 function App() {
+  useScriptWithURL("https://cdn.usefathom.com/script.js", {"data-site": "SLPDXJMA", defer: true});
   // const [read, setReady] = useState(false);
   useEffect(() => {
     Promise.all([

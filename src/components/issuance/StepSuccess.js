@@ -26,7 +26,7 @@ const StepSuccess = () => {
             navigate("/prove");
           }}
         >
-          Get NFT (5 OP)
+          Get NFT
         </a>
         {
         /* <div style={{ margin: "10px" }} />
