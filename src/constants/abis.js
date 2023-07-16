@@ -28,13 +28,13 @@ const theABIs = {
     "function isUniqueForAction(address,uint256) view returns (bool)",
     "function masalaWasUsed(uint256) view returns (bool)",
     "function proofIsValid(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[5]) view returns (bool)",
-    "function prove(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[5])"
+    "function prove(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[5]) payable"
   ],
   SybilResistancePhone: [
     "constructor(address,uint,uint, address)",
     "event Uniqueness(address,uint256)",
     "function isUniqueForAction(address,uint256) view returns (bool)",
-    "function prove(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[5])"
+    "function prove(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[5]) payable"
   ],
   IsUSResident : [
     "constructor(address,address)",
