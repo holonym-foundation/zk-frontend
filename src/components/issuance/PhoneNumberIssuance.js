@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parsePhoneNumber } from "react-phone-number-input";
-import "react-phone-number-input/style.css";
+// import "react-phone-number-input/style.css";
+import "../../react-phone-number-input.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
