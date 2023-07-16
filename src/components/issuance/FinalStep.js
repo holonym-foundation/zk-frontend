@@ -322,7 +322,7 @@ export function useAddLeafState({ onSuccess }) {
         setReadyToSendToServer(true);
       }, 
       () => {
-        setError('Error: An error occurred while adding leaf to Merkle tree.')
+        // setError('Error: An error occurred while adding leaf to Merkle tree.')
       }
     );
   }, [credsForAddLeaf, loadKOLPProof]);
