@@ -243,12 +243,14 @@ const Proofs = () => {
 				<br />
 
 				{balanceLTSix && (
-					<button
+					<a
 						className="x-button"
-						onClick={() => write()}
+						href="https://app.optimism.io/bridge/deposit"
+						target="_blank"
+						rel="noreferrer"
 					>
 						Don&#39;t have OP? Click here to bridge
-					</button>
+					</a>
 				)}
 
 			</div>
