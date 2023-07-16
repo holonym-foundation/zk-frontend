@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { useContractWrite } from "wagmi";
 import contractAddresses from '../../constants/contract-addresses.json'
 import ABIs from "../../constants/abis";
@@ -31,7 +32,7 @@ const useSubmitProof = ({ proof, contractName, chain, onSuccess, onError }) => {
         proof.inputs
       ] : [],
       overrides: {
-        // value: ethers.utils.parseEther("5.0"), // 5 OP
+        value: ethers.utils.parseEther("5.0"), // 5 OP
       },
       onSuccess: onSuccess,
       onError: onError,
