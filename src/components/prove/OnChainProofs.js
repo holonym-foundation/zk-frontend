@@ -1,6 +1,4 @@
 import { useNavigate } from "react-router-dom";
-// import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
-// import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { Oval } from "react-loader-spinner";
 import { useQuery } from "wagmi";
 import { Success } from "../success";
@@ -10,6 +8,7 @@ import { useProofMetadata } from "../../context/ProofMetadata";
 import { defaultChainToProveOn } from "../../constants";
 import Relayer from "../../utils/relayer";
 import useGenericProofsState from "./useGenericProofsState";
+import useSubmitProof from "./useSubmitProof";
 
 const SUBMIT_PROOF = 'submitProof';
 
@@ -61,46 +60,87 @@ const Proofs = () => {
   } = useGenericProofsState();
 	const { addProofMetadataItem } = useProofMetadata();
 
-	const submitProofQuery = useQuery(
-		["submitProof"],
-		async () => {
-      return await Relayer.prove(
-        proof,
-				proofs[params.proofType].contractName,
-        defaultChainToProveOn,
-      );
-    },
-		{
-			enabled: !!(submissionConsent && proof),
-			onSuccess: (result) => {
-        console.log('result from submitProof')
-        console.log(result)
-				if (result.error) {
-					console.log("error", result);
-					setError({
-            type: SUBMIT_PROOF,
-            message: result?.error?.response?.data?.error?.reason ??
-            result?.error?.message,
-          });
-				} else {
-					addProofMetadataItem(
-						result,
-						proof.inputs[1],
-						params.proofType,
-						params.actionId,
-					);
-          setProofSubmissionSuccess(true);
-        }
-			},
-			onError: (error) => {
-				console.log("error", error);
-				setError({
-					type: SUBMIT_PROOF,
-					message: error?.response?.data?.error?.reason ?? error?.message,
-				});
-			}
+	// const submitProofQuery = useQuery(
+	// 	["submitProof"],
+	// 	async () => {
+	// 		// TODO: CT: Call proof contract here.
+  //     return await Relayer.prove(
+  //       proof,
+	// 			proofs[params.proofType].contractName,
+  //       defaultChainToProveOn,
+  //     );
+  //   },
+	// 	{
+	// 		enabled: !!(submissionConsent && proof),
+	// 		onSuccess: (result) => {
+  //       console.log('result from submitProof')
+  //       console.log(result)
+	// 			if (result.error) {
+	// 				console.log("error", result);
+	// 				setError({
+  //           type: SUBMIT_PROOF,
+  //           message: result?.error?.response?.data?.error?.reason ??
+  //           result?.error?.message,
+  //         });
+	// 			} else {
+	// 				addProofMetadataItem(
+	// 					result,
+	// 					proof.inputs[1],
+	// 					params.proofType,
+	// 					params.actionId,
+	// 				);
+  //         setProofSubmissionSuccess(true);
+  //       }
+	// 		},
+	// 		onError: (error) => {
+	// 			console.log("error", error);
+	// 			setError({
+	// 				type: SUBMIT_PROOF,
+	// 				message: error?.response?.data?.error?.reason ?? error?.message,
+	// 			});
+	// 		}
+	// 	},
+	// );
+
+	const {
+    data,
+    // error,
+    isError,
+    isIdle,
+    isLoading,
+    isSuccess,
+    reset,
+    write,
+    writeAsync,
+  } = useSubmitProof({
+		proof,
+		contractName: proofs[params.proofType].contractName,
+		onSuccess: async (txResponse) => {
+      const result = {...txResponse};
+      if (txResponse?.wait) {
+        const txReceipt = await txResponse.wait();
+        result.blockNumber = txReceipt.blockNumber;
+        result.transactionHash = txReceipt.transactionHash;
+      }
+			
+			console.log('result from submitProof')
+			console.log(result)
+			addProofMetadataItem(
+				result,
+				proof.inputs[1],
+				params.proofType,
+				params.actionId,
+			);
+			setProofSubmissionSuccess(true);
 		},
-	);
+		onError: (error) => {
+			console.log("error", error);
+			setError({
+				type: SUBMIT_PROOF,
+				message: error?.response?.data?.error?.reason ?? error?.message,
+			});
+		}
+	})
 
 	if (proofSubmissionSuccess) {
 		if (params.callback) window.location.href = `https://${params.callback}`;
@@ -160,9 +200,11 @@ const Proofs = () => {
 					proof ? (
 						<button
 							className="x-button"
-							onClick={() => setSubmissionConsent(true)}
+							// onClick={() => setSubmissionConsent(true)}
+							onClick={() => write()}
 						>
-							{submissionConsent && submitProofQuery.isFetching
+							{/* {submissionConsent && submitProofQuery.isFetching */}
+							{isLoading
 								? (
 										<div
 											style={{
