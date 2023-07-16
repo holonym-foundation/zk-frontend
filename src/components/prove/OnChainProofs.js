@@ -49,10 +49,10 @@ const Proofs = () => {
 	const { data: balanceData } = useBalance({
 		addressOrName: account?.address
 	})
-	const balanceLTSix = useMemo(() => {
+	const balanceGT0 = useMemo(() => {
 		try {
 			if (!balanceData?.formatted) return true
-			return Number(balanceData.formatted) < 6
+			return Number(balanceData.formatted) > 0
 		} catch (err) {
 			console.error(err)
 		}
@@ -242,7 +242,7 @@ const Proofs = () => {
 
 				<br />
 
-				{balanceLTSix && (
+				{!balanceGT0 && (
 					<a
 						className="x-button"
 						href="https://app.optimism.io/bridge/deposit"
