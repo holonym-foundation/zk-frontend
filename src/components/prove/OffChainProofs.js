@@ -4,8 +4,6 @@ import { useQuery } from "wagmi";
 import { 
   clientPortalUrl, 
 } from "../../constants";
-// import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
-// import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { Oval } from "react-loader-spinner";
 import RoundedWindow from "../RoundedWindow";
 import useGenericProofsState from "./useGenericProofsState";
