@@ -30,7 +30,7 @@ const useSubmitProof = ({ proof, contractName, chain, onSuccess, onError }) => {
         proof.inputs
       ] : [],
       overrides: {
-        value: ethers.utils.parseEther("5.0"), // 5 OP
+        // value: ethers.utils.parseEther("5.0"), // 5 OP
       },
       onSuccess: onSuccess,
       onError: onError,
