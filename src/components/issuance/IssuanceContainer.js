@@ -1,5 +1,5 @@
 import "../../vouched-css-customization.css";
-import "react-phone-number-input/style.css";
+// import "react-phone-number-input/style.css";
 import RoundedWindow from "../RoundedWindow";
 import Progress from "../atoms/progress-bar";
 

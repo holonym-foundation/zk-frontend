@@ -12,12 +12,14 @@ const PhoneNumberForm = ({ onSubmit }) => {
       <p style={{ marginBottom: "25px" }}>
         Please enter your personal phone (burner won't work)
       </p>
-      <PhoneInput
-        placeholder="Enter phone number"
-        defaultCountry="US"
-        value={phone}
-        onChange={setPhone}
-      />
+      <div style={{ color: '#000' }} >
+        <PhoneInput
+          placeholder="Enter phone number"
+          defaultCountry="US"
+          value={phone}
+          onChange={setPhone}
+        />
+      </div>
       <div className="spacer-medium" />
       <button
         className="x-button secondary outline"
