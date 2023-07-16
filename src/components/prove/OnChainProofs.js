@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
-import { useQuery } from "wagmi";
+import { useQuery, useAccount, useBalance } from "wagmi";
 import { Success } from "../success";
 import { truncateAddress } from "../../utils/ui-helpers";
 import RoundedWindow from "../RoundedWindow";
@@ -44,6 +45,18 @@ const LoadingProofsButton = (props) => (
 
 const Proofs = () => {
 	const navigate = useNavigate();
+	const { data: account } = useAccount();
+	const { data: balanceData } = useBalance({
+		addressOrName: account?.address
+	})
+	const balanceLTSix = useMemo(() => {
+		try {
+			if (!balanceData?.formatted) return true
+			return Number(balanceData.formatted) < 6
+		} catch (err) {
+			console.error(err)
+		}
+	}, [balanceData])
 	const {
     params,
     proofs,
@@ -226,6 +239,18 @@ const Proofs = () => {
 				) : (
 					""
 				)}
+
+				<br />
+
+				{balanceLTSix && (
+					<button
+						className="x-button"
+						onClick={() => write()}
+					>
+						Don&#39;t have OP? Click here to bridge
+					</button>
+				)}
+
 			</div>
 		</RoundedWindow>
 	);
