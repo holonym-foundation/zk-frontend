@@ -153,7 +153,7 @@ const GovernmentIDIssuance = () => {
 
   return (
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
-      {success ? (
+      { success ? (
         <StepSuccess />
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />

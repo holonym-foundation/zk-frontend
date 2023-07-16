@@ -1,8 +1,7 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-// import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
-// import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { Oval } from "react-loader-spinner";
-import { useQuery } from "wagmi";
+import { useQuery, useAccount, useBalance } from "wagmi";
 import { Success } from "../success";
 import { truncateAddress } from "../../utils/ui-helpers";
 import RoundedWindow from "../RoundedWindow";
@@ -10,6 +9,7 @@ import { useProofMetadata } from "../../context/ProofMetadata";
 import { defaultChainToProveOn } from "../../constants";
 import Relayer from "../../utils/relayer";
 import useGenericProofsState from "./useGenericProofsState";
+import useSubmitProof from "./useSubmitProof";
 
 const SUBMIT_PROOF = 'submitProof';
 
@@ -45,6 +45,18 @@ const LoadingProofsButton = (props) => (
 
 const Proofs = () => {
 	const navigate = useNavigate();
+	const { data: account } = useAccount();
+	const { data: balanceData } = useBalance({
+		addressOrName: account?.address
+	})
+	const balanceLTSix = useMemo(() => {
+		try {
+			if (!balanceData?.formatted) return true
+			return Number(balanceData.formatted) < 6
+		} catch (err) {
+			console.error(err)
+		}
+	}, [balanceData])
 	const {
     params,
     proofs,
@@ -61,46 +73,88 @@ const Proofs = () => {
   } = useGenericProofsState();
 	const { addProofMetadataItem } = useProofMetadata();
 
-	const submitProofQuery = useQuery(
-		["submitProof"],
-		async () => {
-      return await Relayer.prove(
-        proof,
-				proofs[params.proofType].contractName,
-        defaultChainToProveOn,
-      );
-    },
-		{
-			enabled: !!(submissionConsent && proof),
-			onSuccess: (result) => {
-        console.log('result from submitProof')
-        console.log(result)
-				if (result.error) {
-					console.log("error", result);
-					setError({
-            type: SUBMIT_PROOF,
-            message: result?.error?.response?.data?.error?.reason ??
-            result?.error?.message,
-          });
-				} else {
-					addProofMetadataItem(
-						result,
-						proof.inputs[1],
-						params.proofType,
-						params.actionId,
-					);
-          setProofSubmissionSuccess(true);
-        }
-			},
-			onError: (error) => {
-				console.log("error", error);
-				setError({
-					type: SUBMIT_PROOF,
-					message: error?.response?.data?.error?.reason ?? error?.message,
-				});
-			}
+	// const submitProofQuery = useQuery(
+	// 	["submitProof"],
+	// 	async () => {
+	// 		// TODO: CT: Call proof contract here.
+  //     return await Relayer.prove(
+  //       proof,
+	// 			proofs[params.proofType].contractName,
+  //       defaultChainToProveOn,
+  //     );
+  //   },
+	// 	{
+	// 		enabled: !!(submissionConsent && proof),
+	// 		onSuccess: (result) => {
+  //       console.log('result from submitProof')
+  //       console.log(result)
+	// 			if (result.error) {
+	// 				console.log("error", result);
+	// 				setError({
+  //           type: SUBMIT_PROOF,
+  //           message: result?.error?.response?.data?.error?.reason ??
+  //           result?.error?.message,
+  //         });
+	// 			} else {
+	// 				addProofMetadataItem(
+	// 					result,
+	// 					proof.inputs[1],
+	// 					params.proofType,
+	// 					params.actionId,
+	// 				);
+  //         setProofSubmissionSuccess(true);
+  //       }
+	// 		},
+	// 		onError: (error) => {
+	// 			console.log("error", error);
+	// 			setError({
+	// 				type: SUBMIT_PROOF,
+	// 				message: error?.response?.data?.error?.reason ?? error?.message,
+	// 			});
+	// 		}
+	// 	},
+	// );
+
+	const {
+    data,
+    // error,
+    isError,
+    isIdle,
+    isLoading,
+    isSuccess,
+    reset,
+    write,
+    writeAsync,
+  } = useSubmitProof({
+		proof,
+		contractName: proofs[params.proofType].contractName,
+		chain: defaultChainToProveOn,
+		onSuccess: async (txResponse) => {
+      const result = {...txResponse};
+      if (txResponse?.wait) {
+        const txReceipt = await txResponse.wait();
+        result.blockNumber = txReceipt.blockNumber;
+        result.transactionHash = txReceipt.transactionHash;
+      }
+			
+			console.log('result from submitProof')
+			console.log(result)
+			addProofMetadataItem(
+				result,
+				proof.inputs[1],
+				params.proofType,
+				params.actionId,
+			);
+			setProofSubmissionSuccess(true);
 		},
-	);
+		onError: (error) => {
+			console.log("error", error);
+			setError({
+				type: SUBMIT_PROOF,
+				message: error?.response?.data?.error?.reason ?? error?.message,
+			});
+		}
+	})
 
 	if (proofSubmissionSuccess) {
 		if (params.callback) window.location.href = `https://${params.callback}`;
@@ -130,19 +184,18 @@ const Proofs = () => {
 					</p>
 				) : hasNecessaryCreds ? (
 					<p>
-						This will give you,
-						<code> {truncateAddress(accountReadyAddress)} </code>, a{" "}
+						Get a ZKSNARK NFT, which proves a fact about your identity while keeping your identity private. 
+						<code> {truncateAddress(accountReadyAddress)} </code> will mint a {" "}
 						<a
 							target="_blank"
 							rel="noreferrer"
 							href="https://cointelegraph.com/news/what-are-soulbound-tokens-sbts-and-how-do-they-work"
 							style={{ color: "#fdc094" }}
 						>
-							soul-bound token
+							soul-bound NFT
 						</a>{" "}
 						(SBT) showing only this one attribute of you:{" "}
-						<code>{proofs[params.proofType].name}</code>. It may take 5-15
-						seconds to load.
+						<code>{proofs[params.proofType].name}</code>
 					</p>
 				) : (
 					<p>
@@ -161,9 +214,11 @@ const Proofs = () => {
 					proof ? (
 						<button
 							className="x-button"
-							onClick={() => setSubmissionConsent(true)}
+							// onClick={() => setSubmissionConsent(true)}
+							onClick={() => write()}
 						>
-							{submissionConsent && submitProofQuery.isFetching
+							{/* {submissionConsent && submitProofQuery.isFetching */}
+							{isLoading
 								? (
 										<div
 											style={{
@@ -184,6 +239,20 @@ const Proofs = () => {
 				) : (
 					""
 				)}
+
+				<br />
+
+				{balanceLTSix && (
+					<a
+						className="x-button"
+						href="https://app.optimism.io/bridge/deposit"
+						target="_blank"
+						rel="noreferrer"
+					>
+						Don&#39;t have OP? Click here to bridge
+					</a>
+				)}
+
 			</div>
 		</RoundedWindow>
 	);
