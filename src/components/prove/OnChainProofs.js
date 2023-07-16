@@ -115,6 +115,7 @@ const Proofs = () => {
   } = useSubmitProof({
 		proof,
 		contractName: proofs[params.proofType].contractName,
+		chain: defaultChainToProveOn,
 		onSuccess: async (txResponse) => {
       const result = {...txResponse};
       if (txResponse?.wait) {

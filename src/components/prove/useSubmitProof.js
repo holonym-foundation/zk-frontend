@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { useContractWrite } from "wagmi";
 import contractAddresses from '../../constants/contract-addresses.json'
 import ABIs from "../../constants/abis";
@@ -6,7 +5,7 @@ import ABIs from "../../constants/abis";
 /**
  * @param chain - Should be a value supported by all contracts in contract-addresses.json ('optimism' or 'optimism-goerli')
  */
-const useSubmitProof = ({ proof, contractName, chain, onSuccess, onError }) => { 
+const useSubmitProof = ({ proof, contractName, chain, onSuccess, onError }) => {
   const {
     data,
     error,
@@ -19,7 +18,9 @@ const useSubmitProof = ({ proof, contractName, chain, onSuccess, onError }) => {
     writeAsync,
   } = useContractWrite(
     {
-      addressOrName: contractAddresses[contractName].mainnet[chain],
+      addressOrName: contractAddresses[contractName][
+        chain === 'optimism-goerli' ? 'testnet' : 'mainnet'
+      ][chain],
       contractInterface: ABIs[contractName],
       // signerOrProvider?: Signer | providers.Provider | null
     },

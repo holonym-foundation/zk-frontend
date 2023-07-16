@@ -1,4 +1,4 @@
-// export const desiredChain = "gnosis";
+export const desiredChain = "optimism";
 
 export const desiredChainId = 10 // Optimism
-// const desiredChainId = 31337 // Hardhat
+// export const desiredChainId = 420 // Optimism Goerli
