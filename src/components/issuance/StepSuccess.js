@@ -26,9 +26,10 @@ const StepSuccess = () => {
             navigate("/prove");
           }}
         >
-          Get Soulbound tokens
+          Get NFT (5 OP)
         </a>
-        <div style={{ margin: "10px" }} />
+        {
+        /* <div style={{ margin: "10px" }} />
         <a
           href="/profile"
           className="x-button secondary outline"
@@ -41,7 +42,8 @@ const StepSuccess = () => {
           }}
         >
           View my Holo
-        </a>
+        </a> */
+        }
       </div>
       {/* <p>
         <a

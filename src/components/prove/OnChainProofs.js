@@ -130,19 +130,18 @@ const Proofs = () => {
 					</p>
 				) : hasNecessaryCreds ? (
 					<p>
-						This will give you,
-						<code> {truncateAddress(accountReadyAddress)} </code>, a{" "}
+						Get a ZKSNARK NFT, which proves a fact about your identity while keeping your identity private. 
+						<code> {truncateAddress(accountReadyAddress)} </code> will mint a {" "}
 						<a
 							target="_blank"
 							rel="noreferrer"
 							href="https://cointelegraph.com/news/what-are-soulbound-tokens-sbts-and-how-do-they-work"
 							style={{ color: "#fdc094" }}
 						>
-							soul-bound token
+							soul-bound NFT
 						</a>{" "}
 						(SBT) showing only this one attribute of you:{" "}
-						<code>{proofs[params.proofType].name}</code>. It may take 5-15
-						seconds to load.
+						<code>{proofs[params.proofType].name}</code>
 					</p>
 				) : (
 					<p>

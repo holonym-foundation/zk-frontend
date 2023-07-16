@@ -12,24 +12,26 @@ const opts = [
         name: "Phone Number", 
         url: "/issuance/phone", 
         image: phoneImg, 
-        description: "This adds a phone number to your Holo if it's a real number / not a burner. It lets you to prove you're not a bot, for Sybil resistance.", 
+        description: "Verifies a real phone number, blocking burners. Helps show you're not a bot.", 
+        price: "5",
         disabled: false 
     },
     { 
-        name: "ID + Phone Number", 
+        name: "Government ID", 
         url: "/issuance/idgov", 
         image: idImg, 
-        description: "This verifies your government ID (driver's license or ID card). You can prove you're not a bot for Sybil resistance. You can prove facts about your age, jurisdiction, and KYC/AML checks.", 
+        description: <><b>🤖 Get the <span style={{color: "greenyellow"}}>NFT </span> for a higher Gitcoin sybil-resistance score 🤖</b><br />Verifies your government ID in a ZK-compatible way. It does not store your data or doxx you</>, 
+        price: "5",
         disabled: false 
     },
-    {
-        name: "Medical Credentials", 
-        // url: "/issuance/med", 
-        url: "/issuance",
-        image: stethoscopeImg, 
-        description: "This adds medical credentials to your Holo. It lets you prove that you are a doctor and what specialty you are in.", 
-        disabled: true // TODO: Re-enable once it is working
-    },
+    // {
+    //     name: "Medical Credentials", 
+    //     // url: "/issuance/med", 
+    //     url: "/issuance",
+    //     image: stethoscopeImg, 
+    //     description: "This adds medical credentials to your Holo. It lets you prove that you are a doctor and what specialty you are in.", 
+    //     disabled: true // TODO: Re-enable once it is working
+    // },
     { 
         name: "Accredited Investor Status", 
         url: "/", image: moneyImg, 
@@ -61,6 +63,7 @@ const IssuanceOption = (props) => {
 
                 <div style={{display:"flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row", textAlign: "left"}}>
                     <p>{props.description}</p>
+                    {props.price ? <p style={{color: "greenyellow"}}><b>NFT:</b> {props.price} OP</p> : null}
                 </div>
             </button>
 }

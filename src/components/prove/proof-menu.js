@@ -14,19 +14,21 @@ const ProofMenu = ()=>{
                 <ConnectWalletScreen />
             ) : (
                 <div className="x-wrapper small-center" style={{width:"100%"}}>
-                    <h1>Get your SBTs</h1>
-                    <p>
-                        These will give you (<code> {truncateAddress(account?.address)} </code>){" "}
-                            <a
-                                target="_blank"
-                                rel="noreferrer"
-                                href="https://cointelegraph.com/news/what-are-soulbound-tokens-sbts-and-how-do-they-work"
-                                style={{ color: "#fdc094" }}
-                            >
-                                soul-bound tokens
-                            </a>
-                        {" "}for these attributes about yourself. E.g., if you are a us resident, you can get a US Resident SBT
-                    </p> 
+                    <h1>Private Soulbound NFTs</h1>
+                    <h6>
+                    Be one of the first people to mint the privacy-preserving
+                    {" "} 
+                        <a
+							target="_blank"
+							rel="noreferrer"
+							href="https://cointelegraph.com/news/what-are-soulbound-tokens-sbts-and-how-do-they-work"
+							style={{ color: "#fdc094" }}
+						>
+							soul-bound NFTs
+						</a>{" "} showing only a certain attribute about yourself, without revealing who you are.
+                        <br /><i>If you're here for Gitcoin Passport, the government ID sybil resistance NFT will boost your power.</i>
+                        {/* <br />For now, the price is <b>only 5 OP</b> */}
+                    </h6> 
                         {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                         <InfoButton
                             type="proofMenu"
