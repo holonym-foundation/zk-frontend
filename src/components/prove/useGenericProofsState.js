@@ -8,6 +8,16 @@ import { serverAddress } from "../../constants";
 import { useProofs } from "../../context/Proofs";
 import { useProofMetadata } from "../../context/ProofMetadata";
 import { useCreds } from "../../context/Creds";
+import { datadogLogs } from '@datadog/browser-logs'
+
+console.log('init logs')
+datadogLogs.init({
+  clientToken: 'pub2cce359232414eef33d1f9be6c2e4989',
+  site: 'us5.datadoghq.com',
+  forwardErrorsToLogs: true,
+	forwardConsoleLogs: ["warning", "error"],
+  sessionSampleRate: 100,
+});
 
 const useProofsState = () => {
 	const params = useParams();
@@ -122,6 +132,11 @@ const useProofsState = () => {
 		medicalSpecialtyProof,
 		loadingMedicalSpecialtyProof
 	])
+
+	useEffect(() => {
+		datadogLogs.logger.info('Proof submission error', { msg: error })
+
+	}, [error])
 
   return {
     params,
