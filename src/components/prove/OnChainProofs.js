@@ -161,6 +161,12 @@ const Proofs = () => {
 		if (window.localStorage.getItem('register-proofType')) {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
 		}
+		try {
+			window.fathom.trackGoal('E96HHORL', 0);
+		} catch (err) {
+			console.error(err)
+		}
+		
 		return <Success title="Success" />;
 	}
 	return (
@@ -215,7 +221,7 @@ const Proofs = () => {
 						<button
 							className="x-button"
 							// onClick={() => setSubmissionConsent(true)}
-							onClick={() => write()}
+							onClick={() => {window.fathom.trackGoal('OLGDI8EP', 0); write()}}
 						>
 							{/* {submissionConsent && submitProofQuery.isFetching */}
 							{isLoading
@@ -248,6 +254,7 @@ const Proofs = () => {
 						href="https://app.optimism.io/bridge/deposit"
 						target="_blank"
 						rel="noreferrer"
+						onClick={() => {window.fathom.trackGoal('2HX0QDQW', 0);}}
 					>
 						Don&#39;t have OP? Click here to bridge
 					</a>
