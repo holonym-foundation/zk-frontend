@@ -19,8 +19,6 @@ const connectWalletGateFn = (data) => {
 };
 
 const networkGateFn = (data) => {
-	console.log('networkGateFn: data', data)
-	console.log('networkGateFn: desiredChainId', desiredChainId)
 	return data?.activeChain?.id === desiredChainId;
 };
 

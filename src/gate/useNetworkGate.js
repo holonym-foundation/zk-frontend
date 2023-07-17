@@ -18,8 +18,5 @@ export default function useNetworkGate(gate) {
     chainId: desiredChainId
   });
 
-  console.log('activeChain', activeChain)
-  console.log('chains', chains)
-
 	return gate({ activeChain });
 }
