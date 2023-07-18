@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-// import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
-// import { useQuery } from '@tanstack/react-query'
+import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
+import { useQuery } from '@tanstack/react-query'
 import loadVouched from '../../load-vouched';
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import FinalStep from "./FinalStep";
@@ -10,50 +10,51 @@ import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
 
 const StepIDV = ({ phoneNumber }) => {
-  // const navigate = useNavigate();
-  // const veriffSessionQuery = useQuery({
-  //   queryKey: ['veriffSession'],
-  //   queryFn: async () => {
-  //     const resp = await fetch(`${idServerUrl}/veriff/session`, {
-  //       method: "POST",
-  //     })
-  //     return await resp.json()
-  //   } 
-  // });
-
-  // useEffect(() => {
-  //   if (!veriffSessionQuery.data?.url) return;
-  //   const verification = veriffSessionQuery.data;
-  //   const handleVeriffEvent = (msg) => {
-  //     if (msg === MESSAGES.FINISHED) {
-  //       const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
-  //       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-  //       navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
-  //     }
-  //   }
-  //   createVeriffFrame({
-  //     url: verification.url,
-  //     onEvent: handleVeriffEvent
-  //   });
-  // }, [veriffSessionQuery])
+  const navigate = useNavigate();
+  const veriffSessionQuery = useQuery({
+    queryKey: ['veriffSession'],
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/veriff/session`, {
+        method: "POST",
+      })
+      return await resp.json()
+    },
+    staleTime: Infinity
+  });
 
   useEffect(() => {
-    if (!phoneNumber) return;
-    (async () => {
-      try {
-        const resp = await fetch(`${idServerUrl}/vouched/job-count`)
-        const data = await resp.json();
-        if (data.today >= maxDailyVouchedJobCount) {
-          alert("Sorry, we cannot verify any more IDs at this time");
-          return;
-        }
-        console.log('loading vouched QR code')
-        loadVouched(phoneNumber);  
-      } catch (err) {
-        console.error(err);
+    if (!veriffSessionQuery.data?.url) return;
+    const verification = veriffSessionQuery.data;
+    const handleVeriffEvent = (msg) => {
+      if (msg === MESSAGES.FINISHED) {
+        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
+        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
       }
-    })();
-  }, [phoneNumber]);
+    }
+    createVeriffFrame({
+      url: verification.url,
+      onEvent: handleVeriffEvent
+    });
+  }, [veriffSessionQuery])
+
+  // useEffect(() => {
+  //   if (!phoneNumber) return;
+  //   (async () => {
+  //     try {
+  //       const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+  //       const data = await resp.json();
+  //       if (data.today >= maxDailyVouchedJobCount) {
+  //         alert("Sorry, we cannot verify any more IDs at this time");
+  //         return;
+  //       }
+  //       console.log('loading vouched QR code')
+  //       loadVouched(phoneNumber);  
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   })();
+  // }, [phoneNumber]);
 
   return (
     <>
