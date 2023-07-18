@@ -14,7 +14,11 @@ import { RootProvider } from "./RootProvider";
 import { Layout } from "./Layout";
 import { AppRoutes } from "./AppRoutes";
 import useScriptWithURL from "./hooks/useScriptWithURL";
+import { init, datadogLogs, datadogRum } from "./utils/datadog";
 
+// Analytics. They shouldn't tracking anything sensitive and shouldn't be used to perform any individual analysis / targeting, primarly just for aggregate statistics to understand our users
+// and understanding why errors might be happening.
+init();
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 

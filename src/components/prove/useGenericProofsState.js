@@ -8,17 +8,7 @@ import { serverAddress } from "../../constants";
 import { useProofs } from "../../context/Proofs";
 import { useProofMetadata } from "../../context/ProofMetadata";
 import { useCreds } from "../../context/Creds";
-import { datadogLogs } from '@datadog/browser-logs'
-
-console.log('init logs')
-datadogLogs.init({
-  clientToken: 'pub2f6d00bb03f09f9c96e22bc7ac7da120',
-  site: 'us5.datadoghq.com',
-  forwardErrorsToLogs: true,
-	forwardConsoleLogs: ["warning", "error"],
-  sessionSampleRate: 100,
-});
-datadogLogs.logger.info('Initialization', { msg: "heyyyyyyy" })
+import { datadogLogs } from "../../utils/datadog";
 
 const useProofsState = () => {
 	const params = useParams();
@@ -135,7 +125,7 @@ const useProofsState = () => {
 	])
 
 	useEffect(() => {
-		datadogLogs.logger.info('Proof submission error', { msg: error })
+		if (error) datadogLogs.logger.info('Proof submission error', { msg: error })
 
 	}, [error])
 

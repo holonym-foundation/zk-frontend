@@ -1247,6 +1247,27 @@
   dependencies:
     "@datadog/browser-core" "4.45.0"
 
+"@datadog/browser-rum-core@4.45.0":
+  "integrity" "sha512-0r0tkjAq2mzWdRhTJgtrFin8Px07bh/V8fnC0CLjqQTHffLhLVqgS4YcjHn1K8LAYLrJDY35lOBuLyl39UmSdQ=="
+  "resolved" "https://registry.npmjs.org/@datadog/browser-rum-core/-/browser-rum-core-4.45.0.tgz"
+  "version" "4.45.0"
+  dependencies:
+    "@datadog/browser-core" "4.45.0"
+
+"@datadog/browser-rum@^4.45.0":
+  "integrity" "sha512-xbcXGU1LmTBRX3Ban2+0cqp/HQ3moZB5nr0FBCr+YpCytsRyZDY5o0sUbqrUhUjEdqdzsZ3paqonl4RKs7dLJg=="
+  "resolved" "https://registry.npmjs.org/@datadog/browser-rum/-/browser-rum-4.45.0.tgz"
+  "version" "4.45.0"
+  dependencies:
+    "@datadog/browser-core" "4.45.0"
+    "@datadog/browser-rum-core" "4.45.0"
+    "@datadog/browser-worker" "4.45.0"
+
+"@datadog/browser-worker@4.45.0":
+  "integrity" "sha512-VLbtn78R4LU1quOHWmLKUNndPg4fx85zumeP8j0EYPxJXo674ZPG9IvNsEk0JG5ik7KVm/66VTgLTffyfy/1hw=="
+  "resolved" "https://registry.npmjs.org/@datadog/browser-worker/-/browser-worker-4.45.0.tgz"
+  "version" "4.45.0"
+
 "@emotion/is-prop-valid@^1.1.0":
   "integrity" "sha512-3aDpDprjM0AwaxGE09bOPkNxHpBd+kA6jty3RnaEXdweX1DF1U3VQpPYb0g1IStAuK7SVQ1cy+bNBBKp4W3Fjg=="
   "resolved" "https://registry.npmjs.org/@emotion/is-prop-valid/-/is-prop-valid-1.2.0.tgz"
