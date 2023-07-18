@@ -34,7 +34,6 @@ const VerificationRequestForm = () => {
     (async () => {
       const creds = sortedCreds[serverAddress['idgov-v2']];
       setGovIdCreds(creds);
-      console.log('govIdCreds', creds);
     })();
   }, [sortedCreds, loadingCreds])
 
@@ -54,8 +53,6 @@ const VerificationRequestForm = () => {
         body: JSON.stringify(body),
       });
       const data = await resp.json();
-      console.log('server response...')
-      console.log(data);
       if (resp.status === 200 && data.id) {
         const retrievalEndpoint = `${medDAOIssuerOrigin}/verification/credentials?id=${data.id}`;
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
@@ -68,7 +65,7 @@ const VerificationRequestForm = () => {
         }
       }
     } catch (err) {
-      console.log(err)
+      console.error(err)
     } finally {
       setSubmitting(false);
     }

@@ -41,7 +41,6 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   // not set newCreds.
 
   const retrieveNewCredentials = useCallback(async () => {
-    console.log('useRetrieveNewCredentials: retrievalEndpoint', retrievalEndpoint);
     // We try to fetch before trying to restore from sessionStorage because we want to be
     // 100% sure that we have the latest available credentials. The try-catch around fetch
     // handles cases where fetch fails (e.g., due to network error); in such cases, we still
@@ -50,7 +49,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
     try {
       resp = await fetch(retrievalEndpoint);
     } catch (err) {
-      console.log('useRetrieveNewCredentials:', err);
+      console.error('useRetrieveNewCredentials:', err);
       resp.text = () => new Promise((resolve) => resolve(err.message));
     }
     if (resp?.status === 200) {
@@ -61,16 +60,14 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       } else {
         // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
         // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
-        console.log('useRetrieveNewCredentials: Returning credentials from fetch result', data)
         return data;
       }
     } else {
       // We only attempt to restore from sessionStorage if the fetch failed.
       if (newCredsRef?.current) {
-        console.log(`store-credentials: Returning creds recovered from sessionStorage credentials from retrieval endpoint ${retrievalEndpoint}`)
         return newCredsRef.current;
       }
-      console.log('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code');
+      console.error('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code');
       // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
       // must have returned an error, which we want to display to the user.
       // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
@@ -80,7 +77,6 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
 
   useEffect(() => {
     if (!(retrievalEndpoint && setError)) return;
-    console.log('useRetrieveNewCredentials: loading credentials');
     setError(undefined);
     storeSessionId(retrievalEndpoint);
     retrieveNewCredentials()
@@ -127,10 +123,8 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
     // sessionStorage to store the new secret.
     const storedSecret = sessionStorage.getItem(`holoNewSecret-${retrievalEndpoint}`);
     if (storedSecret) {
-      console.log('useAddNewSecret: useEffect called. Setting newSecret recovered from sessionStorage.')
       newSecretRef.current = storedSecret;
     } else {
-      console.log('useAddNewSecret: useEffect called. Setting newSecret to result of generateSecret().')
       newSecretRef.current = generateSecret();
       sessionStorage.setItem(`holoNewSecret-${retrievalEndpoint}`, newSecretRef.current);
     }
@@ -148,8 +142,6 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
         credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
         credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
         setNewCredsWithNewSecret(credsTemp);
-        // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
-        console.log('useAddNewSecret: Called setNewCredsWithNewSecret ')
       } catch (err) {
         console.error('useAddNewSecret:', err);
       }
@@ -185,22 +177,16 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
     if (!newCreds?.creds?.issuerAddress) return;
     if (!setError) return;
 
-    console.log('useMergeCreds: Checking that issuer is whitelisted');
     const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
-    console.log("useMergeCreds: newCreds:", newCreds);
     if (!lowerCaseIssuerWhitelist.includes(newCreds.creds.issuerAddress.toLowerCase())) {
-      console.log(`useMergeCreds: Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
       setError(`Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
       return;
     }
-    console.log('useMergeCreds: Issuer is whitelisted')
 
-    console.log('useMergeCreds: Getting creds confirmation');
     // Ask user for confirmation if they already have credentials from this issuer
     if (sortedCreds?.[newCreds.creds.issuerAddress]) {
       if (JSON.stringify(sortedCreds[newCreds.creds.issuerAddress]) === JSON.stringify(newCreds)) {
         // For cases of immediate re-render
-        console.log('useMergeCreds: getCredsConfirmation: creds are the same, no confirmation needed');
         setConfirmationStatus('confirmed');
         return;
       }
