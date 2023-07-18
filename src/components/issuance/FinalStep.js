@@ -55,7 +55,7 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
     if (resp?.status === 200) {
       const data = await resp.json();
       if (!data) {
-        console.error("Could not retrieve credentials. No credentials found.");
+        console.error("useRetrieveNewCredentials: Could not retrieve credentials. No credentials found.");
         throw new Error("Could not retrieve credentials. No credentials found.");
       } else {
         // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
@@ -67,11 +67,12 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       if (newCredsRef?.current) {
         return newCredsRef.current;
       }
-      console.error('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code');
+      const errMsg = await resp.text();
+      console.error('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code. Response text:', errMsg);
       // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
       // must have returned an error, which we want to display to the user.
       // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
-      throw new Error(await resp.text())
+      throw new Error(errMsg)
     }
   }, [retrievalEndpoint]);
 
@@ -298,8 +299,9 @@ export function useAddLeafState({ onSuccess }) {
         loadKOLPProof(false, false, credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
       }, 
-      () => {
+      (err) => {
         // setError('Error: An error occurred while adding leaf to Merkle tree.')
+        console.error('useAddLeafState: An error occurred while adding leaf to Merkle tree:', err);
       }
     );
   }, [credsForAddLeaf, loadKOLPProof]);
