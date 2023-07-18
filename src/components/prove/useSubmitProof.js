@@ -32,7 +32,7 @@ const useSubmitProof = ({ proof, contractName, chain, onSuccess, onError }) => {
         proof.inputs
       ] : [],
       overrides: {
-        value: ethers.utils.parseEther("0.005"),
+        value: contractName.includes('Sybil') ? ethers.utils.parseEther("0.005") : undefined,
       },
       onSuccess: onSuccess,
       onError: onError,
