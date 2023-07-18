@@ -49,14 +49,6 @@ const Proofs = () => {
 	const { data: balanceData } = useBalance({
 		addressOrName: account?.address
 	})
-	const balanceGT0 = useMemo(() => {
-		try {
-			if (!balanceData?.formatted) return true
-			return Number(balanceData.formatted) > 0
-		} catch (err) {
-			console.error(err)
-		}
-	}, [balanceData])
 	const {
     params,
     proofs,
@@ -72,6 +64,19 @@ const Proofs = () => {
 		setError,
   } = useGenericProofsState();
 	const { addProofMetadataItem } = useProofMetadata();
+
+	const balanceGTsbtFee = useMemo(() => {
+		try {
+			if (!proofs[params.proofType].contractName.includes('Sybil')) {
+				return true
+			}
+
+			if (!balanceData?.formatted) return true
+			return Number(balanceData.formatted) > 0.005
+		} catch (err) {
+			console.error(err)
+		}
+	}, [balanceData])
 
 	const {
     data,
@@ -175,30 +180,37 @@ const Proofs = () => {
 				<div className="spacer-med" />
 				<br />
 				{!alreadyHasSBT && hasNecessaryCreds ? (
-					proof ? (
-						<button
-							className="x-button"
-							// onClick={() => setSubmissionConsent(true)}
-							onClick={() => {window.fathom.trackGoal('OLGDI8EP', 0); write()}}
-						>
-							{/* {submissionConsent && submitProofQuery.isFetching */}
-							{isLoading
-								? (
-										<div
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignItems: "center",
-											}}
-										>
-											Submitting
-											<CustomOval />
-										</div>
-									)
-								: "Submit proof"}
-						</button>
+					balanceGTsbtFee ? (
+						proof ? (
+							<button
+								className="x-button"
+								onClick={() => {window.fathom.trackGoal('OLGDI8EP', 0); write()}}
+							>
+								{isLoading
+									? (
+											<div
+												style={{
+													display: "flex",
+													justifyContent: "center",
+													alignItems: "center",
+												}}
+											>
+												Submitting
+												<CustomOval />
+											</div>
+										)
+									: "Submit proof"}
+							</button>
+						) : (
+							<LoadingProofsButton />
+						)
 					) : (
-						<LoadingProofsButton />
+						<button
+							className="x-button submit-proof-btn-disabled"
+							disabled
+						>
+							Submit proof
+						</button>
 					)
 				) : (
 					""
@@ -206,16 +218,23 @@ const Proofs = () => {
 
 				<br />
 
-				{!balanceGT0 && (
-					<a
-						className="x-button"
-						href="https://app.optimism.io/bridge/deposit"
-						target="_blank"
-						rel="noreferrer"
-						onClick={() => {window.fathom.trackGoal('2HX0QDQW', 0);}}
-					>
-						Don&#39;t have OP? Click here to bridge
-					</a>
+				{!balanceGTsbtFee && (
+					<>
+						<h2>
+							Mint price:
+						</h2>
+						<p><code style={{ }}>0.005 ETH</code></p>
+						<br />
+						<a
+							className="x-button"
+							href="https://app.optimism.io/bridge/deposit"
+							target="_blank"
+							rel="noreferrer"
+							onClick={() => {window.fathom.trackGoal('2HX0QDQW', 0);}}
+						>
+							Don&#39;t have ETH on Optimism? Click here to bridge
+						</a>
+					</>
 				)}
 
 			</div>

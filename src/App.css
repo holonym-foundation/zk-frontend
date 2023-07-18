@@ -406,3 +406,14 @@
   color: #01010c;
   background-color: #fff;
 }
+
+.submit-proof-btn-disabled {
+  color: #aaa;
+  border-color: #aaa;
+  background-color: transparent;
+}
+.submit-proof-btn-disabled:hover {
+  cursor: not-allowed;
+  /* color: #01010c; */
+  /* background-color: #aaa; */
+}
