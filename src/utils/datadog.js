@@ -25,7 +25,7 @@ function init() {
   });
 
   datadogRum.startSessionReplayRecording();
-  datadogLogs.logger.info('Initialization', { msg: "heyyyyyyy" });
+  // datadogLogs.logger.info('Initialization', { msg: "heyyyyyyy" });
 
 }
 
