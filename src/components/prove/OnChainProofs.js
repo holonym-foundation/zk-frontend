@@ -184,7 +184,14 @@ const Proofs = () => {
 						proof ? (
 							<button
 								className="x-button"
-								onClick={() => {window.fathom.trackGoal('OLGDI8EP', 0); write()}}
+								onClick={() => {
+									try {
+										write();
+										window.fathom.trackGoal('OLGDI8EP', 0); 
+									} catch (err) {
+										console.error('An error occurred when Submit Proof button was clicked:', err);
+									}
+								}}
 							>
 								{isLoading
 									? (
