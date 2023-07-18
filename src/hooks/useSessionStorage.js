@@ -16,7 +16,7 @@ export default function useSessionStorage(key, initialValue) {
       setInnerValue(value);
       window.sessionStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   };
 

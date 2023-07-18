@@ -69,7 +69,6 @@ const VerifyPhoneNumber = () => {
   
   useEffect(() => {
     if (!phoneNumber) return;
-    console.log("sending code to ", phoneNumber);
     sendCode(phoneNumber);
   }, [phoneNumber]);
 

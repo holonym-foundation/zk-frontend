@@ -31,7 +31,6 @@ function HoloAuthSigProvider({ children }) {
   } = useSignMessage({ message: holonymAuthMessage })
 
   async function signHoloAuthMessage() {
-    console.log('requesting holoAuthSig')
     const signedMessage = await signMessageAsync();
     setHoloAuthSig(signedMessage)
     const digest = await sha256(signedMessage);

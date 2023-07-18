@@ -69,12 +69,8 @@ async function loadProvingKey(circuitName) {
 //   verifyingKeys[circuitName] = k;
 // }
 
-loadArtifacts("poseidonQuinary").then(() =>
-  console.log("Poseidon hash for five inputs loaded")
-);
-loadArtifacts("poseidonTwoInputs").then(() =>
-  console.log("Poseidon hash for two inputs loaded")
-);
+loadArtifacts("poseidonQuinary")
+loadArtifacts("poseidonTwoInputs")
 initialize().then(async (zokratesProvider) => {
   zokProvider = zokratesProvider;
 });
@@ -271,7 +267,6 @@ export async function proofOfResidency(sender, govIdCreds) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
-  console.log("PROOF: us-residency: starting");
 
   // salt == poseidon("IsFromUS")
   const salt =
@@ -342,7 +337,6 @@ export async function proofOfResidency(sender, govIdCreds) {
  * @param {string} actionId
  */
 export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) {
-  console.log("antiSybil called")
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
@@ -402,7 +396,6 @@ export async function antiSybil(sender, govIdCreds, actionId = defaultActionId) 
  * @param {string} actionId
  */
 export async function uniquenessPhone(sender, phoneNumCreds, actionId = defaultActionId) {
-  console.log("uniquenessPhone called")
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
@@ -459,7 +452,6 @@ export async function proofOfMedicalSpecialty(sender, medicalCreds) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
   }
-  console.log("PROOF: medical-specialty: starting");
 
   // salt == poseidon("MedicalSpecialty")
   const salt =
@@ -516,7 +508,6 @@ export async function proofOfMedicalSpecialty(sender, medicalCreds) {
 }
 
 export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
-  console.log("proveKnowledgeOfLeafPreimage called")
   if (!zokProvider) {
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
@@ -564,7 +555,6 @@ export async function proveKnowledgeOfLeafPreimage(serializedCreds, newSecret) {
  * @param govIdCreds - object issued from id-server
  */
 export async function proveGovIdFirstNameLastName(govIdCreds) {
-  console.log("proveGovIdFirstNameLastName called")
   if (!zokProvider) {
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);

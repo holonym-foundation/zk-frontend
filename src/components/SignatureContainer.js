@@ -53,12 +53,10 @@ const SignatureContainer = ({ children }) => {
     if (!(account?.address && account?.connector)) return;
     // Check that sigs are from account. If they aren't, re-request them
     if (holoAuthSig && ethers.utils.verifyMessage(holonymAuthMessage, holoAuthSig) !== account.address) {
-      console.log('account changed. Re-retrieving holoAuthSig');
       clearHoloAuthSig()
       signHoloAuthMessage().catch(err => console.error(err))
     }
     if (holoKeyGenSig && ethers.utils.verifyMessage(holonymKeyGenMessage, holoKeyGenSig) !== account.address) {
-      console.log('account changed. Re-retrieving holoKeyGenSig');
       clearHoloKeyGenSig()
       signHoloKeyGenMessage().catch(err => console.error(err))
     }

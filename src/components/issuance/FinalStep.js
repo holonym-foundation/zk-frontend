@@ -163,11 +163,9 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
   const [mergedSortedCreds, setMergedSortedCreds] = useState();
 
   const onConfirmOverwrite = () => {
-    console.log(`User is overwriting creds from ${newCreds?.creds?.issuerAddress}`);
     setConfirmationStatus('confirmed');
   };
   const onDenyOverwrite = () => {
-    console.log(`User is not overwriting creds from ${newCreds?.creds?.issuerAddress}`);
     setConfirmationStatus('denied');
   };
 
@@ -190,11 +188,9 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
         setConfirmationStatus('confirmed');
         return;
       }
-      console.log('useMergeCreds: Issuer already in sortedCreds');
       setConfirmationStatus('confirmationRequired');
       setCredsThatWillBeOverwritten(sortedCreds[newCreds.creds.issuerAddress]);
     } else {
-      console.log('useMergeCreds: no creds confirmation needed');
       setConfirmationStatus('confirmed');
     }
   }, [sortedCreds, loadingCreds, newCreds, confirmationStatus, setError])
@@ -207,10 +203,8 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
       [newCreds.creds.issuerAddress]: newCreds,
     };
     if (isEqual(mergedSortedCreds, mergedSortedCredsTemp)) {
-      console.log('useMergeCreds: mergedSortedCreds is the same, no need to set it again');
       return;
     }
-    console.log('useMergeCreds: calling setMergedSortedCreds');
     setMergedSortedCreds(mergedSortedCredsTemp);
   }, [sortedCreds, newCreds, confirmationStatus, mergedSortedCreds])
 
@@ -256,7 +250,6 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
       // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
       // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(newCreds))
       setLocalUserCredentials(encryptedCredentialsAES);
-      console.log('useStoreCredentialsState: calling setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress])', Object.assign({}, mergedSortedCreds[newCreds.creds.issuerAddress]))
       setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress]);
       setStatus('success');
     }
@@ -289,7 +282,6 @@ export function useAddLeafState({ onSuccess }) {
       // Remove plaintext credentials from local storage now that they've been backed up
       for (const key of Object.keys(window.localStorage)) {
         if (key.startsWith('holoPlaintextCreds')) {
-          console.log('removing', key, 'from local storage')
           window.localStorage.removeItem(key);
         }
       }
@@ -298,11 +290,10 @@ export function useAddLeafState({ onSuccess }) {
 
   const addLeaf = useCallback(async () => {
     const circomProof = await onAddLeafProof(credsForAddLeaf);
-    console.log("circom proooooof", circomProof);
+    console.log("circom proof for adding leaf", circomProof);
     await Relayer.addLeaf(
       circomProof, 
       async () => {
-        console.log('useAddLeafState: Added leaf')
         status.current = 'generatingKOLPProof'
         loadKOLPProof(false, false, credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
@@ -329,7 +320,6 @@ export function useAddLeafState({ onSuccess }) {
     sendCredsToServer()
       .then(() => {
         onSuccess()
-        console.log('Sent creds to server. Now suggesting a reload of all proofs');
         loadProofs(true); // force a reload of all proofs since a new leaf has been added
       });
   }, [kolpProof, loadProofs, onSuccess, readyToSendToServer, sendCredsToServer])
