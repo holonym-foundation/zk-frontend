@@ -73,48 +73,6 @@ const Proofs = () => {
   } = useGenericProofsState();
 	const { addProofMetadataItem } = useProofMetadata();
 
-	// const submitProofQuery = useQuery(
-	// 	["submitProof"],
-	// 	async () => {
-	// 		// TODO: CT: Call proof contract here.
-  //     return await Relayer.prove(
-  //       proof,
-	// 			proofs[params.proofType].contractName,
-  //       defaultChainToProveOn,
-  //     );
-  //   },
-	// 	{
-	// 		enabled: !!(submissionConsent && proof),
-	// 		onSuccess: (result) => {
-  //       console.log('result from submitProof')
-  //       console.log(result)
-	// 			if (result.error) {
-	// 				console.log("error", result);
-	// 				setError({
-  //           type: SUBMIT_PROOF,
-  //           message: result?.error?.response?.data?.error?.reason ??
-  //           result?.error?.message,
-  //         });
-	// 			} else {
-	// 				addProofMetadataItem(
-	// 					result,
-	// 					proof.inputs[1],
-	// 					params.proofType,
-	// 					params.actionId,
-	// 				);
-  //         setProofSubmissionSuccess(true);
-  //       }
-	// 		},
-	// 		onError: (error) => {
-	// 			console.log("error", error);
-	// 			setError({
-	// 				type: SUBMIT_PROOF,
-	// 				message: error?.response?.data?.error?.reason ?? error?.message,
-	// 			});
-	// 		}
-	// 	},
-	// );
-
 	const {
     data,
     // error,
