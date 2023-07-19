@@ -38,12 +38,20 @@ const useProofsState = () => {
 		[proofMetadata, params.proofType]
 	);
 	const hasNecessaryCreds = useMemo(() => {
-		if (params.proofType === "us-residency" || params.proofType === "uniqueness") {
+		if (params.proofType === "uniqueness") {
 			return !!sortedCreds?.[serverAddress['idgov-v2']]?.creds;
+		} else if (params.proofType === "us-residency") {
+			return sortedCreds?.[serverAddress['idgov-v2']]?.metadata?.rawCreds?.countryCode === 2;
 		} else if (params.proofType === "uniqueness-phone") {
 			return !!sortedCreds?.[serverAddress['phone-v2']]?.creds;
 		} else if (params.proofType === "medical-specialty") {
 			return !!sortedCreds?.[serverAddress['med']]?.creds;
+		}
+	}, [sortedCreds, params.proofType])
+	const nonUSResidentTryingToProveUSResidency = useMemo(() => {
+		const countryCode = sortedCreds?.[serverAddress['idgov-v2']]?.metadata?.rawCreds?.countryCode;
+		if (params.proofType === "us-residency" && countryCode) {
+			return countryCode !== 2;
 		}
 	}, [sortedCreds, params.proofType])
 
@@ -135,6 +143,7 @@ const useProofsState = () => {
 		alreadyHasSBT,
     accountReadyAddress,
     hasNecessaryCreds,
+		nonUSResidentTryingToProveUSResidency,
     proof,
     submissionConsent,
     setSubmissionConsent,

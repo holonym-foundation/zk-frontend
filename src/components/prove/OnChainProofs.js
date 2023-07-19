@@ -55,6 +55,7 @@ const Proofs = () => {
 		alreadyHasSBT,
     accountReadyAddress,
     hasNecessaryCreds,
+		nonUSResidentTryingToProveUSResidency,
     proof,
     submissionConsent,
     setSubmissionConsent,
@@ -168,15 +169,21 @@ const Proofs = () => {
 						<code>{proofs[params.proofType].name}</code>
 					</p>
 				) : (
-					<p>
-						&nbsp;Note: You cannot generate this proof without the necessary credentials. If
-						you have not already, please{" "}
-						{/* TODO: Get specific. Tell the user which credentials they need to get/verify. */}
-						<a href="/issuance" style={{ color: "#fdc094" }}>
-							verify yourself
-						</a>
-						.
-					</p>
+					nonUSResidentTryingToProveUSResidency ? (
+						<p>
+							&nbsp;Only US residents can generate proofs of US residency.
+						</p>
+					) : (
+						<p>
+							&nbsp;Note: You cannot generate this proof without the necessary credentials. If
+							you have not already, please{" "}
+							{/* TODO: Get specific. Tell the user which credentials they need to get/verify. */}
+							<a href="/issuance" style={{ color: "#fdc094" }}>
+								verify yourself
+							</a>
+							.
+						</p>
+					)
 				)}
 				<div className="spacer-med" />
 				<br />
