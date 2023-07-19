@@ -114,6 +114,7 @@ const Proofs = () => {
 			console.log("error", error);
 			setError({
 				type: SUBMIT_PROOF,
+				balance: balanceData?.formatted,
 				message: error?.response?.data?.error?.reason ?? error?.message,
 			});
 		}
