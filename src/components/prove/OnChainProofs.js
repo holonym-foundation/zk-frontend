@@ -114,7 +114,7 @@ const Proofs = () => {
 			setProofSubmissionSuccess(true);
 		},
 		onError: (error) => {
-			console.log("error", error);
+			console.error("proofSubmissionError", error);
 			let message = error?.response?.data?.error?.reason ?? error?.message;
 			datadogLogs.logger.error('proofSubmissionError', message, {}, error);
 			datadogRum.addError(error, { message: message })
