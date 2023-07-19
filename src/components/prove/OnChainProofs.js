@@ -10,6 +10,8 @@ import { defaultChainToProveOn } from "../../constants";
 import Relayer from "../../utils/relayer";
 import useGenericProofsState from "./useGenericProofsState";
 import useSubmitProof from "./useSubmitProof";
+import { datadogLogs } from "@datadog/browser-logs";
+import { datadogRum } from "@datadog/browser-rum";
 
 const SUBMIT_PROOF = 'submitProof';
 
@@ -113,10 +115,13 @@ const Proofs = () => {
 		},
 		onError: (error) => {
 			console.log("error", error);
+			let message = error?.response?.data?.error?.reason ?? error?.message;
+			datadogLogs.logger.error('proofSubmissionError', message, {}, error);
+			datadogRum.addError(error, { message: message })
 			setError({
 				type: SUBMIT_PROOF,
 				balance: balanceData?.formatted,
-				message: error?.response?.data?.error?.reason ?? error?.message,
+				message, 
 			});
 		}
 	})

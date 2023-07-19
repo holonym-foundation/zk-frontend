@@ -132,11 +132,6 @@ const useProofsState = () => {
 		loadingMedicalSpecialtyProof
 	])
 
-	useEffect(() => {
-		if (error) datadogLogs.logger.info('Proof submission error', { msg: error })
-
-	}, [error])
-
   return {
     params,
     proofs,
