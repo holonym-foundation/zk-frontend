@@ -237,7 +237,13 @@ const Proofs = () => {
 							href="https://app.optimism.io/bridge/deposit"
 							target="_blank"
 							rel="noreferrer"
-							onClick={() => {window.fathom.trackGoal('2HX0QDQW', 0);}}
+							onClick={() => {
+								try {
+									window.fathom.trackGoal('2HX0QDQW', 0);
+								} catch (err) {
+									console.error(err)
+								}
+							}}
 						>
 							Don&#39;t have ETH on Optimism? Click here to bridge
 						</a>
