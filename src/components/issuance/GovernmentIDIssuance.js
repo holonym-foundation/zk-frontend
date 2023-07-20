@@ -7,9 +7,11 @@ import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
+import { datadogLogs } from "@datadog/browser-logs";
 
 const StepSuccessWithAnalytics = () => {
   useEffect(() => {
+    datadogLogs.logger.info("SuccGovID", {});
     window.fathom.trackGoal('MTH0I1KJ', -1.38);
   }, []);
   return <StepSuccess />
@@ -17,6 +19,7 @@ const StepSuccessWithAnalytics = () => {
 
 const StepIDV = () => {
   useEffect(() => {
+    datadogLogs.logger.info("StartGovID", {});
     window.fathom.trackGoal('DCTNZBL9', 0)
   }, []);
   const navigate = useNavigate();

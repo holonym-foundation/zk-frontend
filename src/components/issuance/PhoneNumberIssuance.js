@@ -9,6 +9,7 @@ import { zkPhoneEndpoint } from "../../constants";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import IssuanceContainer from "./IssuanceContainer";
+import { datadogLogs } from "@datadog/browser-logs";
 
 // Add to this when a new issuer is added
 // const allowedCredTypes = ["idgov", "phone"];
@@ -17,6 +18,7 @@ const steps = ["Phone#", "Verify", "Finalize"];
 
 const StepSuccessWithAnalytics = () => {
   useEffect(() => {
+    datadogLogs.logger.info("SuccPhone", {});
     window.fathom.trackGoal('MAFS4E70', -.20); //Fix cost
   }, []);
   return <StepSuccess />
@@ -57,6 +59,7 @@ function useVerifyPhoneNumberState() {
 
 const VerifyPhoneNumber = () => {
   useEffect(() => {
+    datadogLogs.logger.info("StartPhone", {});
     window.fathom.trackGoal('FVI98FRD', 0)
   }, []);
 
