@@ -15,6 +15,14 @@ import IssuanceContainer from "./IssuanceContainer";
 
 const steps = ["Phone#", "Verify", "Finalize"];
 
+const StepSuccessWithAnalytics = () => {
+  useEffect(() => {
+    window.fathom.trackGoal('MAFS4E70', -.20); //Fix cost
+  }, []);
+  return <StepSuccess />
+}
+
+
 function useVerifyPhoneNumberState() {
   const { store } = useParams();
   const [success, setSuccess] = useState();
@@ -48,6 +56,10 @@ function useVerifyPhoneNumberState() {
 }
 
 const VerifyPhoneNumber = () => {
+  useEffect(() => {
+    window.fathom.trackGoal('FVI98FRD', 0)
+  }, []);
+
   const navigate = useNavigate();
   const {
     success,
@@ -86,7 +98,7 @@ const VerifyPhoneNumber = () => {
   return (
     <IssuanceContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
-        <StepSuccess />
+        <StepSuccessWithAnalytics />
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (

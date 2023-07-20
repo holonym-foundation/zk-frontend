@@ -8,7 +8,17 @@ import StepSuccess from "./StepSuccess";
 import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
 
+const StepSuccessWithAnalytics = () => {
+  useEffect(() => {
+    window.fathom.trackGoal('MTH0I1KJ', -1.38);
+  }, []);
+  return <StepSuccess />
+}
+
 const StepIDV = () => {
+  useEffect(() => {
+    window.fathom.trackGoal('DCTNZBL9', 0)
+  }, []);
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({
     queryKey: ['veriffSession'],
@@ -148,7 +158,7 @@ const GovernmentIDIssuance = () => {
   return (
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
       { success ? (
-        <StepSuccess />
+        <StepSuccessWithAnalytics />
       ) : retry && currentStep !== "Finalize" ? (
         <ConfirmRetry setRetry={setRetry} />
       ) : currentStep === "Verify" ? (
