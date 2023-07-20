@@ -132,7 +132,7 @@ const Proofs = () => {
 			navigate(`/register?credentialType=${window.localStorage.getItem('register-credentialType')}&proofType=${window.localStorage.getItem('register-proofType')}&callback=${window.localStorage.getItem('register-callback')}`)
 		}
 		try {
-			datadogLogs.logger.info('proofSubmissionSuccess');
+			datadogLogs.logger.info('SuccessfulProofSubmission');
 			window.fathom.trackGoal('E96HHORL', 10);
 		} catch (err) {
 			console.error(err)
