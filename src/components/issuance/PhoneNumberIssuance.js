@@ -84,6 +84,7 @@ const VerifyPhoneNumber = () => {
   
   useEffect(() => {
     if (!phoneNumber) return;
+    datadogLogs.logger.info("SendPhoneCode", {});
     sendCode(phoneNumber);
   }, [phoneNumber]);
 
@@ -94,6 +95,7 @@ const VerifyPhoneNumber = () => {
       const country = parsePhoneNumber(phoneNumber).country;
       const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
+      datadogLogs.logger.info("EnterPhoneCode", {});
       navigate(`/issuance/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }
   };
