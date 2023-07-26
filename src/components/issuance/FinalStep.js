@@ -335,7 +335,11 @@ export function useAddLeafState({ onSuccess }) {
 
 const FinalStep = ({ onSuccess }) => {
   useEffect(() => {
-    window.fathom.trackGoal('ROEMUCNU', 0);
+    try {
+      window.fathom.trackGoal('ROEMUCNU', 0);
+    } catch (err) {
+      console.log(err)
+    }
   }, []);
   const [searchParams] = useSearchParams();
   const { 

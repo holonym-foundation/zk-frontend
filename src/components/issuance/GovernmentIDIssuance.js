@@ -11,16 +11,24 @@ import { datadogLogs } from "@datadog/browser-logs";
 
 const StepSuccessWithAnalytics = () => {
   useEffect(() => {
-    datadogLogs.logger.info("SuccGovID", {});
-    window.fathom.trackGoal('MTH0I1KJ', -1.38);
+    try {
+      datadogLogs.logger.info("SuccGovID", {});
+      window.fathom.trackGoal('MTH0I1KJ', -1.38);  
+    } catch (err) {
+      console.log(err)
+    }
   }, []);
   return <StepSuccess />
 }
 
 const StepIDV = () => {
   useEffect(() => {
-    datadogLogs.logger.info("StartGovID", {});
-    window.fathom.trackGoal('DCTNZBL9', 0)
+    try {
+      datadogLogs.logger.info("StartGovID", {});
+      window.fathom.trackGoal('DCTNZBL9', 0)  
+    } catch (err) {
+      console.log(err);
+    }
   }, []);
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({

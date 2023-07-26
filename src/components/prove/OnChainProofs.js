@@ -135,7 +135,7 @@ const Proofs = () => {
 			datadogLogs.logger.info('SuccessfulProofSubmission');
 			window.fathom.trackGoal('E96HHORL', 10);
 		} catch (err) {
-			console.error(err)
+			console.log(err)
 		}
 		
 		return <Success title="Success" />;
@@ -203,7 +203,7 @@ const Proofs = () => {
 										write();
 										window.fathom.trackGoal('OLGDI8EP', 0); 
 									} catch (err) {
-										console.error('An error occurred when Submit Proof button was clicked:', err);
+										console.log('An error occurred when Submit Proof button was clicked:', err);
 									}
 								}}
 							>
@@ -253,7 +253,7 @@ const Proofs = () => {
 							rel="noreferrer"
 							onClick={() => {
 								try {
-									window.fathom.trackGoal('2HX0QDQW', 0);
+									window.fathom.log('2HX0QDQW', 0);
 								} catch (err) {
 									console.error(err)
 								}

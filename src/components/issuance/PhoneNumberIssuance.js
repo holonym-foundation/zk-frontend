@@ -18,8 +18,12 @@ const steps = ["Phone#", "Verify", "Finalize"];
 
 const StepSuccessWithAnalytics = () => {
   useEffect(() => {
-    datadogLogs.logger.info("SuccPhone", {});
-    window.fathom.trackGoal('MAFS4E70', -.20); //Fix cost
+    try {
+      datadogLogs.logger.info("SuccPhone", {});
+      window.fathom.trackGoal('MAFS4E70', -.20); //Fix cost  
+    } catch (err) {
+      console.log(err)
+    }
   }, []);
   return <StepSuccess />
 }
@@ -59,8 +63,12 @@ function useVerifyPhoneNumberState() {
 
 const VerifyPhoneNumber = () => {
   useEffect(() => {
-    datadogLogs.logger.info("StartPhone", {});
-    window.fathom.trackGoal('FVI98FRD', 0)
+    try {
+      datadogLogs.logger.info("StartPhone", {});
+      window.fathom.trackGoal('FVI98FRD', 0)  
+    } catch (err) {
+      console.log(err)
+    }
   }, []);
 
   const navigate = useNavigate();
