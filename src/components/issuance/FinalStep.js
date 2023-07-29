@@ -67,8 +67,13 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       if (newCredsRef?.current) {
         return newCredsRef.current;
       }
-      const errMsg = await resp.text();
+      let errMsg = await resp.text();
       console.error('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code. Response text:', errMsg);
+      if (errMsg?.includes('User has already registered. UUID')) {
+        errMsg = "It seems you have already tried to verify and create a Holo! " +
+          "You can only verify once with an ID. If this is not the case then you may submit a ticket. " +
+          "Please include this UUID in the support ticket: " + errMsg.split('UUID: ')[1].replace('"}', '');
+      }
       // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
       // must have returned an error, which we want to display to the user.
       // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
