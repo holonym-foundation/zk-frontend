@@ -6,11 +6,28 @@ import loadVouched from '../../load-vouched';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
-import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
+import { 
+  idServerUrl,
+  countryToVerificationProvider,
+  maxDailyVouchedJobCount
+} from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
 import { datadogLogs } from "@datadog/browser-logs";
 
+const useSniffedCountry = () => {
+  return useQuery({
+    queryKey: ['sniffCountryUsingIp'],
+    queryFn: async () => {
+      const resp = await fetch('http://ip-api.com/json?fields=country')
+      const data = await resp.json()
+      return data.country
+    },
+    staleTime: Infinity,
+  });
+}
+
 const useVeriffIDV = ({ enabled }) => {
+  console.log('useVeriffIDV enabled', enabled)
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({
     queryKey: ['veriffSession'],
@@ -64,7 +81,6 @@ const useIdenfyIDV = ({ enabled }) => {
     staleTime: Infinity,
     enabled: holoAuthSigDigest && enabled
   });
-
   
   const idenfySessionStatusQuery = useQuery({
     queryKey: ['idenfySessionStatus'],
@@ -117,14 +133,14 @@ const StepIDV = () => {
   }, []);
 
   const navigate = useNavigate();
-  const preferredProvider = 'idenfy' // TODO: Make this a function of IP address location
+  const { data: country } = useSniffedCountry();
+  console.log('country', country)
+  const preferredProvider = countryToVerificationProvider[country] ?? 'veriff'
   useVeriffIDV({
-    // TODO: Make enabled dependent on IP address location
-    enabled: false
+    enabled: preferredProvider === 'veriff'
   })
   const { verificationUrl, canStart, verificationStatus } = useIdenfyIDV({
-    // TODO: Make enabled dependent on IP address location
-    enabled: true
+    enabled: preferredProvider === 'idenfy'
   })
 
   // useEffect(() => {
