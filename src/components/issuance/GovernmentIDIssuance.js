@@ -46,10 +46,9 @@ const useVeriffIDV = ({ enabled }) => {
 const useIdenfyIDV = ({ enabled }) => {
   const navigate = useNavigate();
   const { holoAuthSigDigest } = useHoloAuthSig();
-  const [retrievalEndpoint, setRetrievalEndpoint] = useState('');
 
-  const idenfySessionQuery = useQuery({
-    queryKey: ['idenfySession'],
+  const idenfySessionCreationQuery = useQuery({
+    queryKey: ['idenfySessionCreation'],
     queryFn: async () => {
       const resp = await fetch(`${idServerUrl}/idenfy/session`, {
         method: "POST",
@@ -66,23 +65,32 @@ const useIdenfyIDV = ({ enabled }) => {
     enabled: holoAuthSigDigest && enabled
   });
 
-  useEffect(() => {
-    if (!idenfySessionQuery.data?.url) return;
-    const verification = idenfySessionQuery.data;
-    // Open verification.url in new tab
-    // window.open(verification.url, '_blank');
-
-    // When user clicks button, navigate to retrievalEndpoint
-    // TODO: Instead of waiting for user to click button, poll id-server for verification status
-    const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${verification.scanRef}`
-    const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-    // navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
-    setRetrievalEndpoint(encodedRetrievalEndpoint);
-  }, [idenfySessionQuery])
+  
+  const idenfySessionStatusQuery = useQuery({
+    queryKey: ['idenfySessionStatus'],
+    queryFn: async () => {
+      const scanRef = idenfySessionCreationQuery.data.scanRef
+      const resp = await fetch(`${idServerUrl}/idenfy/verification-status?scanRef=${scanRef}`)
+      return await resp.json()
+    },
+    onSuccess: (data) => {
+      if (data?.status === 'APPROVED') {
+        // Navigate to retrievalEndpoint when user is approved
+        const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data.scanRef}`
+        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+      }
+      // TODO: Display error if status isn't approved
+    },
+    enabled: !!idenfySessionCreationQuery?.data?.scanRef && enabled,
+    refetchInterval: 2000,
+    refetchIntervalInBackground: false,
+  })
 
   return {
-    verificationUrl: idenfySessionQuery.data?.url,
-    retrievalEndpoint
+    canStart: !!idenfySessionCreationQuery.data?.scanRef,
+    verificationStatus: idenfySessionStatusQuery.data?.status,
+    verificationUrl: idenfySessionCreationQuery.data?.url,
   }
 }
 
@@ -114,7 +122,7 @@ const StepIDV = () => {
     // TODO: Make enabled dependent on IP address location
     enabled: false
   })
-  const { verificationUrl, retrievalEndpoint } = useIdenfyIDV({
+  const { verificationUrl, canStart, verificationStatus } = useIdenfyIDV({
     // TODO: Make enabled dependent on IP address location
     enabled: true
   })
@@ -157,7 +165,7 @@ const StepIDV = () => {
                 lineHeight: "1",
                 fontSize: "16px"
               }}
-              disabled={!retrievalEndpoint}
+              disabled={!canStart}
               onClick={() => {
                 window.open(verificationUrl, '_blank');
               }}
@@ -165,26 +173,11 @@ const StepIDV = () => {
               Start Verification
             </button>
           </div>
-          <p>Click continue once you are verified</p>
-          <div style={{ 
-            marginTop: '20px',
-            display: 'flex',
-            justifyContent: 'center'
-          }}>
-            <button
-              className="export-private-info-button"
-              style={{
-                lineHeight: "1",
-                fontSize: "16px"
-              }}
-              disabled={!retrievalEndpoint}
-              onClick={() => {
-                navigate(`/issuance/idgov/store?retrievalEndpoint=${retrievalEndpoint}`)
-              }}
-            >
-              Continue
-            </button>
-          </div>
+          {verificationStatus && (
+            <div>
+              <p>Verification status: {verificationStatus}</p>
+            </div>
+          )}
         </div>
       )}
     </>
