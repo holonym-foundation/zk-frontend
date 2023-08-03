@@ -360,6 +360,7 @@ const idenfy = 'idenfy';
 export const countryToVerificationProvider = {
   'undefined': veriff, // Default to veriff
   'Hong Kong': idenfy,
+  'China': idenfy,
   'Taiwan': idenfy,
   'Japan': idenfy,
   'South Korea': idenfy,
