@@ -446,7 +446,8 @@ const FinalStep = ({ onSuccess }) => {
         </>
       )}
 
-      {storeCredsError && (window?.location?.pathname ?? '').includes('issuance/idgov') && (
+      {storeCredsError && storeCredsError?.includes('Verification failed') && 
+      (window?.location?.pathname ?? '').includes('issuance/idgov') && (
         <TryDifferentIDVProvider />
       )}
     </>
