@@ -362,4 +362,5 @@ export const countryToVerificationProvider = {
   'Hong Kong': idenfy,
   'Taiwan': idenfy,
   'Japan': idenfy,
+  'South Korea': idenfy,
 }
