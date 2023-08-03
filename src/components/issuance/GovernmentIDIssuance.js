@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
 import { useQuery } from '@tanstack/react-query'
 import loadVouched from '../../load-vouched';
@@ -132,10 +132,20 @@ const StepIDV = () => {
     }
   }, []);
 
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams()
   const { data: country } = useSniffedCountry();
   console.log('country', country)
-  const preferredProvider = countryToVerificationProvider[country] ?? 'veriff'
+  const preferredProvider = useMemo(() => {
+    // If provider is specified in the URL, use it. Otherwise, use the provider that best
+    // suites the country associated with the user's IP address.
+    if (searchParams.get('provider') === 'veriff') {
+      return 'veriff'
+    } else if (searchParams.get('provider') === 'idenfy') {
+      return 'idenfy'
+    } else {
+      return countryToVerificationProvider[country] ?? 'veriff'
+    }
+  }, [country, searchParams])
   useVeriffIDV({
     enabled: preferredProvider === 'veriff'
   })
@@ -181,7 +191,7 @@ const StepIDV = () => {
                 lineHeight: "1",
                 fontSize: "16px"
               }}
-              disabled={!canStart}
+              disabled={!canStart || verificationStatus === 'ACTIVE'}
               onClick={() => {
                 window.open(verificationUrl, '_blank');
               }}
@@ -189,7 +199,7 @@ const StepIDV = () => {
               Start Verification
             </button>
           </div>
-          {verificationStatus && (
+          {verificationStatus && verificationStatus !== 'ACTIVE' && (
             <div>
               <p>Verification status: {verificationStatus}</p>
             </div>

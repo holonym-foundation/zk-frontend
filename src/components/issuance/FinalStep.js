@@ -19,6 +19,7 @@ import {
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
 import { Modal } from "../atoms/Modal";
+import TryDifferentIDVProvider from '../atoms/TryDifferentIDVProvider';
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useCreds } from "../../context/Creds";
 import { useProofs } from "../../context/Proofs";
@@ -443,6 +444,10 @@ const FinalStep = ({ onSuccess }) => {
             </>
           )}
         </>
+      )}
+
+      {storeCredsError && (window?.location?.pathname ?? '').includes('issuance/idgov') && (
+        <TryDifferentIDVProvider />
       )}
     </>
   );
