@@ -38,7 +38,6 @@ const WalletModal = (props) => {
         <p className="p-2 white">Connect to the site below with one of our available wallet providers.</p>
           {connectors.sort((a, b) => a.id === "injected" ? 1 : b.id === "injected" ? -1 : 0).map((connector) => {
             if(!connector.ready){return null}
-            // console.log(connector.id)
             return (
               <WalletOption 
                 connector={connector}

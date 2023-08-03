@@ -19,6 +19,7 @@ import {
 } from "../../constants";
 import { ThreeDots } from "react-loader-spinner";
 import { Modal } from "../atoms/Modal";
+import TryDifferentIDVProvider from '../atoms/TryDifferentIDVProvider';
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import { useCreds } from "../../context/Creds";
 import { useProofs } from "../../context/Proofs";
@@ -41,7 +42,6 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   // not set newCreds.
 
   const retrieveNewCredentials = useCallback(async () => {
-    console.log('useRetrieveNewCredentials: retrievalEndpoint', retrievalEndpoint);
     // We try to fetch before trying to restore from sessionStorage because we want to be
     // 100% sure that we have the latest available credentials. The try-catch around fetch
     // handles cases where fetch fails (e.g., due to network error); in such cases, we still
@@ -50,37 +50,40 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
     try {
       resp = await fetch(retrievalEndpoint);
     } catch (err) {
-      console.log('useRetrieveNewCredentials:', err);
+      console.error('useRetrieveNewCredentials:', err);
       resp.text = () => new Promise((resolve) => resolve(err.message));
     }
     if (resp?.status === 200) {
       const data = await resp.json();
       if (!data) {
-        console.error("Could not retrieve credentials. No credentials found.");
+        console.error("useRetrieveNewCredentials: Could not retrieve credentials. No credentials found.");
         throw new Error("Could not retrieve credentials. No credentials found.");
       } else {
         // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
         // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(data))
-        console.log('useRetrieveNewCredentials: Returning credentials from fetch result', data)
         return data;
       }
     } else {
       // We only attempt to restore from sessionStorage if the fetch failed.
       if (newCredsRef?.current) {
-        console.log(`store-credentials: Returning creds recovered from sessionStorage credentials from retrieval endpoint ${retrievalEndpoint}`)
         return newCredsRef.current;
       }
-      console.log('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code');
+      let errMsg = await resp.text();
+      console.error('useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code. Response text:', errMsg);
+      if (errMsg?.includes('User has already registered. UUID')) {
+        errMsg = "It seems you have already tried to verify and create a Holo! " +
+          "You can only verify once with an ID. If this is not the case then you may submit a ticket. " +
+          "Please include this UUID in the support ticket: " + errMsg.split('UUID: ')[1].replace('"}', '');
+      }
       // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
       // must have returned an error, which we want to display to the user.
       // TODO: Standardize error messages in servers. Have id-sever and phone server return errors in same format (e.g., { error: 'error message' })
-      throw new Error(await resp.text())
+      throw new Error(errMsg)
     }
   }, [retrievalEndpoint]);
 
   useEffect(() => {
     if (!(retrievalEndpoint && setError)) return;
-    console.log('useRetrieveNewCredentials: loading credentials');
     setError(undefined);
     storeSessionId(retrievalEndpoint);
     retrieveNewCredentials()
@@ -127,10 +130,8 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
     // sessionStorage to store the new secret.
     const storedSecret = sessionStorage.getItem(`holoNewSecret-${retrievalEndpoint}`);
     if (storedSecret) {
-      console.log('useAddNewSecret: useEffect called. Setting newSecret recovered from sessionStorage.')
       newSecretRef.current = storedSecret;
     } else {
-      console.log('useAddNewSecret: useEffect called. Setting newSecret to result of generateSecret().')
       newSecretRef.current = generateSecret();
       sessionStorage.setItem(`holoNewSecret-${retrievalEndpoint}`, newSecretRef.current);
     }
@@ -148,8 +149,6 @@ export function useAddNewSecret({ retrievalEndpoint, newCreds }) {
         credsTemp.creds.serializedAsNewPreimage[1] = credsTemp.creds.newSecret;
         credsTemp.newLeaf = await createLeaf(credsTemp.creds.serializedAsNewPreimage);
         setNewCredsWithNewSecret(credsTemp);
-        // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(credsTemp))
-        console.log('useAddNewSecret: Called setNewCredsWithNewSecret ')
       } catch (err) {
         console.error('useAddNewSecret:', err);
       }
@@ -171,11 +170,9 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
   const [mergedSortedCreds, setMergedSortedCreds] = useState();
 
   const onConfirmOverwrite = () => {
-    console.log(`User is overwriting creds from ${newCreds?.creds?.issuerAddress}`);
     setConfirmationStatus('confirmed');
   };
   const onDenyOverwrite = () => {
-    console.log(`User is not overwriting creds from ${newCreds?.creds?.issuerAddress}`);
     setConfirmationStatus('denied');
   };
 
@@ -185,30 +182,22 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
     if (!newCreds?.creds?.issuerAddress) return;
     if (!setError) return;
 
-    console.log('useMergeCreds: Checking that issuer is whitelisted');
     const lowerCaseIssuerWhitelist = issuerWhitelist.map(issuer => issuer.toLowerCase())
-    console.log("useMergeCreds: newCreds:", newCreds);
     if (!lowerCaseIssuerWhitelist.includes(newCreds.creds.issuerAddress.toLowerCase())) {
-      console.log(`useMergeCreds: Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
       setError(`Issuer ${newCreds.creds.issuerAddress} is not whitelisted.`);
       return;
     }
-    console.log('useMergeCreds: Issuer is whitelisted')
 
-    console.log('useMergeCreds: Getting creds confirmation');
     // Ask user for confirmation if they already have credentials from this issuer
     if (sortedCreds?.[newCreds.creds.issuerAddress]) {
       if (JSON.stringify(sortedCreds[newCreds.creds.issuerAddress]) === JSON.stringify(newCreds)) {
         // For cases of immediate re-render
-        console.log('useMergeCreds: getCredsConfirmation: creds are the same, no confirmation needed');
         setConfirmationStatus('confirmed');
         return;
       }
-      console.log('useMergeCreds: Issuer already in sortedCreds');
       setConfirmationStatus('confirmationRequired');
       setCredsThatWillBeOverwritten(sortedCreds[newCreds.creds.issuerAddress]);
     } else {
-      console.log('useMergeCreds: no creds confirmation needed');
       setConfirmationStatus('confirmed');
     }
   }, [sortedCreds, loadingCreds, newCreds, confirmationStatus, setError])
@@ -221,10 +210,8 @@ export function useMergeCreds({ setError, sortedCreds, loadingCreds, newCreds })
       [newCreds.creds.issuerAddress]: newCreds,
     };
     if (isEqual(mergedSortedCreds, mergedSortedCredsTemp)) {
-      console.log('useMergeCreds: mergedSortedCreds is the same, no need to set it again');
       return;
     }
-    console.log('useMergeCreds: calling setMergedSortedCreds');
     setMergedSortedCreds(mergedSortedCredsTemp);
   }, [sortedCreds, newCreds, confirmationStatus, mergedSortedCreds])
 
@@ -270,7 +257,6 @@ export function useStoreCredentialsState({ searchParams, setCredsForAddLeaf }) {
       // Storing creds in localStorage at multiple points allows us to restore them in case of a (potentially immediate) re-render
       // window.localStorage.setItem(`holoPlaintextCreds-${searchParams.get('retrievalEndpoint')}`, JSON.stringify(newCreds))
       setLocalUserCredentials(encryptedCredentialsAES);
-      console.log('useStoreCredentialsState: calling setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress])', Object.assign({}, mergedSortedCreds[newCreds.creds.issuerAddress]))
       setCredsForAddLeaf(mergedSortedCreds[newCreds.creds.issuerAddress]);
       setStatus('success');
     }
@@ -303,7 +289,6 @@ export function useAddLeafState({ onSuccess }) {
       // Remove plaintext credentials from local storage now that they've been backed up
       for (const key of Object.keys(window.localStorage)) {
         if (key.startsWith('holoPlaintextCreds')) {
-          console.log('removing', key, 'from local storage')
           window.localStorage.removeItem(key);
         }
       }
@@ -312,17 +297,17 @@ export function useAddLeafState({ onSuccess }) {
 
   const addLeaf = useCallback(async () => {
     const circomProof = await onAddLeafProof(credsForAddLeaf);
-    console.log("circom proooooof", circomProof);
+    console.log("circom proof for adding leaf", circomProof);
     await Relayer.addLeaf(
       circomProof, 
       async () => {
-        console.log('useAddLeafState: Added leaf')
         status.current = 'generatingKOLPProof'
         loadKOLPProof(false, false, credsForAddLeaf.creds.newSecret, credsForAddLeaf.creds.serializedAsNewPreimage)
         setReadyToSendToServer(true);
       }, 
-      () => {
-        setError('Error: An error occurred while adding leaf to Merkle tree.')
+      (err) => {
+        // setError('Error: An error occurred while adding leaf to Merkle tree.')
+        console.error('useAddLeafState: An error occurred while adding leaf to Merkle tree:', err);
       }
     );
   }, [credsForAddLeaf, loadKOLPProof]);
@@ -343,7 +328,6 @@ export function useAddLeafState({ onSuccess }) {
     sendCredsToServer()
       .then(() => {
         onSuccess()
-        console.log('Sent creds to server. Now suggesting a reload of all proofs');
         loadProofs(true); // force a reload of all proofs since a new leaf has been added
       });
   }, [kolpProof, loadProofs, onSuccess, readyToSendToServer, sendCredsToServer])
@@ -356,6 +340,13 @@ export function useAddLeafState({ onSuccess }) {
 }
 
 const FinalStep = ({ onSuccess }) => {
+  useEffect(() => {
+    try {
+      window.fathom.trackGoal('ROEMUCNU', 0);
+    } catch (err) {
+      console.log(err)
+    }
+  }, []);
   const [searchParams] = useSearchParams();
   const { 
     error: addLeafError, 
@@ -453,6 +444,10 @@ const FinalStep = ({ onSuccess }) => {
             </>
           )}
         </>
+      )}
+
+      {storeCredsError && (window?.location?.pathname ?? '').includes('issuance/idgov') && (
+        <TryDifferentIDVProvider />
       )}
     </>
   );

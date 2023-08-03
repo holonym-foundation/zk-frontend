@@ -75,11 +75,9 @@ function ProofsProvider({ children }) {
       return;
     }
     if (sortedCredsDigest && sortedCredsDigest === await sha1String(JSON.stringify(sortedCreds))) {
-      console.log('Denying a reload of proofs because sortedCredsDigest is the same', sortedCredsDigest);
       return;
     }
     setSortedCredsDigest(await sha1String(JSON.stringify(sortedCreds)));
-    console.log('Loading proofs. suggestForceReload:', suggestForceReload)
     // Figure out which proofs the user doesn't already have. Then load them
     // if the user has the credentials to do so.
     const missingProofs = { 
@@ -103,7 +101,6 @@ function ProofsProvider({ children }) {
         }
       }
     }
-    console.log('creds', sortedCreds)
     if (!sortedCreds) return;
 
     if (suggestForceReload || (missingProofs.kolp && !loadingKOLPProof)) {
@@ -249,48 +246,52 @@ function ProofsProvider({ children }) {
    * running in main thread could result in the page freezing while proof is generating.
    */
   async function loadMedicalSpecialtyProof(runInMainThread = false, forceReload = false) {
-    const medicalCreds = sortedCreds?.[serverAddress['med']]
-    if (!medicalCreds) return;
-    if (proofsWorker && !runInMainThread) {
-      proofsWorker.postMessage({
-        message: "medical-specialty", 
-        userAddress: account.address,
-        medicalCreds, 
-        forceReload,
-      });
-    }
-    if (runInMainThread) {
-      try {
-        const proof = await proofOfMedicalSpecialty(account.address, medicalCreds);
-        setMedicalSpecialtyProof(proof);
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoadingMedicalSpecialtyProof(false);
-      }
-    }
+    // We have commented this out because it was used for medical credentials issuance,
+    // which we have stopped supporting.
+    // const medicalCreds = sortedCreds?.[serverAddress['med']]
+    // if (!medicalCreds) return;
+    // if (proofsWorker && !runInMainThread) {
+    //   proofsWorker.postMessage({
+    //     message: "medical-specialty", 
+    //     userAddress: account.address,
+    //     medicalCreds, 
+    //     forceReload,
+    //   });
+    // }
+    // if (runInMainThread) {
+    //   try {
+    //     const proof = await proofOfMedicalSpecialty(account.address, medicalCreds);
+    //     setMedicalSpecialtyProof(proof);
+    //   } catch (err) {
+    //     console.error(err)
+    //   } finally {
+    //     setLoadingMedicalSpecialtyProof(false);
+    //   }
+    // }
   }
 
   async function loadGovIdFirstNameLastNameProof(runInMainThread = false, forceReload = false) {
-    const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
-    if (!govIdCreds) return;
-    if (proofsWorker && !runInMainThread) {
-      proofsWorker.postMessage({
-        message: "gov-id-firstname-lastname",
-        govIdCreds,
-        forceReload,
-      });
-    }
-    if (runInMainThread) {
-      try {
-        const proof = await proveGovIdFirstNameLastName(govIdCreds);
-        setGovIdFirstNameLastNameProof(proof);
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoadingGovIdFirstNameLastNameProof(false);
-      }
-    }
+    // We have commented this out because it was used for medical credentials issuance,
+    // which we have stopped supporting.
+    // const govIdCreds = sortedCreds?.[serverAddress['idgov-v2']]
+    // if (!govIdCreds) return;
+    // if (proofsWorker && !runInMainThread) {
+    //   proofsWorker.postMessage({
+    //     message: "gov-id-firstname-lastname",
+    //     govIdCreds,
+    //     forceReload,
+    //   });
+    // }
+    // if (runInMainThread) {
+    //   try {
+    //     const proof = await proveGovIdFirstNameLastName(govIdCreds);
+    //     setGovIdFirstNameLastNameProof(proof);
+    //   } catch (err) {
+    //     console.error(err)
+    //   } finally {
+    //     setLoadingGovIdFirstNameLastNameProof(false);
+    //   }
+    // }
   }
 
   async function loadKOLPProof(runInMainThread = false, forceReload = false, newSecret = null, serializedAsNewPreimage = null) {
@@ -357,22 +358,16 @@ function ProofsProvider({ children }) {
           // Reload proofs after adding leaf. The proof that erred should then succeed.
           if (event.data.error?.message === "Leaf is not in Merkle tree") {
             if (event.data.proofType === "us-residency" || event.data.proofType === "uniqueness") {
-              console.log('Attempting to add leaf for idgov-v2 creds')
               await addLeaf(sortedCreds[serverAddress['idgov-v2']])
-              console.log('Attempted to add leaf for idgov-v2 creds');
               loadUSResidencyProof(false, true);
               loadUniquenessProof(false, true);
               loadGovIdFirstNameLastNameProof(false, true);
               loadKOLPProof(false, true);
             } else if (event.data.proofType === "uniqueness-phone") {
-              console.log('Attempting to add leaf for phone-v2 creds')
               await addLeaf(sortedCreds[serverAddress['phone-v2']]);
-              console.log('Attempted to add leaf for phone-v2 creds');
               loadUniquenessPhoneProof(false, true);
             } else if (event.data.proofType === "medical-specialty") {
-              console.log('Attempting to add leaf for med creds')
               await addLeaf(sortedCreds[serverAddress['med']])
-              console.log('Attempted to add leaf for med creds');
               loadMedicalSpecialtyProof(false, true);
             }
           }

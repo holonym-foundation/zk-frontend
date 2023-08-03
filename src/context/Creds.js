@@ -16,7 +16,7 @@ function CredsProvider({ children }) {
   // OR: Maybe use a hot/cold storage system where the cold storage (i.e., localStorage and remote backup)
   // is only updated infrequently and when we are absolutely sure we want to make the update.
   // OR: Maybe use a mutex and a hot/cold storage system together. Use the mutex for cold storage.
-  const [sortedCreds, setSortedCreds] = useSessionStorage('sorted-creds', []);
+  const [sortedCreds, setSortedCreds] = useState();
   const [loadingCreds, setLoadingCreds] = useState(true);
   const { holoAuthSigDigest } = useHoloAuthSig();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();

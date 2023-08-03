@@ -1,6 +1,5 @@
 import axios from "axios";
 import { relayerUrl } from "../constants";
-console.log("relayer url is ", relayerUrl)
 const Relayer = {
     addLeaf : async function(args, onSuccess, onError) {
         let res;

@@ -1,18 +1,33 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parsePhoneNumber } from "react-phone-number-input";
-import "react-phone-number-input/style.css";
+// import "react-phone-number-input/style.css";
+import "../../react-phone-number-input.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import IssuanceContainer from "./IssuanceContainer";
+import { datadogLogs } from "@datadog/browser-logs";
 
 // Add to this when a new issuer is added
 // const allowedCredTypes = ["idgov", "phone"];
 
 const steps = ["Phone#", "Verify", "Finalize"];
+
+const StepSuccessWithAnalytics = () => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info("SuccPhone", {});
+      window.fathom.trackGoal('MAFS4E70', -.20); //Fix cost  
+    } catch (err) {
+      console.log(err)
+    }
+  }, []);
+  return <StepSuccess />
+}
+
 
 function useVerifyPhoneNumberState() {
   const { store } = useParams();
@@ -47,6 +62,15 @@ function useVerifyPhoneNumberState() {
 }
 
 const VerifyPhoneNumber = () => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info("StartPhone", {});
+      window.fathom.trackGoal('FVI98FRD', 0)  
+    } catch (err) {
+      console.log(err)
+    }
+  }, []);
+
   const navigate = useNavigate();
   const {
     success,
@@ -68,7 +92,7 @@ const VerifyPhoneNumber = () => {
   
   useEffect(() => {
     if (!phoneNumber) return;
-    console.log("sending code to ", phoneNumber);
+    datadogLogs.logger.info("SendPhoneCode", {});
     sendCode(phoneNumber);
   }, [phoneNumber]);
 
@@ -79,6 +103,7 @@ const VerifyPhoneNumber = () => {
       const country = parsePhoneNumber(phoneNumber).country;
       const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
+      datadogLogs.logger.info("EnterPhoneCode", {});
       navigate(`/issuance/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
     }
   };
@@ -86,7 +111,7 @@ const VerifyPhoneNumber = () => {
   return (
     <IssuanceContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
-        <StepSuccess />
+        <StepSuccessWithAnalytics />
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (

@@ -95,9 +95,6 @@ const Register = () => {
       const proofType = searchParams.get("proofType");
       const callback = searchParams.get("callback");
 
-      console.log('credentialType', credentialType);
-      console.log('proofType', proofType);
-      console.log('callback', callback);
       if (!credentialType) {
         setError("Invalid URL. Missing credential type.");
         return;

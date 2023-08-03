@@ -44,14 +44,12 @@ export default function useSignatureGate(gate) {
 		if (holoAuthSig &&
 			ethers.utils.verifyMessage(holonymAuthMessage, holoAuthSig) !==
 			account.address) {
-			console.log("account changed. Re-retrieving holoAuthSig");
 			clearHoloAuthSig();
 			signHoloAuthMessage().catch((err) => console.error(err));
 		}
 		if (holoKeyGenSig &&
 			ethers.utils.verifyMessage(holonymKeyGenMessage, holoKeyGenSig) !==
 			account.address) {
-			console.log("account changed. Re-retrieving holoKeyGenSig");
 			clearHoloKeyGenSig();
 			signHoloKeyGenMessage().catch((err) => console.error(err));
 		}

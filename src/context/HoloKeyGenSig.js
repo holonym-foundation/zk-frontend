@@ -31,7 +31,6 @@ function HoloKeyGenSigProvider({ children }) {
   } = useSignMessage({ message: holonymKeyGenMessage })
 
   async function signHoloKeyGenMessage() {
-    console.log('requesting holoKeyGenSig')
     const signedMessage = await signMessageAsync();
     setHoloKeyGenSig(signedMessage)
     const digest = await sha256(signedMessage);

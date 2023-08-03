@@ -118,28 +118,24 @@ export function getLocalEncryptedUserCredentials() {
   const varsAreDefined = localEncryptedCredentialsAES;
   const varsAreUndefinedStr = localEncryptedCredentialsAES === 'undefined'; 
   if (varsAreDefined && !varsAreUndefinedStr) {
-      console.log('Found creds in localStorage')
       return {
         encryptedCredentialsAES: localEncryptedCredentialsAES,
       }
   }
-  console.log('Did not find creds in localStorage')
 }
 
 export async function getRemoteEncryptedUserCredentials(holoAuthSigDigest) {
   try {
-    console.log('Fetching creds from remote backup')
     const resp = await fetch(`${idServerUrl}/credentials?sigDigest=${holoAuthSigDigest}`)
     const data = await resp.json();
     if (!data) throw new Error('No data returned from remote backup')
     if (data?.error) {
-      console.log('Error fetching creds from remote backup', data.error);
+      console.error('Error fetching creds from remote backup', data.error);
       return null;
     }
-    if (data.encryptedCredentialsAES) console.log('Retrieved creds from remote backup');
     return data;
   } catch (err) {
-    console.log('Error fetching creds from remote backup', err);
+    console.error('Error fetching creds from remote backup', err);
     return null;
   }
 }
@@ -260,7 +256,6 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
     }
     setLatestKolpProof(kolpProof);
     // This request will fail if the user does not have a valid proof. Hence the try-catch.
-    console.log('sending encrypted creds to remote backup', creds);
     const resp = await fetch(`${idServerUrl}/credentials`, {
       method: 'POST',
       headers: {
@@ -273,7 +268,6 @@ export async function storeCredentials(creds, holoKeyGenSigDigest, holoAuthSigDi
       })
     });
     if (resp.status !== 200) throw new Error((await resp.json()).error);
-    console.log('Successfully sent encrypted creds to remote backup.')
     return true;
   } catch (err) {
     console.error('The following error occurred while sending encrypted creds to remote backup.', err);
@@ -307,8 +301,6 @@ export function proofMetadataItemFromTx(tx, senderAddress, proofType, actionId) 
 export async function addProofMetadataItem(proofMetadataItem, holoAuthSigDigest, holoKeyGenSigDigest) {
     try {
     // const proofMetadataItem = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
-    console.log('Storing proof metadata')
-    console.log(proofMetadataItem)
     // 1. Get old proof metadata
     const oldProofMetadata = await getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, false);
     // 2. Merge old proof metadata with new proof metadata
@@ -342,7 +334,7 @@ export function setLocalEncryptedProofMetadata(encryptedProofMetadataAES) {
     window.localStorage.setItem('holoEncryptedProofMetadataAES', encryptedProofMetadataAES)
     return true;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return false;
   }
 }
@@ -352,12 +344,10 @@ export function getLocalProofMetadata() {
   const varsAreDefined = localEncryptedProofMetadataAES;
   const varsAreUndefinedStr = localEncryptedProofMetadataAES === 'undefined'
   if (varsAreDefined && !varsAreUndefinedStr) {
-      console.log('Found proof metadata in localStorage')
       return {
         encryptedProofMetadataAES: localEncryptedProofMetadataAES
       }
   }
-  console.log('Did not find proof metadata in localStorage')
 }
 
 export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, restore = false) {
@@ -405,7 +395,6 @@ export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, r
       encryptedProofMetadataAES
     );
     try {
-      console.log('sending proof metadata to remote backup')
       // Ignore errors that occur here so that we can return the proof metadata
       const resp2 = await fetch(`${idServerUrl}/proof-metadata`, {
         method: 'POST',
@@ -419,7 +408,7 @@ export async function getProofMetadata(holoKeyGenSigDigest, holoAuthSigDigest, r
       });
       if (resp2.status !== 200) throw new Error((await resp2.json()).error);
     } catch (err) {
-      console.log(err)
+      console.error(err)
     }
   }
   return mergedProofMetadata;

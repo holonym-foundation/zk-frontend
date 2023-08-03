@@ -9,7 +9,6 @@ export const sendCode = (phoneNumber) => {
 }
 
 export const getCredentialsPhone = (phoneNumber, code, country, callback, errCallback) => {
-    console.log("abcdef")
   axios.get(`${zkPhoneEndpoint}/getCredentials/${phoneNumber}/${code}/${country}`)
   .then((response) => callback(response.data))
   .catch((e) => { console.error(e.response.data); errCallback(e.response.data) });

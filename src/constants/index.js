@@ -354,3 +354,12 @@ export const tokenIdToMedSpecialty = {
   "21": "Thoracic Surgery",
   "22": "Urology",
 };
+
+const veriff = 'veriff'
+const idenfy = 'idenfy';
+export const countryToVerificationProvider = {
+  'undefined': veriff, // Default to veriff
+  'Hong Kong': idenfy,
+  'Taiwan': idenfy,
+  'Japan': idenfy,
+}

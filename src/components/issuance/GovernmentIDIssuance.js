@@ -1,60 +1,211 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-// import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
-// import { useQuery } from '@tanstack/react-query'
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
+import { useQuery } from '@tanstack/react-query'
 import loadVouched from '../../load-vouched';
-import PhoneNumberForm from "../atoms/PhoneNumberForm";
+import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
-import { idServerUrl, maxDailyVouchedJobCount } from "../../constants";
+import { 
+  idServerUrl,
+  countryToVerificationProvider,
+  maxDailyVouchedJobCount
+} from "../../constants";
 import VerificationContainer from "./IssuanceContainer";
+import { datadogLogs } from "@datadog/browser-logs";
 
-const StepIDV = ({ phoneNumber }) => {
-  // const navigate = useNavigate();
-  // const veriffSessionQuery = useQuery({
-  //   queryKey: ['veriffSession'],
-  //   queryFn: async () => {
-  //     const resp = await fetch(`${idServerUrl}/veriff/session`, {
-  //       method: "POST",
-  //     })
-  //     return await resp.json()
-  //   } 
-  // });
+const useSniffedCountry = () => {
+  return useQuery({
+    queryKey: ['sniffCountryUsingIp'],
+    queryFn: async () => {
+      const resp = await fetch('http://ip-api.com/json?fields=country')
+      const data = await resp.json()
+      return data.country
+    },
+    staleTime: Infinity,
+  });
+}
 
-  // useEffect(() => {
-  //   if (!veriffSessionQuery.data?.url) return;
-  //   const verification = veriffSessionQuery.data;
-  //   const handleVeriffEvent = (msg) => {
-  //     if (msg === MESSAGES.FINISHED) {
-  //       const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
-  //       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-  //       navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
-  //     }
-  //   }
-  //   createVeriffFrame({
-  //     url: verification.url,
-  //     onEvent: handleVeriffEvent
-  //   });
-  // }, [veriffSessionQuery])
+const useVeriffIDV = ({ enabled }) => {
+  console.log('useVeriffIDV enabled', enabled)
+  const navigate = useNavigate();
+  const veriffSessionQuery = useQuery({
+    queryKey: ['veriffSession'],
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/veriff/session`, {
+        method: "POST",
+      })
+      return await resp.json()
+    },
+    staleTime: Infinity,
+    enabled: enabled
+  });
 
   useEffect(() => {
-    if (!phoneNumber) return;
-    (async () => {
-      const resp = await fetch(`${idServerUrl}/vouched/job-count`)
-      const data = await resp.json();
-      if (data.today >= maxDailyVouchedJobCount) {
-        alert("Sorry, we cannot verify any more IDs at this time");
-        return;
+    if (!veriffSessionQuery.data?.url || !enabled) return;
+    const verification = veriffSessionQuery.data;
+    const handleVeriffEvent = (msg) => {
+      if (msg === MESSAGES.FINISHED) {
+        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
+        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
       }
-      console.log('loading vouched QR code')
-      loadVouched(phoneNumber);
-    })();
-  }, [phoneNumber]);
+    }
+    createVeriffFrame({
+      url: verification.url,
+      onEvent: handleVeriffEvent
+    });
+  }, [veriffSessionQuery])
+
+  return {}
+}
+
+const useIdenfyIDV = ({ enabled }) => {
+  const navigate = useNavigate();
+  const { holoAuthSigDigest } = useHoloAuthSig();
+
+  const idenfySessionCreationQuery = useQuery({
+    queryKey: ['idenfySessionCreation'],
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/idenfy/session`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sigDigest: holoAuthSigDigest
+        })
+      })
+      return await resp.json()
+    },
+    staleTime: Infinity,
+    enabled: holoAuthSigDigest && enabled
+  });
+  
+  const idenfySessionStatusQuery = useQuery({
+    queryKey: ['idenfySessionStatus'],
+    queryFn: async () => {
+      const scanRef = idenfySessionCreationQuery.data.scanRef
+      const resp = await fetch(`${idServerUrl}/idenfy/verification-status?scanRef=${scanRef}`)
+      return await resp.json()
+    },
+    onSuccess: (data) => {
+      if (data?.status === 'APPROVED') {
+        // Navigate to retrievalEndpoint when user is approved
+        const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data.scanRef}`
+        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+      }
+      // TODO: Display error if status isn't approved
+    },
+    enabled: !!idenfySessionCreationQuery?.data?.scanRef && enabled,
+    refetchInterval: 2000,
+    refetchIntervalInBackground: false,
+  })
+
+  return {
+    canStart: !!idenfySessionCreationQuery.data?.scanRef,
+    verificationStatus: idenfySessionStatusQuery.data?.status,
+    verificationUrl: idenfySessionCreationQuery.data?.url,
+  }
+}
+
+const StepSuccessWithAnalytics = () => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info("SuccGovID", {});
+      window.fathom.trackGoal('MTH0I1KJ', -1.38);  
+    } catch (err) {
+      console.log(err)
+    }
+  }, []);
+  return <StepSuccess />
+}
+
+const StepIDV = () => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info("StartGovID", {});
+      window.fathom.trackGoal('DCTNZBL9', 0)  
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
+  const [searchParams] = useSearchParams()
+  const { data: country } = useSniffedCountry();
+  console.log('country', country)
+  const preferredProvider = useMemo(() => {
+    // If provider is specified in the URL, use it. Otherwise, use the provider that best
+    // suites the country associated with the user's IP address.
+    if (searchParams.get('provider') === 'veriff') {
+      return 'veriff'
+    } else if (searchParams.get('provider') === 'idenfy') {
+      return 'idenfy'
+    } else {
+      return countryToVerificationProvider[country] ?? 'veriff'
+    }
+  }, [country, searchParams])
+  useVeriffIDV({
+    enabled: preferredProvider === 'veriff'
+  })
+  const { verificationUrl, canStart, verificationStatus } = useIdenfyIDV({
+    enabled: preferredProvider === 'idenfy'
+  })
+
+  // useEffect(() => {
+  //   if (!phoneNumber) return;
+  //   (async () => {
+  //     try {
+  //       const resp = await fetch(`${idServerUrl}/vouched/job-count`)
+  //       const data = await resp.json();
+  //       if (data.today >= maxDailyVouchedJobCount) {
+  //         alert("Sorry, we cannot verify any more IDs at this time");
+  //         return;
+  //       }
+  //       console.log('loading vouched QR code')
+  //       loadVouched(phoneNumber);  
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   })();
+  // }, [phoneNumber]);
 
   return (
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
-      <div id="vouched-element" style={{ height: "10vh" }} />
+      {/* <div id="vouched-element" style={{ height: "10vh" }} /> */}
+
+      {preferredProvider === 'idenfy' && (
+        <div style={{ textAlign: 'center' }}>
+          <p>Verify your ID</p>
+          <div style={{ 
+            marginTop: '20px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            <button
+              className="export-private-info-button"
+              style={{
+                lineHeight: "1",
+                fontSize: "16px"
+              }}
+              disabled={!canStart || verificationStatus === 'ACTIVE'}
+              onClick={() => {
+                window.open(verificationUrl, '_blank');
+              }}
+            >
+              Start Verification
+            </button>
+          </div>
+          {verificationStatus && verificationStatus !== 'ACTIVE' && (
+            <div>
+              <p>Verification status: {verificationStatus}</p>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
@@ -93,29 +244,25 @@ const ConfirmRetry = ({ setRetry }) => (
     </div>
   </div>
 )
-const steps = ["Phone#", "Verify", "Finalize"];
+const steps = ["Verify", "Finalize"];
 
 function useGovernmentIDIssuanceState() {
   const { store } = useParams();
-  const [phoneNumber, setPhoneNumber] = useState();
   const [success, setSuccess] = useState();
   const [retry, setRetry] = useState(!!localStorage.getItem('veriff-sessionId'));
   const [currentIdx, setCurrentIdx] = useState(0);
 
 
   const currentStep = useMemo(() => {
-    if (!(store || phoneNumber)) return "Phone#";
-    if (!store && phoneNumber) return "Verify";
+    if (!store) return "Verify";
     if (store) return "Finalize";
-  }, [store, phoneNumber]);
+  }, [store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));
   }, [currentStep])
 
   return {
-    phoneNumber,
-    setPhoneNumber,
     success,
     setSuccess,
     retry,
@@ -130,8 +277,6 @@ function useGovernmentIDIssuanceState() {
 const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
   const {
-    phoneNumber,
-    setPhoneNumber,
     success,
     setSuccess,
     retry,
@@ -149,14 +294,12 @@ const GovernmentIDIssuance = () => {
 
   return (
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
-      {success ? (
-        <StepSuccess />
-      ) : currentStep === "Phone#" ? (
-        <PhoneNumberForm onSubmit={setPhoneNumber} />
+      { success ? (
+        <StepSuccessWithAnalytics />
       ) : retry && currentStep !== "Finalize" ? (
         <ConfirmRetry setRetry={setRetry} />
       ) : currentStep === "Verify" ? (
-        <StepIDV phoneNumber={phoneNumber} />
+        <StepIDV />
       ) : ( // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
       )}

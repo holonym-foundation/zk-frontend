@@ -9,10 +9,16 @@ import LoadingElement from "./components/loading-element";
 import { isMobile } from "react-device-detect";
 import RoundedWindow from "./components/RoundedWindow";
 import ConnectWalletScreen from "./components/atoms/connect-wallet-screen";
+import SwitchChains from './components/atoms/SwitchChains'
 import { RootProvider } from "./RootProvider";
 import { Layout } from "./Layout";
 import { AppRoutes } from "./AppRoutes";
+import useScriptWithURL from "./hooks/useScriptWithURL";
+import { init, datadogLogs, datadogRum } from "./utils/datadog";
 
+// Analytics. They shouldn't tracking anything sensitive and shouldn't be used to perform any individual analysis / targeting, primarly just for aggregate statistics to understand our users
+// and understanding why errors might be happening.
+init();
 
 const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
 
@@ -23,6 +29,16 @@ const ConnectWalletFallback = () => {
     <Layout>
       <RoundedWindow>
         <ConnectWalletScreen />
+      </RoundedWindow>
+    </Layout>
+  );
+}
+
+const NetworkGateFallback = () => {
+  return (
+    <Layout>
+      <RoundedWindow>
+        <SwitchChains />
       </RoundedWindow>
     </Layout>
   );
@@ -52,6 +68,7 @@ const SignMessagesFallback = () => {
 }
 
 function App() {
+  useScriptWithURL("https://cdn.usefathom.com/script.js", {"data-site": "SLPDXJMA", defer: true});
   // const [read, setReady] = useState(false);
   useEffect(() => {
     Promise.all([
@@ -73,7 +90,11 @@ function App() {
   if (isMobile) return <NotDesktop />
   return (
     <Router>
-      <RootProvider connectWalletFallback={<ConnectWalletFallback />} signMessagesFallback={<SignMessagesFallback />}>
+      <RootProvider
+        connectWalletFallback={<ConnectWalletFallback />}
+        signMessagesFallback={<SignMessagesFallback />}
+        networkGateFallback={<NetworkGateFallback />}
+      >
         <Suspense fallback={<LoadingElement />}>
           <Layout>
             <AppRoutes />

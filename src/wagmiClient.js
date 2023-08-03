@@ -1,6 +1,6 @@
 import { createClient } from "wagmi";
 import { CoinbaseWalletConnector } from "wagmi/connectors/coinbaseWallet";
-import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
+// import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
 import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 import { InjectedConnector } from "wagmi/connectors/injected";
 
@@ -19,11 +19,11 @@ export const wagmiClient = createClient({
         },
       }),
 
-      new WalletConnectConnector({
-        options: {
-          qrcode: true,
-        },
-      }),
+      // new WalletConnectConnector({
+      //   options: {
+      //     qrcode: true,
+      //   },
+      // }),
     ];
   },
 });

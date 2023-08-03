@@ -4,8 +4,6 @@ import { useQuery } from "wagmi";
 import { 
   clientPortalUrl, 
 } from "../../constants";
-// import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
-// import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { Oval } from "react-loader-spinner";
 import RoundedWindow from "../RoundedWindow";
 import useGenericProofsState from "./useGenericProofsState";
@@ -90,9 +88,7 @@ const Proofs = () => {
       if (!callbackUrl) setError({ message: "Missing callback" });
       else if (sessionId && callbackUrl) {
         try {
-          console.log('sessionQuery.data before refetch', sessionQuery.data)
           if (!sessionQuery.data) await sessionQuery.refetch() // manually call queryFn
-          console.log('sessionQuery.data after refetch', sessionQuery.data)
           const returnedSessionId = sessionQuery?.data?.sessionId;
           if (!returnedSessionId) setError({ message: "Invalid sessionId" });
           else if (sessionQuery?.data.error) setError(sessionQuery?.data?.error?.message);

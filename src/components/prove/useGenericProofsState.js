@@ -5,11 +5,10 @@ import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { serverAddress } from "../../constants";
-// import residencyStoreABI from "../constants/abi/zk-contracts/ResidencyStore.json";
-// import antiSybilStoreABI from "../constants/abi/zk-contracts/AntiSybilStore.json";
 import { useProofs } from "../../context/Proofs";
 import { useProofMetadata } from "../../context/ProofMetadata";
 import { useCreds } from "../../context/Creds";
+import { datadogLogs } from "../../utils/datadog";
 
 const useProofsState = () => {
 	const params = useParams();
@@ -39,12 +38,20 @@ const useProofsState = () => {
 		[proofMetadata, params.proofType]
 	);
 	const hasNecessaryCreds = useMemo(() => {
-		if (params.proofType === "us-residency" || params.proofType === "uniqueness") {
+		if (params.proofType === "uniqueness") {
 			return !!sortedCreds?.[serverAddress['idgov-v2']]?.creds;
+		} else if (params.proofType === "us-residency") {
+			return sortedCreds?.[serverAddress['idgov-v2']]?.metadata?.rawCreds?.countryCode === 2;
 		} else if (params.proofType === "uniqueness-phone") {
 			return !!sortedCreds?.[serverAddress['phone-v2']]?.creds;
 		} else if (params.proofType === "medical-specialty") {
 			return !!sortedCreds?.[serverAddress['med']]?.creds;
+		}
+	}, [sortedCreds, params.proofType])
+	const nonUSResidentTryingToProveUSResidency = useMemo(() => {
+		const countryCode = sortedCreds?.[serverAddress['idgov-v2']]?.metadata?.rawCreds?.countryCode;
+		if (params.proofType === "us-residency" && countryCode) {
+			return countryCode !== 2;
 		}
 	}, [sortedCreds, params.proofType])
 
@@ -131,6 +138,7 @@ const useProofsState = () => {
 		alreadyHasSBT,
     accountReadyAddress,
     hasNecessaryCreds,
+		nonUSResidentTryingToProveUSResidency,
     proof,
     submissionConsent,
     setSubmissionConsent,
