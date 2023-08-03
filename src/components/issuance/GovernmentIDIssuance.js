@@ -191,7 +191,7 @@ const StepIDV = () => {
                 lineHeight: "1",
                 fontSize: "16px"
               }}
-              disabled={!canStart || verificationStatus === 'ACTIVE'}
+              disabled={!canStart}
               onClick={() => {
                 window.open(verificationUrl, '_blank');
               }}
