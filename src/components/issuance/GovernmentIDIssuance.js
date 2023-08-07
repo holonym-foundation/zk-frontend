@@ -2,6 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
 import { useQuery } from '@tanstack/react-query'
+import { 
+  init as initOnfido
+} from 'onfido-sdk-ui'
+// import 'onfido-sdk-ui/split/css'
 import loadVouched from '../../load-vouched';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import FinalStep from "./FinalStep";
@@ -26,8 +30,97 @@ const useSniffedCountry = () => {
   });
 }
 
+const useOnfidoIDV = ({ enabled }) => {
+  const navigate = useNavigate();
+
+  const { data: applicant } = useQuery({
+    queryKey: ['onfidoApplicant'],
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/onfido/applicant`, {
+        method: "POST",
+      })
+      return await resp.json()
+    },
+    staleTime: Infinity,
+    enabled: enabled,
+  })
+
+  const { data: check, refetch: refetchCheck } = useQuery({
+    queryKey: ['onfidoCheck'],
+    queryFn: async () => {
+      const resp = await fetch(`${idServerUrl}/onfido/check`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          applicant_id: applicant.applicant_id,
+        })
+      })
+      return await resp.json()
+    },
+    onSuccess: (data) => {
+      // Navigate to retrievalEndpoint when user is approved
+      const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${data.id}`
+      const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+      navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+    },
+    enabled: false,
+  })
+
+  const { data: onfidoOut } = useQuery({
+    queryKey: ['initOnfido'],
+    queryFn: async () => {
+      let onfido = {};
+
+      // NOTE: Must call `await onfidoOut.safeTearDown()` when done, if you want to
+      // re-initialize the SDK.
+
+      onfido = initOnfido({
+        token: applicant.sdk_token,
+        containerId: 'onfido-mount',
+        // containerEl: <div id="root" />, //ALTERNATIVE to `containerId`
+        useModal: true,
+        isModalOpen: true,
+        smsNumberCountryCode: 'US', // TODO: Take user input for this
+        // TODO: Low priority feature for improved UX: If the user already has phone
+        // number creds, specify those here so that they don't have to re-enter their
+        // phone number.
+        // userDetails: {
+        //   smsNumber: '+447500123456'
+        // },
+        // steps: [
+        //   'welcome',
+        //   'document',
+        //   'face',
+        //   'complete'
+        // ],
+        onComplete: (data) => {
+          console.log('onfido: everything is complete. data:', data)
+          onfido.setOptions({ isModalOpen: false })
+          refetchCheck()
+        },
+        onError: (error) => {
+          console.log('onfido: error', error)
+        },
+        onUserExit: (userExitCode) => {
+          console.log('onfido: user exited', userExitCode)
+        },
+        onModalRequestClose: () => {
+          console.log('onfido: modal closed')
+        }
+      })
+
+      return onfido
+    },
+    staleTime: Infinity,
+    enabled: enabled && !!applicant?.sdk_token
+  })
+
+  return {}
+}
+
 const useVeriffIDV = ({ enabled }) => {
-  console.log('useVeriffIDV enabled', enabled)
   const navigate = useNavigate();
   const veriffSessionQuery = useQuery({
     queryKey: ['veriffSession'],
@@ -134,7 +227,6 @@ const StepIDV = () => {
 
   const [searchParams] = useSearchParams()
   const { data: country } = useSniffedCountry();
-  console.log('country', country)
   const preferredProvider = useMemo(() => {
     // If provider is specified in the URL, use it. Otherwise, use the provider that best
     // suites the country associated with the user's IP address.
@@ -142,6 +234,8 @@ const StepIDV = () => {
       return 'veriff'
     } else if (searchParams.get('provider') === 'idenfy') {
       return 'idenfy'
+    } else if (searchParams.get('provider') === 'onfido') {
+      return 'onfido'
     } else {
       return countryToVerificationProvider[country] ?? 'veriff'
     }
@@ -151,6 +245,9 @@ const StepIDV = () => {
   })
   const { verificationUrl, canStart, verificationStatus } = useIdenfyIDV({
     enabled: preferredProvider === 'idenfy'
+  })
+  useOnfidoIDV({
+    enabled: preferredProvider === 'onfido'
   })
 
   // useEffect(() => {
@@ -175,6 +272,9 @@ const StepIDV = () => {
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
       {/* <div id="vouched-element" style={{ height: "10vh" }} /> */}
+      {preferredProvider === 'onfido' && (
+        <div id="onfido-mount"></div>
+      )}
 
       {preferredProvider === 'idenfy' && (
         <div style={{ textAlign: 'center' }}>
