@@ -33,6 +33,8 @@ const useSniffedCountry = () => {
 const useOnfidoIDV = ({ enabled }) => {
   const navigate = useNavigate();
 
+  const { holoAuthSigDigest } = useHoloAuthSig();
+
   const { data: applicant } = useQuery({
     queryKey: ['onfidoApplicant'],
     queryFn: async () => {
@@ -55,6 +57,7 @@ const useOnfidoIDV = ({ enabled }) => {
         },
         body: JSON.stringify({
           applicant_id: applicant.applicant_id,
+          sigDigest: holoAuthSigDigest,
         })
       })
       return await resp.json()
@@ -122,11 +125,20 @@ const useOnfidoIDV = ({ enabled }) => {
 
 const useVeriffIDV = ({ enabled }) => {
   const navigate = useNavigate();
+
+  const { holoAuthSigDigest } = useHoloAuthSig();
+
   const veriffSessionQuery = useQuery({
     queryKey: ['veriffSession'],
     queryFn: async () => {
       const resp = await fetch(`${idServerUrl}/veriff/session`, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sigDigest: holoAuthSigDigest
+        })
       })
       return await resp.json()
     },
