@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { 
   init as initOnfido
 } from 'onfido-sdk-ui'
@@ -31,7 +31,8 @@ const useSniffedCountry = () => {
 }
 
 const useOnfidoIDV = ({ enabled }) => {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [encodedRetrievalEndpoint, setEncodedRetrievalEndpoint] = useState();
 
   const { holoAuthSigDigest } = useHoloAuthSig();
 
@@ -50,7 +51,7 @@ const useOnfidoIDV = ({ enabled }) => {
   const { data: check, refetch: refetchCheck } = useQuery({
     queryKey: ['onfidoCheck'],
     queryFn: async () => {
-      const resp = await fetch(`${idServerUrl}/onfido/check`, {
+      const resp = await fetch(`${idServerUrl}/onfido/v2/check`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -65,8 +66,10 @@ const useOnfidoIDV = ({ enabled }) => {
     onSuccess: (data) => {
       // Navigate to retrievalEndpoint when user is approved
       const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${data.id}`
-      const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-      navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+      const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
+      setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
+
+      queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
     },
     enabled: false,
   })
@@ -82,7 +85,7 @@ const useOnfidoIDV = ({ enabled }) => {
       onfido = initOnfido({
         token: applicant.sdk_token,
         containerId: 'onfido-mount',
-        // containerEl: <div id="root" />, //ALTERNATIVE to `containerId`
+        // containerEl: <div id="root" />, // ALTERNATIVE to `containerId`
         useModal: true,
         isModalOpen: true,
         smsNumberCountryCode: 'US', // TODO: Take user input for this
@@ -111,6 +114,7 @@ const useOnfidoIDV = ({ enabled }) => {
         },
         onModalRequestClose: () => {
           console.log('onfido: modal closed')
+          onfido.setOptions({ isModalOpen: false })
         }
       })
 
@@ -120,18 +124,21 @@ const useOnfidoIDV = ({ enabled }) => {
     enabled: enabled && !!applicant?.sdk_token
   })
 
-  return {}
+  return {
+    encodedRetrievalEndpoint
+  }
 }
 
 const useVeriffIDV = ({ enabled }) => {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [encodedRetrievalEndpoint, setEncodedRetrievalEndpoint] = useState();
 
   const { holoAuthSigDigest } = useHoloAuthSig();
 
   const veriffSessionQuery = useQuery({
     queryKey: ['veriffSession'],
     queryFn: async () => {
-      const resp = await fetch(`${idServerUrl}/veriff/session`, {
+      const resp = await fetch(`${idServerUrl}/veriff/v2/session`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -152,8 +159,10 @@ const useVeriffIDV = ({ enabled }) => {
     const handleVeriffEvent = (msg) => {
       if (msg === MESSAGES.FINISHED) {
         const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
-        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+        const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
+        setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
+
+        queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
       }
     }
     createVeriffFrame({
@@ -162,17 +171,23 @@ const useVeriffIDV = ({ enabled }) => {
     });
   }, [veriffSessionQuery])
 
-  return {}
+  return {
+    encodedRetrievalEndpoint,
+  }
 }
 
+// TODO: !!!!! WE STILL NEED TO TEST IDENFY !!!!! Can't test right now. iDenfy API returns 'Action 
+// not allowed due to lack of funds or exceeded limit.'
 const useIdenfyIDV = ({ enabled }) => {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [encodedRetrievalEndpoint, setEncodedRetrievalEndpoint] = useState();
+
   const { holoAuthSigDigest } = useHoloAuthSig();
 
   const idenfySessionCreationQuery = useQuery({
     queryKey: ['idenfySessionCreation'],
     queryFn: async () => {
-      const resp = await fetch(`${idServerUrl}/idenfy/session`, {
+      const resp = await fetch(`${idServerUrl}/idenfy/v2/session`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -198,8 +213,10 @@ const useIdenfyIDV = ({ enabled }) => {
       if (data?.status === 'APPROVED') {
         // Navigate to retrievalEndpoint when user is approved
         const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data.scanRef}`
-        const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-        navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
+        const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
+        setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
+
+        queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
       }
       // TODO: Display error if status isn't approved
     },
@@ -212,6 +229,7 @@ const useIdenfyIDV = ({ enabled }) => {
     canStart: !!idenfySessionCreationQuery.data?.scanRef,
     verificationStatus: idenfySessionStatusQuery.data?.status,
     verificationUrl: idenfySessionCreationQuery.data?.url,
+    encodedRetrievalEndpoint,
   }
 }
 
@@ -237,6 +255,7 @@ const StepIDV = () => {
     }
   }, []);
 
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { data: country } = useSniffedCountry();
   const preferredProvider = useMemo(() => {
@@ -252,15 +271,77 @@ const StepIDV = () => {
       return countryToVerificationProvider[country] ?? 'veriff'
     }
   }, [country, searchParams])
-  useVeriffIDV({
+  const { encodedRetrievalEndpoint: veriffRetrievalEndpoint } = useVeriffIDV({
     enabled: preferredProvider === 'veriff'
   })
-  const { verificationUrl, canStart, verificationStatus } = useIdenfyIDV({
+  const {
+    verificationUrl,
+    canStart,
+    verificationStatus,
+    encodedRetrievalEndpoint: idenfyRetrievalEndpoint
+  } = useIdenfyIDV({
     enabled: preferredProvider === 'idenfy'
   })
-  useOnfidoIDV({
+  const { encodedRetrievalEndpoint: onfidoRetrievalEndpoint } = useOnfidoIDV({
     enabled: preferredProvider === 'onfido'
   })
+
+  const { holoAuthSigDigest } = useHoloAuthSig();
+
+  const [verificationError, setVerificationError] = useState();
+  
+  const idvSessionStatusQuery = useQuery({
+    queryKey: ['idvSessionStatus'],
+    queryFn: async () => {
+      const resp = await fetch(`
+        ${idServerUrl}/session-status?sigDigest=${holoAuthSigDigest}`
+      );
+      return await resp.json()
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+
+      // See: https://developers.veriff.com/#verification-session-status-and-decision-codes
+      const unsuccessfulVeriffStatuses = ['declined', 'resubmission_requested', 'abandoned', 'expired']
+      // See: https://documentation.idenfy.com/API/IdentificationDataRetrieval#verification-status
+      const unsuccessfulIdenfyStatuses = ['DENIED', 'SUSPECTED', 'EXPIRED', 'EXPIRED-DELETED', 'DELETED', 'ARCHIVED']
+      // See: https://documentation.onfido.com/#check-status
+      const unsuccessfulOnfidoStatuses = ['withdrawn', 'paused', 'reopened']
+
+      if (preferredProvider === 'veriff' && data?.veriff?.status && veriffRetrievalEndpoint) {
+        if (data?.veriff?.status === 'approved') {
+          navigate(`/issuance/idgov/store?retrievalEndpoint=${veriffRetrievalEndpoint}`)
+        } else if (unsuccessfulVeriffStatuses.includes(data?.veriff?.status)) {
+          setVerificationError(
+            `Status of Veriff session ${data?.veriff?.sessionId} is '${data?.veriff?.status}'. Expected 'approved'.`
+          )
+        } else {
+          console.log(`Veriff status is '${data?.veriff?.status}'. Expected 'approved'.`)
+        }
+      } else if (data?.idenfy?.status && preferredProvider === 'idenfy' && idenfyRetrievalEndpoint) {
+        if (data?.idenfy?.status === 'APPROVED') {
+          navigate(`/issuance/idgov/store?retrievalEndpoint=${idenfyRetrievalEndpoint}`)
+        } else if (unsuccessfulIdenfyStatuses.includes(data?.idenfy?.status)) {
+          setVerificationError(
+            `Status of iDenfy session ${data?.idenfy?.scanRef} is '${data?.idenfy?.status}'. Expected 'APPROVED'.`
+          )
+        } else {
+          console.log(`Idenfy status is '${data?.idenfy?.status}'. Expected 'APPROVED'.`)
+        }
+      } else if (data?.onfido?.status && preferredProvider === 'onfido' && onfidoRetrievalEndpoint) {
+        if (data?.onfido?.status === 'complete') {
+          navigate(`/issuance/idgov/store?retrievalEndpoint=${onfidoRetrievalEndpoint}`)
+        } else if (unsuccessfulOnfidoStatuses.includes(data?.onfido?.status)) {
+          setVerificationError(
+            `Status of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.status}'. Expected 'complete'.`
+          )
+        } else {
+          console.log(`Onfido status is '${data?.onfido?.status}'. Expected 'complete'.`)
+        }
+      }
+    },
+    refetchInterval: 5000,
+  });
 
   // useEffect(() => {
   //   if (!phoneNumber) return;
@@ -316,6 +397,27 @@ const StepIDV = () => {
               <p>Verification status: {verificationStatus}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {idvSessionStatusQuery?.data?.[preferredProvider]?.status && (
+        <div style={{ textAlign: 'center' }}>
+          <p>
+            Verification status: {idvSessionStatusQuery?.data?.[preferredProvider]?.status}
+          </p>
+          <p>
+            Once your verification is successful, you will be redirected to the next step. You
+            can also see the status of your verification on your profile page.
+          </p>
+        </div>
+      )}
+
+      {verificationError && (
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: 'red' }}>{verificationError}</p>
+          <p>
+            Please try again or contact support if the problem persists.
+          </p>
         </div>
       )}
     </>

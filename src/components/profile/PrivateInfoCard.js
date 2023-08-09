@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import classNames from "classnames";
 import { Oval } from "react-loader-spinner";
+import { useQuery } from '@tanstack/react-query'
 import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
-import { serverAddress } from "../../constants";
+import { serverAddress, idServerUrl } from "../../constants";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
@@ -101,6 +102,50 @@ export default function PrivateInfoCard({ creds, loading }) {
     "disabled": !authSigs,
   });
 
+  const { holoAuthSigDigest } = useHoloAuthSig();
+
+  const idvSessionStatusQuery = useQuery({
+    queryKey: ['idvSessionStatus'],
+    queryFn: async () => {
+      const resp = await fetch(`
+        ${idServerUrl}/session-status?sigDigest=${holoAuthSigDigest}`
+      );
+      return await resp.json()
+    }
+  });
+  
+  console.log('idvSessionStatusQuery?.data', idvSessionStatusQuery?.data)
+
+  const govIdRetrievalEndpoint = useMemo(() => {
+    if (idvSessionStatusQuery?.data?.veriff?.status === 'approved') {
+      const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${
+        idvSessionStatusQuery?.data?.veriff?.sessionId
+      }`
+      return encodeURIComponent(window.btoa(retrievalEndpoint))
+    } else if (idvSessionStatusQuery?.data?.idenfy?.status === 'APPROVED') {
+      const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${
+        idvSessionStatusQuery?.data?.idenfy?.scanRef
+      }`
+      return encodeURIComponent(window.btoa(retrievalEndpoint))
+    } else if (idvSessionStatusQuery?.data?.onfido?.status === 'complete') {
+      const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${
+        idvSessionStatusQuery?.data?.onfido?.check_id
+      }`
+      return encodeURIComponent(window.btoa(retrievalEndpoint))
+    }
+  }, [idvSessionStatusQuery?.data])
+
+  const govIdVerificationStatus = useMemo(() => {
+    // If there's a retrievalEndpoint, then we just want to display that, not the status
+    if (govIdRetrievalEndpoint) return
+
+    // TODO: Update this. Display the most successful verification status. For example,
+    // if onfido is 'in_progress', but veriff is 'declined', display the onfido status.
+    return idvSessionStatusQuery?.data?.veriff?.status 
+      ?? idvSessionStatusQuery?.data?.idenfy?.status 
+      ?? idvSessionStatusQuery?.data?.onfido?.status
+  }, [idvSessionStatusQuery?.data, govIdRetrievalEndpoint])
+
   return (
     <>
       <ExportModal authSigs={authSigs} visible={exportModalVisible} setVisible={setExportModalVisible} />
@@ -168,6 +213,23 @@ export default function PrivateInfoCard({ creds, loading }) {
                       </>
                     )
                   )
+                ) : govIdRetrievalEndpoint ? (
+                  <>
+                    <div className="private-info-attribute-name">Government ID</div>
+                    <VerifyButton 
+                      onClick={() => navigate(`/issuance/idgov/store?retrievalEndpoint=${govIdRetrievalEndpoint}`)} 
+                      text="Your Government ID credentials are ready - Click here to complete issuance" 
+                    />
+                  </>
+                ) : govIdVerificationStatus ? (
+                  // TODO: If status is something like "in progress", display it here. If it
+                  // is something like "declined" but the user has not tried another provider,
+                  // then we should probably display both "declined (<provider>)" AND the
+                  // "Verify Government ID" button.
+                  <>
+                    <div className="private-info-attribute-name">Government ID</div>
+                    <VerifyButton onClick={() => navigate('/issuance/idgov')} text="Verify Government ID" />
+                  </>
                 ) : (
                   <>
                     <div className="private-info-attribute-name">Government ID</div>
