@@ -308,6 +308,10 @@ const StepIDV = () => {
       // See: https://documentation.onfido.com/#check-status
       const unsuccessfulOnfidoStatuses = ['withdrawn', 'paused', 'reopened']
 
+      console.log('idvSessionStatusQuery: onSuccess: data', data)
+      console.log('idvSessionStatusQuery: onSuccess: preferredProvider', preferredProvider)
+      console.log('idvSessionStatusQuery: onSuccess: idenfyRetrievalEndpoint', idenfyRetrievalEndpoint)
+
       if (preferredProvider === 'veriff' && data?.veriff?.status && veriffRetrievalEndpoint) {
         if (data?.veriff?.status === 'approved') {
           navigate(`/issuance/idgov/store?retrievalEndpoint=${veriffRetrievalEndpoint}`)
