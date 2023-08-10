@@ -136,17 +136,15 @@ const StepIDV = () => {
   const { data: country } = useSniffedCountry();
   console.log('country', country)
   const preferredProvider = useMemo(() => {
-    return 'idenfy' // Hardcoding idenfy for now
-
-    // // If provider is specified in the URL, use it. Otherwise, use the provider that best
-    // // suites the country associated with the user's IP address.
-    // if (searchParams.get('provider') === 'veriff') {
-    //   return 'veriff'
-    // } else if (searchParams.get('provider') === 'idenfy') {
-    //   return 'idenfy'
-    // } else {
-    //   return countryToVerificationProvider[country] ?? 'veriff'
-    // }
+    // If provider is specified in the URL, use it. Otherwise, use the provider that best
+    // suites the country associated with the user's IP address.
+    if (searchParams.get('provider') === 'veriff') {
+      return 'veriff'
+    } else if (searchParams.get('provider') === 'idenfy') {
+      return 'idenfy'
+    } else {
+      return countryToVerificationProvider[country] ?? 'veriff'
+    }
   }, [country, searchParams])
   useVeriffIDV({
     enabled: preferredProvider === 'veriff'
