@@ -9,8 +9,8 @@ const useIdvSessionStatus = (options = {}) => {
     ...options,
     queryKey: ['idvSessionStatus'],
     queryFn: async () => {
-      const resp = await fetch(`
-        ${idServerUrl}/session-status?sigDigest=${holoAuthSigDigest}`
+      const resp = await fetch(
+        `${idServerUrl}/session-status?sigDigest=${holoAuthSigDigest}`
       );
       return await resp.json()
     },
