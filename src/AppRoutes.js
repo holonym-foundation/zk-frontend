@@ -5,7 +5,7 @@ import Profile from './components/profile/profile';
 import IssuanceOptions from "./components/issuance/IssuanceOptions";
 import ProofMenu from "./components/prove/proof-menu";
 import OffChainProofs from './components/prove/OffChainProofs';
-import GovernmentIDIssuance from "./components/issuance/GovernmentIDIssuance";
+import GovernmentIDIssuance from "./components/issuance/GovernmentIDIssuance/GovernmentIDIssuance";
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance';
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
