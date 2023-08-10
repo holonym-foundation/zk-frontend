@@ -8,6 +8,7 @@ import {
 // import 'onfido-sdk-ui/split/css'
 import loadVouched from '../../load-vouched';
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
+import useIdvSessionStatus from "../../hooks/useIdvSessionStatus"
 import FinalStep from "./FinalStep";
 import StepSuccess from "./StepSuccess";
 import { 
@@ -149,27 +150,25 @@ const useVeriffIDV = ({ enabled }) => {
       })
       return await resp.json()
     },
+    onSuccess: (verification) => {
+      if (!verification?.url) return;
+      const handleVeriffEvent = (msg) => {
+        if (msg === MESSAGES.FINISHED) {
+          const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
+          const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
+          setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
+  
+          queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
+        }
+      }
+      createVeriffFrame({
+        url: verification.url,
+        onEvent: handleVeriffEvent
+      });
+    },
     staleTime: Infinity,
     enabled: enabled
   });
-
-  useEffect(() => {
-    if (!veriffSessionQuery.data?.url || !enabled) return;
-    const verification = veriffSessionQuery.data;
-    const handleVeriffEvent = (msg) => {
-      if (msg === MESSAGES.FINISHED) {
-        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
-        const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
-        setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
-
-        queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
-      }
-    }
-    createVeriffFrame({
-      url: verification.url,
-      onEvent: handleVeriffEvent
-    });
-  }, [veriffSessionQuery])
 
   return {
     encodedRetrievalEndpoint,
@@ -255,7 +254,6 @@ const StepIDV = () => {
   const {
     verificationUrl,
     canStart,
-    // verificationStatus,
     encodedRetrievalEndpoint: idenfyRetrievalEndpoint
   } = useIdenfyIDV({
     enabled: preferredProvider === 'idenfy'
@@ -264,18 +262,9 @@ const StepIDV = () => {
     enabled: preferredProvider === 'onfido'
   })
 
-  const { holoAuthSigDigest } = useHoloAuthSig();
-
   const [verificationError, setVerificationError] = useState();
   
-  const idvSessionStatusQuery = useQuery({
-    queryKey: ['idvSessionStatus'],
-    queryFn: async () => {
-      const resp = await fetch(`
-        ${idServerUrl}/session-status?sigDigest=${holoAuthSigDigest}`
-      );
-      return await resp.json()
-    },
+  const idvSessionStatusQuery = useIdvSessionStatus({
     onSuccess: (data) => {
       if (!data) return;
 
@@ -285,10 +274,6 @@ const StepIDV = () => {
       const unsuccessfulIdenfyStatuses = ['DENIED', 'SUSPECTED', 'EXPIRED', 'EXPIRED-DELETED', 'DELETED', 'ARCHIVED']
       // See: https://documentation.onfido.com/#check-status
       const unsuccessfulOnfidoStatuses = ['withdrawn', 'paused', 'reopened']
-
-      console.log('idvSessionStatusQuery: onSuccess: data', data)
-      console.log('idvSessionStatusQuery: onSuccess: preferredProvider', preferredProvider)
-      console.log('idvSessionStatusQuery: onSuccess: idenfyRetrievalEndpoint', idenfyRetrievalEndpoint)
 
       if (preferredProvider === 'veriff' && data?.veriff?.status && veriffRetrievalEndpoint) {
         if (data?.veriff?.status === 'approved') {
@@ -322,8 +307,7 @@ const StepIDV = () => {
         }
       }
     },
-    refetchInterval: 5000,
-  });
+  })
 
   // useEffect(() => {
   //   if (!phoneNumber) return;

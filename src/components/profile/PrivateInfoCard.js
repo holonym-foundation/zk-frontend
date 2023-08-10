@@ -8,6 +8,7 @@ import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { serverAddress, idServerUrl } from "../../constants";
+import useIdvSessionStatus from "../../hooks/useIdvSessionStatus"
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 
@@ -102,38 +103,26 @@ export default function PrivateInfoCard({ creds, loading }) {
     "disabled": !authSigs,
   });
 
-  const { holoAuthSigDigest } = useHoloAuthSig();
-
-  const idvSessionStatusQuery = useQuery({
-    queryKey: ['idvSessionStatus'],
-    queryFn: async () => {
-      const resp = await fetch(`
-        ${idServerUrl}/session-status?sigDigest=${holoAuthSigDigest}`
-      );
-      return await resp.json()
-    }
-  });
+  const { data: idvSessionStatus } = useIdvSessionStatus();
   
-  console.log('idvSessionStatusQuery?.data', idvSessionStatusQuery?.data)
-
   const govIdRetrievalEndpoint = useMemo(() => {
-    if (idvSessionStatusQuery?.data?.veriff?.status === 'approved') {
+    if (idvSessionStatus?.veriff?.status === 'approved') {
       const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${
-        idvSessionStatusQuery?.data?.veriff?.sessionId
+        idvSessionStatus?.veriff?.sessionId
       }`
       return encodeURIComponent(window.btoa(retrievalEndpoint))
-    } else if (idvSessionStatusQuery?.data?.idenfy?.status === 'APPROVED') {
+    } else if (idvSessionStatus?.idenfy?.status === 'APPROVED') {
       const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${
-        idvSessionStatusQuery?.data?.idenfy?.scanRef
+        idvSessionStatus?.idenfy?.scanRef
       }`
       return encodeURIComponent(window.btoa(retrievalEndpoint))
-    } else if (idvSessionStatusQuery?.data?.onfido?.status === 'complete') {
+    } else if (idvSessionStatus?.onfido?.status === 'complete') {
       const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${
-        idvSessionStatusQuery?.data?.onfido?.check_id
+        idvSessionStatus?.onfido?.check_id
       }`
       return encodeURIComponent(window.btoa(retrievalEndpoint))
     }
-  }, [idvSessionStatusQuery?.data])
+  }, [idvSessionStatus])
 
   const govIdVerificationStatus = useMemo(() => {
     // If there's a retrievalEndpoint, then we just want to display that, not the status
@@ -141,10 +130,10 @@ export default function PrivateInfoCard({ creds, loading }) {
 
     // TODO: Update this. Display the most successful verification status. For example,
     // if onfido is 'in_progress', but veriff is 'declined', display the onfido status.
-    return idvSessionStatusQuery?.data?.veriff?.status 
-      ?? idvSessionStatusQuery?.data?.idenfy?.status 
-      ?? idvSessionStatusQuery?.data?.onfido?.status
-  }, [idvSessionStatusQuery?.data, govIdRetrievalEndpoint])
+    return idvSessionStatus?.veriff?.status 
+      ?? idvSessionStatus?.idenfy?.status 
+      ?? idvSessionStatus?.onfido?.status
+  }, [idvSessionStatus, govIdRetrievalEndpoint])
 
   return (
     <>
