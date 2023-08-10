@@ -92,7 +92,7 @@ const useIdenfyIDV = ({ enabled }) => {
     onSuccess: (data) => {
       if (data?.status === 'APPROVED') {
         // Navigate to retrievalEndpoint when user is approved
-        const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data.scanRef}`
+        const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${idenfySessionCreationQuery.data.scanRef}`
         const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
         navigate(`/issuance/idgov/store?retrievalEndpoint=${encodedRetrievalEndpoint}`)
       }
