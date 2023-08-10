@@ -176,10 +176,7 @@ const useVeriffIDV = ({ enabled }) => {
   }
 }
 
-// TODO: !!!!! WE STILL NEED TO TEST IDENFY !!!!! Can't test right now. iDenfy API returns 'Action 
-// not allowed due to lack of funds or exceeded limit.'
 const useIdenfyIDV = ({ enabled }) => {
-  const queryClient = useQueryClient();
   const [encodedRetrievalEndpoint, setEncodedRetrievalEndpoint] = useState();
 
   const { holoAuthSigDigest } = useHoloAuthSig();
@@ -198,36 +195,17 @@ const useIdenfyIDV = ({ enabled }) => {
       })
       return await resp.json()
     },
+    onSuccess: (data) => {
+      const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data.scanRef}`
+      const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
+      setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
+    },
     staleTime: Infinity,
     enabled: holoAuthSigDigest && enabled
   });
-  
-  const idenfySessionStatusQuery = useQuery({
-    queryKey: ['idenfySessionStatus'],
-    queryFn: async () => {
-      const scanRef = idenfySessionCreationQuery.data.scanRef
-      const resp = await fetch(`${idServerUrl}/idenfy/verification-status?scanRef=${scanRef}`)
-      return await resp.json()
-    },
-    onSuccess: (data) => {
-      if (data?.status === 'APPROVED') {
-        // Navigate to retrievalEndpoint when user is approved
-        const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data.scanRef}`
-        const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
-        setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
-
-        queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
-      }
-      // TODO: Display error if status isn't approved
-    },
-    enabled: !!idenfySessionCreationQuery?.data?.scanRef && enabled,
-    refetchInterval: 2000,
-    refetchIntervalInBackground: false,
-  })
 
   return {
     canStart: !!idenfySessionCreationQuery.data?.scanRef,
-    verificationStatus: idenfySessionStatusQuery.data?.status,
     verificationUrl: idenfySessionCreationQuery.data?.url,
     encodedRetrievalEndpoint,
   }
@@ -277,7 +255,7 @@ const StepIDV = () => {
   const {
     verificationUrl,
     canStart,
-    verificationStatus,
+    // verificationStatus,
     encodedRetrievalEndpoint: idenfyRetrievalEndpoint
   } = useIdenfyIDV({
     enabled: preferredProvider === 'idenfy'
@@ -396,15 +374,11 @@ const StepIDV = () => {
               Start Verification
             </button>
           </div>
-          {verificationStatus && verificationStatus !== 'ACTIVE' && (
-            <div>
-              <p>Verification status: {verificationStatus}</p>
-            </div>
-          )}
         </div>
       )}
 
-      {idvSessionStatusQuery?.data?.[preferredProvider]?.status && (
+      {idvSessionStatusQuery?.data?.[preferredProvider]?.status && 
+        !(preferredProvider === 'idenfy' && idvSessionStatusQuery?.data?.[preferredProvider]?.status === 'ACTIVE') && (
         <div style={{ textAlign: 'center' }}>
           <p>
             Verification status: {idvSessionStatusQuery?.data?.[preferredProvider]?.status}
