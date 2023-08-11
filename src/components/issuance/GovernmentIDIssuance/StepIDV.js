@@ -67,9 +67,18 @@ const StepIDV = () => {
 
   const [verificationError, setVerificationError] = useState();
   
-  const idvSessionStatusQuery = useIdvSessionStatus({
+  const idvSessionStatusQuery = useIdvSessionStatus(preferredProvider, {
     onSuccess: (data) => {
       if (!data) return;
+
+      // TODO: Handle case where:
+      // - User has successful session
+      // - User doesn't have creds
+      // - User is on this page trying to verify again
+      // Should probably do something like this:
+      // if hasCreds: Display: "It looks like you already have these credentials. Are you sure you want to verify again?"
+      // if !hasCreds && hasSuccessfulSession: Display: "It looks like you already verified yourself. Continue to finalize verification."
+      // if !hasCreds && !hasSuccessfulSession: Display normal flow
 
       // See: https://developers.veriff.com/#verification-session-status-and-decision-codes
       const unsuccessfulVeriffStatuses = ['declined', 'resubmission_requested', 'abandoned', 'expired']
