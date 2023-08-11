@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createVeriffFrame, MESSAGES } from '@veriff/incontext-sdk';
 import { useHoloAuthSig } from "../context/HoloAuthSig";
@@ -24,25 +24,30 @@ const useVeriffIDV = ({ enabled }) => {
       })
       return await resp.json()
     },
-    onSuccess: (verification) => {
-      if (!verification?.url) return;
-      const handleVeriffEvent = (msg) => {
-        if (msg === MESSAGES.FINISHED) {
-          const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${verification.id}`
-          const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
-          setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
-  
-          queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
-        }
-      }
-      createVeriffFrame({
-        url: verification.url,
-        onEvent: handleVeriffEvent
-      });
-    },
     staleTime: Infinity,
     enabled: enabled
   });
+
+  const veriffIframeCreatedRef = useRef(false)
+
+  useEffect(() => {
+    if (!veriffSessionQuery?.data?.url || veriffIframeCreatedRef.current) return;
+    veriffIframeCreatedRef.current = true
+
+    const handleVeriffEvent = (msg) => {
+      if (msg === MESSAGES.FINISHED) {
+        const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${veriffSessionQuery?.data?.id}`
+        const encodedRetrievalEndpointTemp = encodeURIComponent(window.btoa(retrievalEndpoint))
+        setEncodedRetrievalEndpoint(encodedRetrievalEndpointTemp)
+
+        queryClient.invalidateQueries({ queryKey: ['idvSessionStatus'] })
+      }
+    }
+    createVeriffFrame({
+      url: veriffSessionQuery?.data?.url,
+      onEvent: handleVeriffEvent
+    });
+  }, [veriffSessionQuery.data])
 
   return {
     encodedRetrievalEndpoint,
