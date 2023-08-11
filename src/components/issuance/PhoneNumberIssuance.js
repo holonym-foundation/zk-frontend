@@ -101,7 +101,7 @@ const VerifyPhoneNumber = () => {
     setCode(newCode);
     if (newCode.length === 6) {
       const country = parsePhoneNumber(phoneNumber).country;
-      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v2/${phoneNumber}/${newCode}/${country}`
+      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v3/${phoneNumber}/${newCode}/${country}`
       const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint));
       datadogLogs.logger.info("EnterPhoneCode", {});
       navigate(`/issuance/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);

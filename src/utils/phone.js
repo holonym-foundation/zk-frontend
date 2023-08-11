@@ -4,7 +4,7 @@ import axios from "axios";
 var hasRequestedCode = false;
 
 export const sendCode = (phoneNumber) => {
-  if (!hasRequestedCode) axios.get(`${zkPhoneEndpoint}/send/${phoneNumber}`);
+  if (!hasRequestedCode) axios.get(`${zkPhoneEndpoint}/send/v3/${phoneNumber}`);
   hasRequestedCode = true;
 }
 
