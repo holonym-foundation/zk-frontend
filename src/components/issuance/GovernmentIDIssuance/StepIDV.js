@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from '@tanstack/react-query'
 import loadVouched from '../../../load-vouched';
+import { useCreds } from "../../../context/Creds";
 import useIdvSessionStatus from "../../../hooks/useIdvSessionStatus"
 import useIdenfyIDV from "../../../hooks/useIdenfyIDV"
 import useOnfidoIDV from "../../../hooks/useOnfidoIDV"
@@ -37,6 +38,8 @@ const StepIDV = () => {
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const [returningUserHasSuccessfulSession, setReturningUserHasSuccessfulSession] = useState('loading'); // 'loading' | 'yes' | 'no'
+  const [retrievalEndpointForReturningUser, setRetrievalEndpointForReturningUser] = useState();
   const { data: country } = useSniffedCountry();
   const preferredProvider = useMemo(() => {
     // If provider is specified in the URL, use it. Otherwise, use the provider that best
@@ -52,17 +55,17 @@ const StepIDV = () => {
     }
   }, [country, searchParams])
   const { encodedRetrievalEndpoint: veriffRetrievalEndpoint } = useVeriffIDV({
-    enabled: preferredProvider === 'veriff'
+    enabled: preferredProvider === 'veriff' && returningUserHasSuccessfulSession === 'no'
   })
   const {
     verificationUrl,
     canStart,
     encodedRetrievalEndpoint: idenfyRetrievalEndpoint
   } = useIdenfyIDV({
-    enabled: preferredProvider === 'idenfy'
+    enabled: preferredProvider === 'idenfy' && returningUserHasSuccessfulSession === 'no'
   })
   const { encodedRetrievalEndpoint: onfidoRetrievalEndpoint } = useOnfidoIDV({
-    enabled: preferredProvider === 'onfido'
+    enabled: preferredProvider === 'onfido' && returningUserHasSuccessfulSession === 'no'
   })
 
   const [verificationError, setVerificationError] = useState();
@@ -71,15 +74,6 @@ const StepIDV = () => {
     onSuccess: (data) => {
       if (!data) return;
 
-      // TODO: Handle case where:
-      // - User has successful session
-      // - User doesn't have creds
-      // - User is on this page trying to verify again
-      // Should probably do something like this:
-      // if hasCreds: Display: "It looks like you already have these credentials. Are you sure you want to verify again?"
-      // if !hasCreds && hasSuccessfulSession: Display: "It looks like you already verified yourself. Continue to finalize verification."
-      // if !hasCreds && !hasSuccessfulSession: Display normal flow
-
       // See: https://developers.veriff.com/#verification-session-status-and-decision-codes
       const unsuccessfulVeriffStatuses = ['declined', 'resubmission_requested', 'abandoned', 'expired']
       // See: https://documentation.idenfy.com/API/IdentificationDataRetrieval#verification-status
@@ -87,37 +81,73 @@ const StepIDV = () => {
       // See: https://documentation.onfido.com/#check-status
       const unsuccessfulOnfidoStatuses = ['withdrawn', 'paused', 'reopened']
 
-      if (preferredProvider === 'veriff' && data?.veriff?.status && veriffRetrievalEndpoint) {
-        if (data?.veriff?.status === 'approved') {
-          navigate(`/issuance/idgov/store?retrievalEndpoint=${veriffRetrievalEndpoint}`)
-        } else if (unsuccessfulVeriffStatuses.includes(data?.veriff?.status)) {
-          setVerificationError(
-            `Status of Veriff session ${data?.veriff?.sessionId} is '${data?.veriff?.status}'. Expected 'approved'.`
-          )
+      let hasSuccessfulSession = false;
+      if (preferredProvider === 'veriff' && data?.veriff?.status) {
+        if (veriffRetrievalEndpoint) {
+          if (data?.veriff?.status === 'approved') {
+            navigate(`/issuance/idgov/store?retrievalEndpoint=${veriffRetrievalEndpoint}`)
+          } else if (unsuccessfulVeriffStatuses.includes(data?.veriff?.status)) {
+            setVerificationError(
+              `Status of Veriff session ${data?.veriff?.sessionId} is '${data?.veriff?.status}'. Expected 'approved'.`
+            )
+          } else {
+            console.log(`Veriff status is '${data?.veriff?.status}'. Expected 'approved'.`)
+          }
         } else {
-          console.log(`Veriff status is '${data?.veriff?.status}'. Expected 'approved'.`)
+          // If the user has a successful session but the retrieval endpoint isn't populated, then
+          // they are a returning user who didn't complete the "finalize" step of issuance.
+          if (data?.veriff?.status === 'approved') {
+            hasSuccessfulSession = true;
+            const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${data?.veriff?.sessionId}`
+            const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+            setRetrievalEndpointForReturningUser(encodedRetrievalEndpoint)
+          }
         }
-      } else if (data?.idenfy?.status && preferredProvider === 'idenfy' && idenfyRetrievalEndpoint) {
-        if (data?.idenfy?.status === 'APPROVED') {
-          navigate(`/issuance/idgov/store?retrievalEndpoint=${idenfyRetrievalEndpoint}`)
-        } else if (unsuccessfulIdenfyStatuses.includes(data?.idenfy?.status)) {
-          setVerificationError(
-            `Status of iDenfy session ${data?.idenfy?.scanRef} is '${data?.idenfy?.status}'. Expected 'APPROVED'.`
-          )
+      } else if (data?.idenfy?.status && preferredProvider === 'idenfy') {
+        if (idenfyRetrievalEndpoint) {
+          if (data?.idenfy?.status === 'APPROVED') {
+            navigate(`/issuance/idgov/store?retrievalEndpoint=${idenfyRetrievalEndpoint}`)
+          } else if (unsuccessfulIdenfyStatuses.includes(data?.idenfy?.status)) {
+            setVerificationError(
+              `Status of iDenfy session ${data?.idenfy?.scanRef} is '${data?.idenfy?.status}'. Expected 'APPROVED'.`
+            )
+          } else {
+            console.log(`Idenfy status is '${data?.idenfy?.status}'. Expected 'APPROVED'.`)
+          }
         } else {
-          console.log(`Idenfy status is '${data?.idenfy?.status}'. Expected 'APPROVED'.`)
+          // If the user has a successful session but the retrieval endpoint isn't populated, then
+          // they are a returning user who didn't complete the "finalize" step of issuance.
+          if (data?.veriff?.status === 'approved') {
+            hasSuccessfulSession = true;
+            const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data?.idenfy?.scanRef}`
+            const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+            setRetrievalEndpointForReturningUser(encodedRetrievalEndpoint)
+          }
         }
-      } else if (data?.onfido?.status && preferredProvider === 'onfido' && onfidoRetrievalEndpoint) {
-        if (data?.onfido?.status === 'complete') {
-          navigate(`/issuance/idgov/store?retrievalEndpoint=${onfidoRetrievalEndpoint}`)
-        } else if (unsuccessfulOnfidoStatuses.includes(data?.onfido?.status)) {
-          setVerificationError(
-            `Status of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.status}'. Expected 'complete'.`
-          )
+      } else if (data?.onfido?.status && preferredProvider === 'onfido') {
+        if (onfidoRetrievalEndpoint) {
+          if (data?.onfido?.status === 'complete') {
+            navigate(`/issuance/idgov/store?retrievalEndpoint=${onfidoRetrievalEndpoint}`)
+          } else if (unsuccessfulOnfidoStatuses.includes(data?.onfido?.status)) {
+            setVerificationError(
+              `Status of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.status}'. Expected 'complete'.`
+            )
+          } else {
+            console.log(`Onfido status is '${data?.onfido?.status}'. Expected 'complete'.`)
+          }
         } else {
-          console.log(`Onfido status is '${data?.onfido?.status}'. Expected 'complete'.`)
+          // If the user has a successful session but the retrieval endpoint isn't populated, then
+          // they are a returning user who didn't complete the "finalize" step of issuance.
+          if (data?.veriff?.status === 'approved') {
+            hasSuccessfulSession = true;
+            const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data?.idenfy?.scanRef}`
+            const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
+            setRetrievalEndpointForReturningUser(encodedRetrievalEndpoint)
+          }
         }
       }
+
+      setReturningUserHasSuccessfulSession(hasSuccessfulSession ? 'yes' : 'no');
     },
   })
 
@@ -142,57 +172,89 @@ const StepIDV = () => {
   return (
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
-      {/* <div id="vouched-element" style={{ height: "10vh" }} /> */}
-      {preferredProvider === 'onfido' && (
-        <div id="onfido-mount"></div>
-      )}
-
-      {preferredProvider === 'idenfy' && (
-        <div style={{ textAlign: 'center' }}>
-          <p>Verify your ID</p>
-          <div style={{ 
-            marginTop: '20px',
-            marginBottom: '20px',
-            display: 'flex',
-            justifyContent: 'center'
-          }}>
-            <button
-              className="export-private-info-button"
-              style={{
-                lineHeight: "1",
-                fontSize: "16px"
-              }}
-              disabled={!canStart}
-              onClick={() => {
-                window.open(verificationUrl, '_blank');
-              }}
-            >
-              Start Verification
-            </button>
+      {returningUserHasSuccessfulSession === 'yes' && (
+        <>
+          <div style={{ textAlign: 'center' }}>
+            <p>It looks like you already verified yourself.</p>
+            <p>Click continue to finalize verification.</p>
+            <div style={{ 
+              marginTop: '20px',
+              marginBottom: '20px',
+              display: 'flex',
+              justifyContent: 'center'
+            }}>
+              <button
+                className="export-private-info-button"
+                style={{
+                  lineHeight: "1",
+                  fontSize: "16px"
+                }}
+                onClick={() => {
+                  navigate(`/issuance/idgov/store?retrievalEndpoint=${retrievalEndpointForReturningUser}`)
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      {idvSessionStatusQuery?.data?.[preferredProvider]?.status && 
-        !(preferredProvider === 'idenfy' && idvSessionStatusQuery?.data?.[preferredProvider]?.status === 'ACTIVE') && (
-        <div style={{ textAlign: 'center' }}>
-          <p>
-            Verification status: {idvSessionStatusQuery?.data?.[preferredProvider]?.status}
-          </p>
-          <p>
-            Once your verification is successful, you will be redirected to the next step. You
-            can also see the status of your verification on your profile page.
-          </p>
-        </div>
-      )}
+      {returningUserHasSuccessfulSession !== 'yes' && (
+        <>
+          {/* <div id="vouched-element" style={{ height: "10vh" }} /> */}
+          {preferredProvider === 'onfido' && (
+            <div id="onfido-mount"></div>
+          )}
 
-      {verificationError && (
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ color: 'red' }}>{verificationError}</p>
-          <p>
-            Please try again or contact support if the problem persists.
-          </p>
-        </div>
+          {preferredProvider === 'idenfy' && (
+            <div style={{ textAlign: 'center' }}>
+              <p>Verify your ID</p>
+              <div style={{ 
+                marginTop: '20px',
+                marginBottom: '20px',
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+                <button
+                  className="export-private-info-button"
+                  style={{
+                    lineHeight: "1",
+                    fontSize: "16px"
+                  }}
+                  disabled={!canStart}
+                  onClick={() => {
+                    window.open(verificationUrl, '_blank');
+                  }}
+                >
+                  Start Verification
+                </button>
+              </div>
+            </div>
+          )}
+
+          {idvSessionStatusQuery?.data?.[preferredProvider]?.status && 
+            !(preferredProvider === 'idenfy' && idvSessionStatusQuery?.data?.[preferredProvider]?.status === 'ACTIVE') && (
+            <div style={{ textAlign: 'center' }}>
+              <p>
+                Verification status: {idvSessionStatusQuery?.data?.[preferredProvider]?.status}
+              </p>
+              <p>
+                Once your verification is successful, you will be redirected to the next step. You
+                can also see the status of your verification on your profile page.
+              </p>
+            </div>
+          )}
+
+          {verificationError && (
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: 'red' }}>{verificationError}</p>
+              <p>
+                Please try again or contact support if the problem persists.
+              </p>
+            </div>
+          )}
+        </>
       )}
     </>
   );
