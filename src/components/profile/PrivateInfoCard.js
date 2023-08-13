@@ -135,9 +135,43 @@ export default function PrivateInfoCard({ creds, loading }) {
       ?? idvSessionStatus?.onfido?.status
   }, [idvSessionStatus, govIdRetrievalEndpoint])
 
+  // TODO...
+  // - If they have 1 successful session and no other session, simply display a link
+  // to finalize verification.
+  // - If they have multiple successful sessions, display a button to open a modal
+  // to view the successful sessions.
+  // - If they have 1 unsuccessful session and no other session, display something
+  // like: "Your verification was declined by <provider>. Click here to verify different 
+  // provider" which opens a modal to select a different provider. The provider that
+  // declined them should be greyed out.
+  // - If they have multiple unsuccessful sessions, display a button to open a modal
+  // that displays, for each provider, the session status.
+
   return (
     <>
       <ExportModal authSigs={authSigs} visible={exportModalVisible} setVisible={setExportModalVisible} />
+      
+      {/* <Modal 
+        // visible={confirmationModalVisible} 
+        visible={confirmationStatus === 'confirmationRequired'}
+        setVisible={() => {}} blur={true} heavyBlur={false} transparentBackground={false} >
+        <div style={{ textAlign: 'center' }}>
+          <p>Government ID Verification status</p>
+          <p>Would you like to overwrite them?</p>
+          <div className="confirmation-modal-buttons" style={{ marginTop: "10px", marginBottom: "10px", marginLeft: "auto", marginRight: "auto" }}>
+            <button className="confirmation-modal-button-cancel" onClick={onDenyOverwrite}>No</button>
+            <button className="confirmation-modal-button-confirm" onClick={onConfirmOverwrite}>Yes</button>
+          </div>
+          <p>You will not be able to undo this action.</p>
+          <p>You would be overwriting...</p>
+        </div>
+          {JSON.stringify(credsThatWillBeOverwritten?.metadata?.rawCreds ?? credsThatWillBeOverwritten, null, 2)
+            ?.replaceAll('}', '')?.replaceAll('{', '')?.replaceAll('"', '')?.split(',')?.map((cred, index) => (
+              // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              <p key={index}><code>{cred}</code></p>
+          ))}
+      </Modal> */}
+
       <div className="profile-info-card">
         {loading ? (
           <Oval
