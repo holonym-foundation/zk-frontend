@@ -206,7 +206,7 @@ export default function PrivateInfoCard({ creds, loading }) {
                   <>
                     <div className="private-info-attribute-name">Government ID</div>
                     <VerifyButton 
-                      onClick={() => navigate(`/issuance/idgov/store?retrievalEndpoint=${govIdRetrievalEndpoint}`)} 
+                      onClick={() => navigate(`/issuance/idgov-veriff/store?retrievalEndpoint=${govIdRetrievalEndpoint}`)} 
                       text="Your Government ID credentials are ready - Click here to complete issuance" 
                     />
                   </>

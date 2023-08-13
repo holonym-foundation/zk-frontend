@@ -5,7 +5,11 @@ import Profile from './components/profile/profile';
 import IssuanceOptions from "./components/issuance/IssuanceOptions";
 import ProofMenu from "./components/prove/proof-menu";
 import OffChainProofs from './components/prove/OffChainProofs';
-import GovernmentIDIssuance from "./components/issuance/GovernmentIDIssuance/GovernmentIDIssuance";
+import ConfirmReverify from "./components/issuance/GovernmentIDIssuance/ConfirmReverify";
+import GovIDRedirect from "./components/issuance/GovernmentIDIssuance/GovIDRedirect";
+import GovIDIssuanceVeriff from "./components/issuance/GovernmentIDIssuance/veriff/GovIDIssuanceVeriff";
+import GovIDIssuanceIdenfy from "./components/issuance/GovernmentIDIssuance/idenfy/GovIDIssuanceIdenfy";
+import GovIDIssuanceOnfido from "./components/issuance/GovernmentIDIssuance/onfido/GovIDIssuanceOnfido";
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance';
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
@@ -18,8 +22,16 @@ export function AppRoutes() {
       {/* <Route exact path={"/"} element={<IssuanceOptions />} /> */}
       <Route exact path={"/"} element={<Landing />} />
       <Route exact path={"/issuance"} element={<IssuanceOptions />} />
-      <Route exact path={"/issuance/idgov"} element={<GovernmentIDIssuance />} />
-      <Route exact path={"/issuance/idgov/:store"} element={<GovernmentIDIssuance />} />
+
+      <Route exact path={"/issuance/idgov"} element={<GovIDRedirect />} />
+      <Route exact path={"/issuance/idgov-confirm-reverify"} element={<ConfirmReverify />} />
+      <Route exact path={"/issuance/idgov-veriff"} element={<GovIDIssuanceVeriff />} />
+      <Route exact path={"/issuance/idgov-veriff/:store"} element={<GovIDIssuanceVeriff />} />
+      <Route exact path={"/issuance/idgov-idenfy"} element={<GovIDIssuanceIdenfy />} />
+      <Route exact path={"/issuance/idgov-idenfy/:store"} element={<GovIDIssuanceIdenfy />} />
+      <Route exact path={"/issuance/idgov-onfido"} element={<GovIDIssuanceOnfido />} />
+      <Route exact path={"/issuance/idgov-onfido/:store"} element={<GovIDIssuanceOnfido />} />
+      
       <Route exact path={"/issuance/phone"} element={<PhoneNumberIssuance />} />
       <Route exact path={"/issuance/phone/:store"} element={<PhoneNumberIssuance />} />
       <Route exact path={"/issuance/med"} element={<MedicalCredentialsIssuance />} />
