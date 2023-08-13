@@ -18,8 +18,7 @@ const useSniffedCountry = () => {
   return useQuery({
     queryKey: ['sniffCountryUsingIp'],
     queryFn: async () => {
-      // TODO: USE AN API OVER HTTPS!!
-      const resp = await fetch('http://ip-api.com/json?fields=country')
+      const resp = await fetch('https://id-server.holonym.io/ip-info/country')
       const data = await resp.json()
       return data.country
     },
@@ -32,35 +31,37 @@ const GovIDRedirect = () => {
   const [searchParams] = useSearchParams()
   const { sortedCreds, loadingCreds } = useCreds()
 
-  const { data: country } = useSniffedCountry();
-  const preferredProvider = useMemo(() => {
-    // If provider is specified in the URL, use it. Otherwise, use the provider that best
-    // suites the country associated with the user's IP address.
-    if (searchParams.get('provider') === 'veriff') {
-      return 'veriff'
-    } else if (searchParams.get('provider') === 'idenfy') {
-      return 'idenfy'
-    } else if (searchParams.get('provider') === 'onfido') {
-      return 'onfido'
-    } else {
-      return countryToVerificationProvider[country] ?? 'veriff'
-    }
-  }, [country, searchParams])
+  const { 
+    data: country, 
+    isLoading: countryIsLoading
+  } = useSniffedCountry();
+  console.log('country', country)
 
   useEffect(() => {
-    if (loadingCreds) return;
+    if (loadingCreds || countryIsLoading) return;
 
     // User already has gov id creds. Send them to the confirm reverify page.
     if (sortedCreds?.[serverAddress['idgov-v2']]) {
       navigate('/issuance/idgov-confirm-reverify')
     }
 
+    let preferredProvider = 'veriff'
+    // If provider is specified in the URL, use it. Otherwise, use the provider that best
+    // suites the country associated with the user's IP address.
+    if (searchParams.get('provider') === 'veriff') {
+      preferredProvider = 'veriff'
+    } else if (searchParams.get('provider') === 'idenfy') {
+      preferredProvider = 'idenfy'
+    } else if (searchParams.get('provider') === 'onfido') {
+      preferredProvider = 'onfido'
+    } else {
+      preferredProvider = countryToVerificationProvider[country] ?? 'veriff'
+    }
+
     // Redirect the user to the issuance page that uses the correct IDV provider
-    // TODO: Once we have a better IP API, we should wait to get the response
-    // from that before redirecting (just like we wait for creds to load).
     navigate(`/issuance/idgov-${preferredProvider}`)
 
-  }, [sortedCreds, loadingCreds])
+  }, [sortedCreds, loadingCreds, countryIsLoading])
 
   return (
     <VerificationContainer steps={steps} currentIdx={0}>
