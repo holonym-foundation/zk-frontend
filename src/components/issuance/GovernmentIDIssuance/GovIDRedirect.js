@@ -43,6 +43,7 @@ const GovIDRedirect = () => {
     // User already has gov id creds. Send them to the confirm reverify page.
     if (sortedCreds?.[serverAddress['idgov-v2']]) {
       navigate('/issuance/idgov-confirm-reverify')
+      return;
     }
 
     let preferredProvider = 'veriff'
