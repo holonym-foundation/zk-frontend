@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import VerificationContainer from '../IssuanceContainer'
 
-const ConfirmReverify = ({ confirmReverify }) => {
+const ConfirmReverify = () => {
+  const navigate = useNavigate()
+
   return (
     <VerificationContainer steps={[]} currentIdx={0}>
       <div style={{ textAlign: 'center' }}>
@@ -18,7 +21,7 @@ const ConfirmReverify = ({ confirmReverify }) => {
               lineHeight: "1",
               fontSize: "16px"
             }}
-            onClick={() => confirmReverify()}
+            onClick={() => navigate('/issuance/idgov-veriff')}
           >
             Reverify
           </button>
