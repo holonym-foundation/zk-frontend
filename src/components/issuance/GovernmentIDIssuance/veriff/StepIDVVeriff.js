@@ -65,6 +65,13 @@ const StepIDVVeriff = () => {
   return (
     <>
       <h3 style={{marginBottom:"25px", marginTop: "-25px"}}>Verify your ID</h3>
+      
+      {returningUserHasSuccessfulSession === 'loading' && (
+        <div style={{ textAlign: 'center' }}>
+          <p>Loading...</p>
+        </div>
+      )}
+
       {returningUserHasSuccessfulSession === 'yes' && (
         <>
           <div style={{ textAlign: 'center' }}>
