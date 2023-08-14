@@ -242,9 +242,14 @@ const Proofs = () => {
 				{!balanceGTsbtFee && (
 					<>
 						<h2>
-							Mint price:
+							Insufficient funds
 						</h2>
-						<p><code style={{ }}>0.005 ETH</code></p>
+						<p>
+							The mint price for this SBT is <code>0.005 ETH</code>. 
+						</p>
+						<p>
+							To mint, you must have enough ETH to cover the cost of the SBT as well as gas costs.
+						</p>
 						<br />
 						<a
 							className="x-button"
