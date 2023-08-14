@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import classNames from "classnames";
 import { Oval } from "react-loader-spinner";
+import { useQuery } from '@tanstack/react-query'
 import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
-import { serverAddress } from "../../constants";
+import { serverAddress, idServerUrl } from "../../constants";
+import useIdvSessionStatus from "../../hooks/useIdvSessionStatus"
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import VerificationStatusModal from './VerificationStatusModal';
 
 const issuerAddrToName = Object.fromEntries(
   Object.values(serverAddress).map(addr => [addr, "Holonym"])
@@ -86,6 +89,7 @@ const VerifyButton = ({ onClick, text }) => (
 export default function PrivateInfoCard({ creds, loading }) {
   const navigate = useNavigate();
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [statusModalIsVisible, setStatusModalIsVisible] = useState(false)
   const [authSigs, setAuthSigs] = useState(null);
   const { holoAuthSig } = useHoloAuthSig();
   const { holoKeyGenSig } = useHoloKeyGenSig();
@@ -101,9 +105,52 @@ export default function PrivateInfoCard({ creds, loading }) {
     "disabled": !authSigs,
   });
 
+  const { data: idvSessionStatus } = useIdvSessionStatus();
+  
+  const govIdRetrievalEndpoints = useMemo(() => {
+    const endpoints = {}
+    if (idvSessionStatus?.veriff?.status === 'approved') {
+      const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${
+        idvSessionStatus?.veriff?.sessionId
+      }`
+      endpoints.veriff = encodeURIComponent(window.btoa(retrievalEndpoint))
+    }
+    if (idvSessionStatus?.idenfy?.status === 'APPROVED') {
+      const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${
+        idvSessionStatus?.idenfy?.scanRef
+      }`
+      endpoints.idenfy = encodeURIComponent(window.btoa(retrievalEndpoint))
+    }
+    if (idvSessionStatus?.onfido?.status === 'complete') {
+      const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${
+        idvSessionStatus?.onfido?.check_id
+      }`
+      endpoints.onfido = encodeURIComponent(window.btoa(retrievalEndpoint))
+    }
+    return endpoints
+  }, [idvSessionStatus])
+
+  const govIdRetrievalEndpoint = useMemo(() => {
+    if (Object.keys(govIdRetrievalEndpoints).length === 1) {
+      return Object.values(govIdRetrievalEndpoints)[0]
+    }
+  }, [govIdRetrievalEndpoints])
+
+  // Regarding UX of verification session statuses...
+  // - If they have 1 successful session and no other session, simply display a link
+  //   to finalize verification.
+  // - Otherwise, let them open a modal to view verification statuses for each provider.
+
   return (
     <>
       <ExportModal authSigs={authSigs} visible={exportModalVisible} setVisible={setExportModalVisible} />
+      
+      <VerificationStatusModal 
+        isVisible={statusModalIsVisible} 
+        setIsVisible={setStatusModalIsVisible}
+        govIdRetrievalEndpoints={govIdRetrievalEndpoints}
+      />
+
       <div className="profile-info-card">
         {loading ? (
           <Oval
@@ -168,6 +215,19 @@ export default function PrivateInfoCard({ creds, loading }) {
                       </>
                     )
                   )
+                ) : govIdRetrievalEndpoint ? (
+                  <>
+                    <div className="private-info-attribute-name">Government ID</div>
+                    <VerifyButton 
+                      onClick={() => navigate(`/issuance/idgov-veriff/store?retrievalEndpoint=${govIdRetrievalEndpoint}`)} 
+                      text="Your Government ID credentials are ready - Click here to complete issuance" 
+                    />
+                  </>
+                ) : idvSessionStatus?.veriff?.status || idvSessionStatus?.idenfy?.status || idvSessionStatus?.onfido?.status ? (
+                  <>
+                    <div className="private-info-attribute-name">Government ID</div>
+                    <VerifyButton onClick={() => setStatusModalIsVisible(true)} text="View Government ID Verification Status" />
+                  </>
                 ) : (
                   <>
                     <div className="private-info-attribute-name">Government ID</div>

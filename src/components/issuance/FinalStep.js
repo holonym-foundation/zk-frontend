@@ -85,7 +85,6 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
   useEffect(() => {
     if (!(retrievalEndpoint && setError)) return;
     setError(undefined);
-    storeSessionId(retrievalEndpoint);
     retrieveNewCredentials()
       .then((newCredsTemp) => {
         setNewCreds(newCredsTemp);
@@ -93,16 +92,6 @@ export function useRetrieveNewCredentials({ setError, retrievalEndpoint }) {
       })
       .catch((error) => setError(error.message))
   }, [retrievalEndpoint, retrieveNewCredentials, setError, setNewCreds]);
-
-  function storeSessionId(retrievalEndpoint) {
-    if (
-      retrievalEndpoint.includes('veriff-sessionId') && 
-      retrievalEndpoint.includes(`${idServerUrl}/veriff/credentials`)
-    ) {
-      const sessionId = retrievalEndpoint.split('sessionId=')[1]
-      localStorage.setItem('veriff-sessionId', sessionId);
-    }
-  }
 
   return {
     newCreds,
