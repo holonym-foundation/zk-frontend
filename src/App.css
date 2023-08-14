@@ -417,3 +417,29 @@
   /* color: #01010c; */
   /* background-color: #aaa; */
 }
+
+.profile-navigate-to-verification-button {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: 'Clover Medium', sans-serif;
+  font-size: 14px;
+  line-height: 1.1;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin-left: 10px;
+  background-color: #fff;
+  color: #01010c;
+  border: 1px solid #01010c;
+  transition: color 500ms cubic-bezier(.23, 1, .32, 1), background-color 500ms cubic-bezier(.23, 1, .32, 1);
+}
+
+.profile-navigate-to-verification-button:hover:not([disabled]) {
+  color: #fff;
+  background-color: #01010c;
+}
+
+.profile-navigate-to-verification-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

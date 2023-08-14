@@ -17,27 +17,33 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
         heavyBlur={false}
         transparentBackground={false}
       >
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', margin: '20px' }}>
           <h2>Government ID Verification Status</h2>        
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <div style={{ fontWeight: 'bold' }}><p>Provider</p></div>
-            <div style={{ fontWeight: 'bold' }}><p>Status</p></div>
-            <div style={{ fontWeight: 'bold' }}><p>Action</p></div>
+            <div style={{ fontWeight: 'bold', width: '33.33%' }}><p>Provider</p></div>
+            <div style={{ fontWeight: 'bold', width: '33.33%' }}><p>Status</p></div>
+            <div style={{ fontWeight: 'bold', width: '33.33%' }}><p>Action</p></div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <div><p>Veriff</p></div>
-            <div><p>{idvSessionStatus?.veriff?.status ?? 'n/a'}</p></div>
-            <div>
+            <div style={{ width: '33.33%' }}><p>Veriff</p></div>
+            <div style={{ width: '33.33%' }}><p>{idvSessionStatus?.veriff?.status ?? 'n/a'}</p></div>
+            <div style={{ width: '33.33%' }}>
               {govIdRetrievalEndpoints?.veriff ? (
                 <button 
-                  className="confirmation-modal-button-confirm"
+                  className="profile-navigate-to-verification-button"
+                  style={{
+                    fontSize: '14px',
+                  }}
                   onClick={() => navigate(`/issuance/idgov-veriff/${govIdRetrievalEndpoints?.veriff}`)}
                 >
                   Finish Verification
                 </button>
               ) : (
                 <button 
-                  className="confirmation-modal-button-confirm"
+                  className="profile-navigate-to-verification-button"
+                  style={{
+                    fontSize: '14px',
+                  }}
                   onClick={() => navigate('/issuance/idgov-veriff')}
                   disabled={idvSessionStatus?.veriff?.status && idvSessionStatus?.veriff?.status !== 'approved'}
                 >
@@ -47,19 +53,25 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <div><p>iDenfy</p></div>
-            <div><p>{idvSessionStatus?.idenfy?.status ?? 'n/a'}</p></div>
-            <div>
+            <div style={{ width: '33.33%' }}><p>iDenfy</p></div>
+            <div style={{ width: '33.33%' }}><p>{idvSessionStatus?.idenfy?.status ?? 'n/a'}</p></div>
+            <div style={{ width: '33.33%' }}>
               {govIdRetrievalEndpoints?.idenfy ? (
                 <button 
-                  className="confirmation-modal-button-confirm"
+                  className="profile-navigate-to-verification-button"
+                  style={{
+                    fontSize: '14px',
+                  }}
                   onClick={() => navigate(`/issuance/idgov-idenfy/${govIdRetrievalEndpoints?.idenfy}`)}
                 >
                   Finish Verification
                 </button>
               ) : (
                 <button 
-                  className="confirmation-modal-button-confirm"
+                  className="profile-navigate-to-verification-button"
+                  style={{
+                    fontSize: '14px',
+                  }}
                   onClick={() => navigate('/issuance/idgov-idenfy')}
                   disabled={idvSessionStatus?.idenfy?.status && idvSessionStatus?.idenfy?.status !== 'APPROVED'}
                 >
@@ -69,19 +81,25 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <div><p>Onfido</p></div>
-            <div><p>{idvSessionStatus?.onfido?.status ?? 'n/a'}</p></div>
-            <div>
+            <div style={{ width: '33.33%' }}><p>Onfido</p></div>
+            <div style={{ width: '33.33%' }}><p>{idvSessionStatus?.onfido?.status ?? 'n/a'}</p></div>
+            <div style={{ width: '33.33%' }}>
               {govIdRetrievalEndpoints?.onfido ? (
                 <button 
-                  className="confirmation-modal-button-confirm"
+                  className="profile-navigate-to-verification-button"
+                  style={{
+                    fontSize: '14px',
+                  }}
                   onClick={() => navigate(`/issuance/idgov-onfido/${govIdRetrievalEndpoints?.onfido}`)}
                 >
                   Finish Verification
                 </button>
               ) : (
                 <button 
-                  className="confirmation-modal-button-confirm"
+                  className="profile-navigate-to-verification-button"
+                  style={{
+                    fontSize: '14px',
+                  }}
                   onClick={() => navigate('/issuance/idgov-onfido')}
                   disabled={idvSessionStatus?.onfido?.status && idvSessionStatus?.onfido?.status !== 'complete'}
                 >
