@@ -11,6 +11,7 @@ import { serverAddress, idServerUrl } from "../../constants";
 import useIdvSessionStatus from "../../hooks/useIdvSessionStatus"
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
+import VerificationStatusModal from './VerificationStatusModal';
 
 const issuerAddrToName = Object.fromEntries(
   Object.values(serverAddress).map(addr => [addr, "Holonym"])
@@ -88,6 +89,7 @@ const VerifyButton = ({ onClick, text }) => (
 export default function PrivateInfoCard({ creds, loading }) {
   const navigate = useNavigate();
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [statusModalIsVisible, setStatusModalIsVisible] = useState(false)
   const [authSigs, setAuthSigs] = useState(null);
   const { holoAuthSig } = useHoloAuthSig();
   const { holoKeyGenSig } = useHoloKeyGenSig();
@@ -105,72 +107,49 @@ export default function PrivateInfoCard({ creds, loading }) {
 
   const { data: idvSessionStatus } = useIdvSessionStatus();
   
-  const govIdRetrievalEndpoint = useMemo(() => {
+  const govIdRetrievalEndpoints = useMemo(() => {
+    const endpoints = {}
     if (idvSessionStatus?.veriff?.status === 'approved') {
       const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${
         idvSessionStatus?.veriff?.sessionId
       }`
-      return encodeURIComponent(window.btoa(retrievalEndpoint))
-    } else if (idvSessionStatus?.idenfy?.status === 'APPROVED') {
+      endpoints.veriff = encodeURIComponent(window.btoa(retrievalEndpoint))
+    }
+    if (idvSessionStatus?.idenfy?.status === 'APPROVED') {
       const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${
         idvSessionStatus?.idenfy?.scanRef
       }`
-      return encodeURIComponent(window.btoa(retrievalEndpoint))
-    } else if (idvSessionStatus?.onfido?.status === 'complete') {
+      endpoints.idenfy = encodeURIComponent(window.btoa(retrievalEndpoint))
+    }
+    if (idvSessionStatus?.onfido?.status === 'complete') {
       const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${
         idvSessionStatus?.onfido?.check_id
       }`
-      return encodeURIComponent(window.btoa(retrievalEndpoint))
+      endpoints.onfido = encodeURIComponent(window.btoa(retrievalEndpoint))
     }
+    return endpoints
   }, [idvSessionStatus])
 
-  const govIdVerificationStatus = useMemo(() => {
-    // If there's a retrievalEndpoint, then we just want to display that, not the status
-    if (govIdRetrievalEndpoint) return
+  const govIdRetrievalEndpoint = useMemo(() => {
+    if (Object.keys(govIdRetrievalEndpoints).length === 1) {
+      return Object.values(govIdRetrievalEndpoints)[0]
+    }
+  }, [govIdRetrievalEndpoints])
 
-    // TODO: Update this. Display the most successful verification status. For example,
-    // if onfido is 'in_progress', but veriff is 'declined', display the onfido status.
-    return idvSessionStatus?.veriff?.status 
-      ?? idvSessionStatus?.idenfy?.status 
-      ?? idvSessionStatus?.onfido?.status
-  }, [idvSessionStatus, govIdRetrievalEndpoint])
-
-  // TODO...
+  // Regarding UX of verification session statuses...
   // - If they have 1 successful session and no other session, simply display a link
-  // to finalize verification.
-  // - If they have multiple successful sessions, display a button to open a modal
-  // to view the successful sessions.
-  // - If they have 1 unsuccessful session and no other session, display something
-  // like: "Your verification was declined by <provider>. Click here to verify different 
-  // provider" which opens a modal to select a different provider. The provider that
-  // declined them should be greyed out.
-  // - If they have multiple unsuccessful sessions, display a button to open a modal
-  // that displays, for each provider, the session status.
+  //   to finalize verification.
+  // - Otherwise, let them open a modal to view verification statuses for each provider.
 
   return (
     <>
       <ExportModal authSigs={authSigs} visible={exportModalVisible} setVisible={setExportModalVisible} />
       
-      {/* <Modal 
-        // visible={confirmationModalVisible} 
-        visible={confirmationStatus === 'confirmationRequired'}
-        setVisible={() => {}} blur={true} heavyBlur={false} transparentBackground={false} >
-        <div style={{ textAlign: 'center' }}>
-          <p>Government ID Verification status</p>
-          <p>Would you like to overwrite them?</p>
-          <div className="confirmation-modal-buttons" style={{ marginTop: "10px", marginBottom: "10px", marginLeft: "auto", marginRight: "auto" }}>
-            <button className="confirmation-modal-button-cancel" onClick={onDenyOverwrite}>No</button>
-            <button className="confirmation-modal-button-confirm" onClick={onConfirmOverwrite}>Yes</button>
-          </div>
-          <p>You will not be able to undo this action.</p>
-          <p>You would be overwriting...</p>
-        </div>
-          {JSON.stringify(credsThatWillBeOverwritten?.metadata?.rawCreds ?? credsThatWillBeOverwritten, null, 2)
-            ?.replaceAll('}', '')?.replaceAll('{', '')?.replaceAll('"', '')?.split(',')?.map((cred, index) => (
-              // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-              <p key={index}><code>{cred}</code></p>
-          ))}
-      </Modal> */}
+      <VerificationStatusModal 
+        isVisible={statusModalIsVisible} 
+        setIsVisible={setStatusModalIsVisible}
+        govIdRetrievalEndpoints={govIdRetrievalEndpoints}
+      />
 
       <div className="profile-info-card">
         {loading ? (
@@ -244,14 +223,10 @@ export default function PrivateInfoCard({ creds, loading }) {
                       text="Your Government ID credentials are ready - Click here to complete issuance" 
                     />
                   </>
-                ) : govIdVerificationStatus ? (
-                  // TODO: If status is something like "in progress", display it here. If it
-                  // is something like "declined" but the user has not tried another provider,
-                  // then we should probably display both "declined (<provider>)" AND the
-                  // "Verify Government ID" button.
+                ) : idvSessionStatus?.veriff?.status || idvSessionStatus?.idenfy?.status || idvSessionStatus?.onfido?.status ? (
                   <>
                     <div className="private-info-attribute-name">Government ID</div>
-                    <VerifyButton onClick={() => navigate('/issuance/idgov')} text="Verify Government ID" />
+                    <VerifyButton onClick={() => setStatusModalIsVisible(true)} text="View Government ID Verification Status" />
                   </>
                 ) : (
                   <>
