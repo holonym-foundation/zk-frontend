@@ -34,7 +34,7 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
                   style={{
                     fontSize: '14px',
                   }}
-                  onClick={() => navigate(`/issuance/idgov-veriff/${govIdRetrievalEndpoints?.veriff}`)}
+                  onClick={() => navigate(`/issuance/idgov-veriff/store?retrievalEndpoint=${govIdRetrievalEndpoints?.veriff}`)}
                 >
                   Finish Verification
                 </button>
@@ -62,7 +62,7 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
                   style={{
                     fontSize: '14px',
                   }}
-                  onClick={() => navigate(`/issuance/idgov-idenfy/${govIdRetrievalEndpoints?.idenfy}`)}
+                  onClick={() => navigate(`/issuance/idgov-idenfy/store?retrievalEndpoint=${govIdRetrievalEndpoints?.idenfy}`)}
                 >
                   Finish Verification
                 </button>
@@ -90,7 +90,7 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
                   style={{
                     fontSize: '14px',
                   }}
-                  onClick={() => navigate(`/issuance/idgov-onfido/${govIdRetrievalEndpoints?.onfido}`)}
+                  onClick={() => navigate(`/issuance/idgov-onfido/store?retrievalEndpoint=${govIdRetrievalEndpoints?.onfido}`)}
                 >
                   Finish Verification
                 </button>
