@@ -8,37 +8,67 @@ import { useQuery } from '@tanstack/react-query'
 import { useCreds } from "../../../context/Creds";
 import {
   serverAddress,
-  countryToVerificationProvider,
 } from "../../../constants";
+import { getIDVProvider } from "../../../utils/misc";
 import VerificationContainer from "../IssuanceContainer";
 
 const steps = ["Verify", "Finalize"];
 
-const useSniffedCountry = () => {
+const useSniffedIpAndCountry = () => {
   return useQuery({
-    queryKey: ['sniffCountryUsingIp'],
+    queryKey: ['ipAndCountry'],
     queryFn: async () => {
-      const resp = await fetch('https://id-server.holonym.io/ip-info/country')
-      const data = await resp.json()
-      return data.country
+      const resp = await fetch('https://id-server.holonym.io/ip-info/ip-and-country')
+      return resp.json()
     },
     staleTime: Infinity,
   });
 }
 
+const usePreferredProvider = (ipAndCountry, { enabled }) => {
+  const [searchParams] = useSearchParams()
+
+  return useQuery({
+    queryKey: ['preferredIDVProvider'],
+    queryFn: async () => {
+      let preferredProvider = 'veriff'
+      // If provider is specified in the URL, use it. Otherwise, use the provider that best
+      // suites the country associated with the user's IP address.
+      if (searchParams.get('provider') === 'veriff') {
+        preferredProvider = 'veriff'
+      } else if (searchParams.get('provider') === 'idenfy') {
+        preferredProvider = 'idenfy'
+      } else if (searchParams.get('provider') === 'onfido') {
+        preferredProvider = 'onfido'
+      } else {
+        preferredProvider = await getIDVProvider(ipAndCountry?.ip, ipAndCountry?.country)
+      }
+
+      return preferredProvider
+    },
+    staleTime: Infinity,
+    enabled: enabled
+  });
+}
+
 const GovIDRedirect = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams()
   const { sortedCreds, loadingCreds } = useCreds()
 
   const { 
-    data: country, 
-    isLoading: countryIsLoading
-  } = useSniffedCountry();
-  console.log('country', country)
+    data: ipAndCountry, 
+    isLoading: ipAndCountryIsLoading
+  } = useSniffedIpAndCountry();
+
+  const {
+    data: preferredProvider,
+    isLoading: preferredProviderIsLoading
+  } = usePreferredProvider(ipAndCountry, {
+    enabled: !ipAndCountryIsLoading
+  });
 
   useEffect(() => {
-    if (loadingCreds || countryIsLoading) return;
+    if (loadingCreds || ipAndCountryIsLoading || preferredProviderIsLoading) return;
 
     // User already has gov id creds. Send them to the confirm reverify page.
     if (sortedCreds?.[serverAddress['idgov-v2']]) {
@@ -46,23 +76,10 @@ const GovIDRedirect = () => {
       return;
     }
 
-    let preferredProvider = 'veriff'
-    // If provider is specified in the URL, use it. Otherwise, use the provider that best
-    // suites the country associated with the user's IP address.
-    if (searchParams.get('provider') === 'veriff') {
-      preferredProvider = 'veriff'
-    } else if (searchParams.get('provider') === 'idenfy') {
-      preferredProvider = 'idenfy'
-    } else if (searchParams.get('provider') === 'onfido') {
-      preferredProvider = 'onfido'
-    } else {
-      preferredProvider = countryToVerificationProvider[country] ?? 'veriff'
-    }
-
     // Redirect the user to the issuance page that uses the correct IDV provider
     navigate(`/issuance/idgov-${preferredProvider}`)
 
-  }, [sortedCreds, loadingCreds, countryIsLoading])
+  }, [sortedCreds, loadingCreds, ipAndCountryIsLoading, preferredProviderIsLoading])
 
   return (
     <VerificationContainer steps={steps} currentIdx={0}>
