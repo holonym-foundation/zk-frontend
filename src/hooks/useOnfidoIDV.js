@@ -78,7 +78,7 @@ const useOnfidoIDV = ({ enabled }) => {
         //   'complete'
         // ],
         onComplete: (data) => {
-          console.log('onfido: everything is complete. data:', data)
+          console.log('onfido: everything is complete')
           onfido.setOptions({ isModalOpen: false })
           refetchCheck()
         },
