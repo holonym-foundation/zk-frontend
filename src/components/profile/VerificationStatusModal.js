@@ -8,6 +8,13 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
 
   const { data: idvSessionStatus } = useIdvSessionStatus();
 
+  // Onfido is slightly different since it separates status from result. To display
+  // the failure "status" as a sinle string, we need to check both status and result.
+  const onfidoStatus = 
+    (idvSessionStatus?.onfido?.status === 'complete' && 
+    idvSessionStatus?.onfido?.result === 'consider') 
+      ? 'declined' : idvSessionStatus?.onfido?.status
+
   return (
     <>
       <Modal 
@@ -82,7 +89,7 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ width: '33.33%' }}><p>Onfido</p></div>
-            <div style={{ width: '33.33%' }}><p>{idvSessionStatus?.onfido?.status ?? 'n/a'}</p></div>
+            <div style={{ width: '33.33%' }}><p>{onfidoStatus ?? 'n/a'}</p></div>
             <div style={{ width: '33.33%' }}>
               {govIdRetrievalEndpoints?.onfido ? (
                 <button 
@@ -101,7 +108,7 @@ export default function VerificationStatusModal({ isVisible, setIsVisible, govId
                     fontSize: '14px',
                   }}
                   onClick={() => navigate('/issuance/idgov-onfido')}
-                  disabled={idvSessionStatus?.onfido?.status && idvSessionStatus?.onfido?.status !== 'complete'}
+                  disabled={idvSessionStatus?.onfido?.status && onfidoStatus !== 'complete'}
                 >
                   Verify
                 </button>

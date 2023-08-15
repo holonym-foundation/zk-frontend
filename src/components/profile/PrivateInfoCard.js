@@ -121,7 +121,7 @@ export default function PrivateInfoCard({ creds, loading }) {
       }`
       endpoints.idenfy = encodeURIComponent(window.btoa(retrievalEndpoint))
     }
-    if (idvSessionStatus?.onfido?.status === 'complete') {
+    if (idvSessionStatus?.onfido?.status === 'complete' && idvSessionStatus?.onfido?.result === 'clear') {
       const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${
         idvSessionStatus?.onfido?.check_id
       }`

@@ -37,8 +37,12 @@ const StepIDV = () => {
       let hasSuccessfulSession = false;
       if (data?.onfido?.status) {
         if (onfidoRetrievalEndpoint) {
-          if (data?.onfido?.status === 'complete') {
+          if (data?.onfido?.status === 'complete' && data?.onfido?.result === 'clear') {
             navigate(`/issuance/idgov-onfido/store?retrievalEndpoint=${onfidoRetrievalEndpoint}`)
+          } else if (data?.onfido?.status === 'complete' && data?.onfido?.result === 'consider') {
+            setVerificationError(
+              `Status of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.status}'. Expected 'complete'.`
+            )
           } else if (unsuccessfulOnfidoStatuses.includes(data?.onfido?.status)) {
             setVerificationError(
               `Status of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.status}'. Expected 'complete'.`
