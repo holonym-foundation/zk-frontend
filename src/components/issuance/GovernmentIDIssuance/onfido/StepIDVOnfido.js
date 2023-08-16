@@ -41,7 +41,7 @@ const StepIDV = () => {
             navigate(`/issuance/idgov-onfido/store?retrievalEndpoint=${onfidoRetrievalEndpoint}`)
           } else if (data?.onfido?.status === 'complete' && data?.onfido?.result === 'consider') {
             setVerificationError(
-              `Status of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.status}'. Expected 'complete'.`
+              `Result of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.result}'. Expected 'clear'.`
             )
           } else if (unsuccessfulOnfidoStatuses.includes(data?.onfido?.status)) {
             setVerificationError(
