@@ -42,7 +42,7 @@ const StepIDVIdenfy = () => {
       if (data?.idenfy?.status) {
         if (idenfyRetrievalEndpoint) {
           if (data?.idenfy?.status === 'APPROVED') {
-            navigate(`/issuance/idgov-veriff/store?retrievalEndpoint=${idenfyRetrievalEndpoint}`)
+            navigate(`/issuance/idgov-idenfy/store?retrievalEndpoint=${idenfyRetrievalEndpoint}`)
           } else if (unsuccessfulIdenfyStatuses.includes(data?.idenfy?.status)) {
             setVerificationError(
               `Status of iDenfy session ${data?.idenfy?.scanRef} is '${data?.idenfy?.status}'. Expected 'APPROVED'.`
@@ -53,7 +53,7 @@ const StepIDVIdenfy = () => {
         } else {
           // If the user has a successful session but the retrieval endpoint isn't populated, then
           // they are a returning user who didn't complete the "finalize" step of issuance.
-          if (data?.veriff?.status === 'approved') {
+          if (data?.idenfy?.status === 'APPROVED' && data?.idenfy?.scanRef) {
             hasSuccessfulSession = true;
             const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data?.idenfy?.scanRef}`
             const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
