@@ -53,11 +53,17 @@ const StepIDV = () => {
         } else {
           // If the user has a successful session but the retrieval endpoint isn't populated, then
           // they are a returning user who didn't complete the "finalize" step of issuance.
-          if (data?.veriff?.status === 'approved') {
+          if (
+            data?.onfido?.status === "complete" &&
+            data?.onfido?.result === "clear" &&
+            data?.onfido?.check_id
+          ) {
             hasSuccessfulSession = true;
-            const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${data?.idenfy?.scanRef}`
-            const encodedRetrievalEndpoint = encodeURIComponent(window.btoa(retrievalEndpoint))
-            setRetrievalEndpointForReturningUser(encodedRetrievalEndpoint)
+            const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${data?.onfido?.check_id}`;
+            const encodedRetrievalEndpoint = encodeURIComponent(
+              window.btoa(retrievalEndpoint)
+            );
+            setRetrievalEndpointForReturningUser(encodedRetrievalEndpoint);
           }
         }
       }
