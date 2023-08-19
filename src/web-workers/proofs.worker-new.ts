@@ -13,7 +13,7 @@ import {
   proofOfMedicalSpecialty,
   proveGovIdFirstNameLastName,
   proveKnowledgeOfLeafPreimage,
-} from "../utils/proofs.js";
+} from "../utils/proofs";
 
 let generatingProof = {
   uniqueness: false,
@@ -24,7 +24,12 @@ let generatingProof = {
   kolp: false, // == "Knowlege of Leaf Preimage"
 };
 
-async function loadProof(proofFunction, args, proofType, forceReload) {
+async function loadProof(
+  proofFunction: (...args: any[]) => Promise<any>,
+  args: Parameters<typeof proofFunction>,
+  proofType: keyof typeof generatingProof,
+  forceReload: boolean
+) {
   if (generatingProof[proofType] && !forceReload) return;
   try {
     generatingProof[proofType] = true;
@@ -33,7 +38,6 @@ async function loadProof(proofFunction, args, proofType, forceReload) {
       args
     );
     const antiSybilProof = await proofFunction(...args);
-    console.log(`[Worker] Generated ${proofType} proof`);
     postMessage({ error: null, proofType, proof: antiSybilProof });
   } catch (err) {
     console.log(`[Worker] Error generating ${proofType} proof`, err);
@@ -51,14 +55,14 @@ onmessage = async (event) => {
       event.data.userAddress,
       event.data.govIdCreds,
       event.data.actionId,
-    ];
+    ] as Parameters<typeof antiSybil>;
     loadProof(antiSybil, args, "uniqueness", event.data.forceReload);
   } else if (event.data && event.data.message === "uniqueness-phone") {
     const args = [
       event.data.userAddress,
       event.data.phoneNumCreds,
       event.data.actionId,
-    ];
+    ] as Parameters<typeof uniquenessPhone>;
     loadProof(
       uniquenessPhone,
       args,
@@ -66,10 +70,15 @@ onmessage = async (event) => {
       event.data.forceReload
     );
   } else if (event.data && event.data.message === "us-residency") {
-    const args = [event.data.userAddress, event.data.govIdCreds];
+    const args = [event.data.userAddress, event.data.govIdCreds] as Parameters<
+      typeof proofOfResidency
+    >;
     loadProof(proofOfResidency, args, "us-residency", event.data.forceReload);
   } else if (event.data && event.data.message === "medical-specialty") {
-    const args = [event.data.userAddress, event.data.medicalCreds];
+    const args = [
+      event.data.userAddress,
+      event.data.medicalCreds,
+    ] as Parameters<typeof proofOfMedicalSpecialty>;
     loadProof(
       proofOfMedicalSpecialty,
       args,
@@ -77,7 +86,9 @@ onmessage = async (event) => {
       event.data.forceReload
     );
   } else if (event.data && event.data.message === "gov-id-firstname-lastname") {
-    const args = [event.data.govIdCreds];
+    const args = [event.data.govIdCreds] as Parameters<
+      typeof proveGovIdFirstNameLastName
+    >;
     loadProof(
       proveGovIdFirstNameLastName,
       args,
@@ -85,7 +96,10 @@ onmessage = async (event) => {
       event.data.forceReload
     );
   } else if (event.data && event.data.message === "kolp") {
-    const args = [event.data.serializedAsNewPreimage, event.data.newSecret];
+    const args = [
+      event.data.serializedAsNewPreimage,
+      event.data.newSecret,
+    ] as Parameters<typeof proveKnowledgeOfLeafPreimage>;
     loadProof(
       proveKnowledgeOfLeafPreimage,
       args,

@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
-// import { initialize } from "zokrates-js";
+// import { initialize, ZoKratesProvider } from "zokrates-js";
+import { ZoKratesProvider } from "zokrates-js";
 import { initialize } from "@holonym-foundation/zokrates-js-fork";
+// @ts-ignore
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import {
   preprocEndpoint,
@@ -11,13 +13,18 @@ import zokABIs from "../constants/abi/ZokABIs.json";
 import assert from "assert";
 import Relayer from "./relayer";
 import { groth16 } from "snarkjs";
+import {
+  ProofGenArtifacts,
+  IssuedCredentialBase,
+  IssuedCredentialMetadataGovID,
+} from "../types";
 
-let zokProvider = null;
-const artifacts = {};
-const provingKeys = {};
+let zokProvider: ZoKratesProvider | null = null;
+const artifacts: ProofGenArtifacts = {};
+const provingKeys: { [circuitName: string]: Uint8Array } = {};
 // let verifyingKeys = {};
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * @param timeout Time in ms to wait for zokProvider to be initialized
@@ -29,14 +36,14 @@ async function waitForZokProvider(timeout = 5000) {
   }
 }
 
-export async function waitForArtifacts(circuitName, timeout = 5000) {
+export async function waitForArtifacts(circuitName: string, timeout = 5000) {
   const start = Date.now();
   while (!(circuitName in artifacts) && Date.now() - start < timeout) {
     await sleep(100);
   }
 }
 
-async function loadArtifacts(circuitName) {
+async function loadArtifacts(circuitName: string) {
   if (circuitName in artifacts) {
     // console.log(`Note: Trying to load ${circuitName} artifacts, which have already been loaded. Not reloading`);
     return;
@@ -44,15 +51,15 @@ async function loadArtifacts(circuitName) {
   const program = await (
     await fetch(`${preprocEndpoint}/${circuitName}Program`)
   ).arrayBuffer();
-  const abi = zokABIs[circuitName];
+  const abi = zokABIs[circuitName as keyof typeof zokABIs];
 
-  artifacts[circuitName] = {
+  artifacts[circuitName as keyof typeof artifacts] = {
     program: new Uint8Array(program),
     abi: abi,
   };
 }
 
-async function loadProvingKey(circuitName) {
+async function loadProvingKey(circuitName: string) {
   if (circuitName in provingKeys) {
     // console.log(`Note: Trying to load ${circuitName} provingKey, which has already been loaded. Not reloading`);
     return;
@@ -79,14 +86,14 @@ loadArtifacts("poseidonTwoInputs");
 initialize().then(async (zokratesProvider) => {
   zokProvider = zokratesProvider;
 }).catch((err) => {
-  console.error('Error initializing zokrates provider:', err)
+  console.error('err initializing zokrates', err)
 })
 
 /**
  * Convert date string to unix timestamp
  * @param date Must be of form yyyy-mm-dd
  */
-export function getDateAsInt(date) {
+export function getDateAsInt(date: string) {
   // Format input
   const [year] = date.split("-");
   const yearAsNum = parseInt(year);
@@ -95,9 +102,11 @@ export function getDateAsInt(date) {
 }
 
 /* Gets Merkle tree and creates Merkle proof */
-export async function getMerkleProofParams(leaf) {
+export async function getMerkleProofParams(leaf: string) {
+  console.log('104')
   const treeData = await Relayer.getTree(defaultChainToProveOn);
-  // console.log('treeData', treeData)
+  // console.log(treeData, "treeData")
+  console.log('107')
   const tree = new IncrementalMerkleTree(poseidonHashQuinary, 14, "0", 5);
   // NOTE: _nodes and _zeroes are private readonly variables in the `incremental-merkle-tree.d` file,
   // but the JavaScript implementation doesn't seem to enforce these constraints.
@@ -108,6 +117,7 @@ export async function getMerkleProofParams(leaf) {
   // @ts-ignore
   tree._zeroes = treeData._zeroes;
 
+  console.log('118')
   // @ts-ignore
   const leaves = tree._nodes[0];
   if (leaves.indexOf(leaf) === -1) {
@@ -115,6 +125,7 @@ export async function getMerkleProofParams(leaf) {
     throw new Error("Leaf is not in Merkle tree");
   }
 
+  console.log('126')
   const index = tree.indexOf(leaf);
   const merkleProof = tree.createProof(index);
   const [root_, leaf_, path_, indices_] = serializeProof(
@@ -134,7 +145,7 @@ export async function getMerkleProofParams(leaf) {
  * (Forked from holo-merkle-utils)
  * Serializes createProof outputs to ZoKrates format
  */
-export function serializeProof(proof, hash) {
+export function serializeProof(proof: any, hash: (x: any) => any) {
   // Insert the digest of the leaf at every level:
   let digest = proof.leaf;
   for (let i = 0; i < proof.siblings.length; i++) {
@@ -143,12 +154,12 @@ export function serializeProof(proof, hash) {
   }
 
   // serialize
-  const argify = (x) => ethers.BigNumber.from(x).toString();
+  const argify = (x: string) => ethers.BigNumber.from(x).toString();
   const args = [
     argify(proof.root),
     argify(proof.leaf),
-    proof.siblings.map((x) => x.map((y) => argify(y))),
-    proof.pathIndices.map((x) => argify(x)),
+    proof.siblings.map((x: Array<string>) => x.map((y) => argify(y))),
+    proof.pathIndices.map((x: string) => argify(x)),
   ];
   return args;
 }
@@ -157,7 +168,7 @@ export function serializeProof(proof, hash) {
  * @param {Array<string>} input length-2 Array of numbers represented as strings.
  * @returns {Promise<string>}
  */
-export async function poseidonTwoInputs(input) {
+export async function poseidonTwoInputs(input: [string, string]) {
   if (input.length !== 2 || !Array.isArray(input)) {
     throw new Error("input must be an array of length 2");
   }
@@ -180,7 +191,7 @@ export async function poseidonTwoInputs(input) {
 /**
  * @param input length-5 Array of numbers represented as strings.
  */
-export function poseidonHashQuinary(input) {
+export function poseidonHashQuinary(input: any[]) {
   if (input.length !== 5 || !Array.isArray(input)) {
     throw new Error("input must be an array of length 5");
   }
@@ -198,7 +209,7 @@ export function poseidonHashQuinary(input) {
 /** Computes a poseidon hash of the input array
  * @param serializedCreds All other values in the leaf's preimage, as an array of strings
  */
-export async function createLeaf(serializedCreds) {
+export async function createLeaf(serializedCreds: Array<string>) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
     if (!zokProvider) return;
@@ -213,7 +224,7 @@ export async function createLeaf(serializedCreds) {
 }
 
 // TODO: document what data parameter is
-export async function onAddLeafProof(data) {
+export async function onAddLeafProof(data: IssuedCredentialBase) {
   const params = {
     pubKeyX: data.pubkey.x,
     pubKeyY: data.pubkey.y,
@@ -277,8 +288,8 @@ export async function onAddLeafProof(data) {
 // }
 
 export async function proofOfResidency(
-  sender,
-  govIdCreds
+  sender: string,
+  govIdCreds: IssuedCredentialBase
 ) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
@@ -300,7 +311,7 @@ export async function proofOfResidency(
     nameCitySubdivisionZipStreetHash,
     completedAt,
     scope,
-  ] = govIdCreds.creds.serializedAsNewPreimage;
+  ] = govIdCreds.creds.serializedAsNewPreimage!;
 
   const leaf = await createLeaf([
     issuer,
@@ -311,7 +322,7 @@ export async function proofOfResidency(
     scope,
   ]);
 
-  const mp = await getMerkleProofParams(leaf);
+  const mp = await getMerkleProofParams(leaf!);
 
   const args = [
     mp.root,
@@ -352,24 +363,30 @@ export async function proofOfResidency(
  * @param actionId
  */
 export async function antiSybil(
-  sender,
-  govIdCreds,
-  actionId = defaultActionId
+  sender: string,
+  govIdCreds: IssuedCredentialBase,
+  actionId: string = defaultActionId
 ) {
+  console.log('362')
   if (!zokProvider) {
     await waitForZokProvider(5000);
+    console.log('zokProvider', zokProvider)
     if (!zokProvider) return;
   }
 
+  console.log('368')
   const footprint = await poseidonTwoInputs([
     actionId,
     ethers.BigNumber.from(govIdCreds.creds.newSecret).toString(),
   ]);
 
-  const leaf = await createLeaf(govIdCreds.creds.serializedAsNewPreimage);
+  console.log('374')
+  const leaf = await createLeaf(govIdCreds.creds.serializedAsNewPreimage!);
 
-  const mp = await getMerkleProofParams(leaf);
+  console.log('377')
+  const mp = await getMerkleProofParams(leaf!);
 
+  console.log('380')
   const [
     issuer,
     secret,
@@ -377,7 +394,7 @@ export async function antiSybil(
     nameCitySubdivisionZipStreetHash,
     completedAt,
     scope,
-  ] = govIdCreds.creds.serializedAsNewPreimage;
+  ] = govIdCreds.creds.serializedAsNewPreimage!;
 
   const args = [
     mp.root,
@@ -395,11 +412,14 @@ export async function antiSybil(
     mp.indices,
   ];
 
+  console.log('406')
   await loadArtifacts("antiSybil");
   await loadProvingKey("antiSybil");
 
+  console.log('410')
   const { witness } = zokProvider.computeWitness(artifacts.antiSybil, args);
 
+  console.log('413')
   const proof = zokProvider.generateProof(
     artifacts.antiSybil.program,
     witness,
@@ -415,9 +435,9 @@ export async function antiSybil(
  * @param actionId
  */
 export async function uniquenessPhone(
-  sender,
-  phoneNumCreds,
-  actionId = defaultActionId
+  sender: string,
+  phoneNumCreds: IssuedCredentialBase,
+  actionId: string = defaultActionId
 ) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
@@ -429,9 +449,9 @@ export async function uniquenessPhone(
     ethers.BigNumber.from(phoneNumCreds.creds.newSecret).toString(),
   ]);
 
-  const leaf = await createLeaf(phoneNumCreds.creds.serializedAsNewPreimage);
+  const leaf = await createLeaf(phoneNumCreds.creds.serializedAsNewPreimage!);
 
-  const mp = await getMerkleProofParams(leaf);
+  const mp = await getMerkleProofParams(leaf!);
 
   const [
     issuer,
@@ -441,7 +461,7 @@ export async function uniquenessPhone(
     customField2,
     iat,
     scope,
-  ] = phoneNumCreds.creds.serializedAsNewPreimage;
+  ] = phoneNumCreds.creds.serializedAsNewPreimage!;
 
   const args = [
     mp.root,
@@ -473,8 +493,8 @@ export async function uniquenessPhone(
 }
 
 export async function proofOfMedicalSpecialty(
-  sender,
-  medicalCreds
+  sender: string,
+  medicalCreds: IssuedCredentialBase
 ) {
   if (!zokProvider) {
     await waitForZokProvider(5000);
@@ -490,11 +510,11 @@ export async function proofOfMedicalSpecialty(
   ]);
 
   const [issuer, newSecret, specialty, npiNumLicenseMedCredsHash, iat, scope] =
-    medicalCreds.creds.serializedAsNewPreimage;
+    medicalCreds.creds.serializedAsNewPreimage!;
 
-  const leaf = await createLeaf(medicalCreds.creds.serializedAsNewPreimage);
+  const leaf = await createLeaf(medicalCreds.creds.serializedAsNewPreimage!);
 
-  const mp = await getMerkleProofParams(leaf);
+  const mp = await getMerkleProofParams(leaf!);
 
   const args = [
     mp.root,
@@ -530,8 +550,8 @@ export async function proofOfMedicalSpecialty(
 }
 
 export async function proveKnowledgeOfLeafPreimage(
-  serializedCreds,
-  newSecret
+  serializedCreds: Array<string>,
+  newSecret: string
 ) {
   if (!zokProvider) {
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
@@ -584,14 +604,14 @@ export async function proveKnowledgeOfLeafPreimage(
  * @param govIdCreds - object issued from id-server
  */
 export async function proveGovIdFirstNameLastName(
-  govIdCreds
+  govIdCreds: IssuedCredentialBase & { metadata: IssuedCredentialMetadataGovID }
 ) {
   if (!zokProvider) {
     // TODO: Make this more sophisticated. Wait for zokProvider to be set or for timeout (e.g., 10s)
     await sleep(5000);
     if (!zokProvider) return;
   }
-  const mp = await getMerkleProofParams(govIdCreds.newLeaf);
+  const mp = await getMerkleProofParams(govIdCreds.newLeaf!);
   const encoder = new TextEncoder();
   const proofArgs = [
     mp.root,
