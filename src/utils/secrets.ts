@@ -285,9 +285,11 @@ export async function storeCredentials(
       for (const issuer of Object.keys(creds)) {
         if (creds[issuer]?.creds?.serializedAsNewPreimage) {
           kolpProof = await proveKnowledgeOfLeafPreimage(
+            // @ts-ignore
             creds[issuer].creds.serializedAsNewPreimage.map((item) =>
               ethers.BigNumber.from(item || "0").toString()
             ),
+            // @ts-ignore
             creds[issuer].creds.newSecret
           );
           break;
