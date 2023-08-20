@@ -13,8 +13,9 @@ import GovIDIssuanceOnfido from "./components/issuance/GovernmentIDIssuance/onfi
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance';
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
-import { OnChainProofs } from "./App";
 import Register from './components/register';
+
+const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 
 export function AppRoutes() {
   return (
