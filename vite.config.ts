@@ -13,9 +13,10 @@ export default defineConfig({
   plugins: [
     nodePolyfills({
       // To exclude specific polyfills, add them to this list.
-      // exclude: [
-      //   'fs', // Excludes the polyfill for `fs` and `node:fs`.
-      // ],
+        exclude: [
+          'crypto',
+          // 'fs', // Excludes the polyfill for `fs` and `node:fs`.
+        ],
       // // Whether to polyfill specific globals.
       // globals: {
       //   Buffer: true, // can also be 'build', 'dev', or false
@@ -38,9 +39,10 @@ export default defineConfig({
     plugins: [
       nodePolyfills({
         // To exclude specific polyfills, add them to this list.
-        // exclude: [
-        //   'fs', // Excludes the polyfill for `fs` and `node:fs`.
-        // ],
+        exclude: [
+          'crypto',
+          // 'fs', // Excludes the polyfill for `fs` and `node:fs`.
+        ],
         // // Whether to polyfill specific globals.
         // globals: {
         //   Buffer: true, // can also be 'build', 'dev', or false
