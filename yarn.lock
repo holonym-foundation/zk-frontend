@@ -1825,10 +1825,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@holonym-foundation/zokrates-js-fork@1.1.41":
-  version "1.1.41"
-  resolved "https://registry.yarnpkg.com/@holonym-foundation/zokrates-js-fork/-/zokrates-js-fork-1.1.41.tgz#ff08894249a5534e5e21f478ea136187948d21c8"
-  integrity sha512-EY7ls+PERMlauG2Q1uGNWR9ZJLzw9HwQ6hMR+Xnk60FeZLAZCPCBv7XC0RQk0FyTGa67TjlHdH4PaiD+yhll1g==
+"@holonym-foundation/zokrates-js-fork@1.1.42":
+  version "1.1.42"
+  resolved "https://registry.yarnpkg.com/@holonym-foundation/zokrates-js-fork/-/zokrates-js-fork-1.1.42.tgz#fc14f3375e53dfe791281677cca9f3536bef0f28"
+  integrity sha512-dFf+7ebGfGikY3Akb1Gd7yLMbGEpXrrdvPun2qHKn+o1MXzcWKkhnVYF4uef8NPvL9Tn3oFPTFGyL5I7e0DZRg==
 
 "@humanwhocodes/config-array@^0.11.10":
   version "0.11.10"
