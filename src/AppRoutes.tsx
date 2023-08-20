@@ -14,8 +14,9 @@ import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance';
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
+import OnChainProofs from "./components/prove/OnChainProofs";
 
-const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
+// const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 
 export function AppRoutes() {
   return (
