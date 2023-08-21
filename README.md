@@ -52,7 +52,9 @@ yarn dev
 
 Note that this repo is only the frontend and is not fully functional on its own. 
 
-To fully function, the following repos must also be running:
+To fully function, the following servers must also be running:
 - [holonym-relayer](https://github.com/holonym-foundation/holonym-relayer)
 - [id-server](https://github.com/holonym-foundation/id-server)
 - [phone-number-server](https://github.com/holonym-foundation/phone-number-server)
+
+Another note: This frontend and the relayer use ZK circuits and call smart contracts defined in [id-hub-contracts](https://github.com/holonym-foundation/id-hub-contracts/).
