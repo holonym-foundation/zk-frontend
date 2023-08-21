@@ -30,7 +30,7 @@ fi
 
 First, install Node.js 16. We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage your Node.js versions.
 
-Clone the repo:
+Clone the repo.
 
 ```bash
 git clone https://github.com/holonym-foundation/zk-frontend.git
@@ -42,7 +42,7 @@ Install dependencies with yarn.
 yarn install
 ```
 
-Run the development server:
+Run the development server.
 
 ```bash
 yarn dev
