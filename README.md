@@ -1,6 +1,7 @@
 # Welcome
-Repo for frontend at https://app.holonym.id (formerly https://whoisthis.wtf)
-# ⚠️ Please do this before contributing
+Repo for frontend at https://app.holonym.id (formerly https://whoisthis.wtf).
+
+## ⚠️ Please do this before contributing
 If you have priviliges to commit to master, please add this to .git/hooks/pre-commit to prompt. Doing so will make it difficult to accidentally commit without completing a checklist. It is important not to commit to the main branch until you have done these manual tests in the checklist, which cannot be easily automated. This will give you the checklist and make sure you've confirmed succesful completion of this checklist before allowing you to commit :)
 ```
 #!/bin/sh
@@ -24,3 +25,34 @@ if [ "$branch" = "main" ]; then
 	fi
 fi
 ```
+
+## Setup
+
+First, install Node.js 16. We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage your Node.js versions.
+
+Clone the repo:
+
+```bash
+git clone https://github.com/holonym-foundation/zk-frontend.git
+```
+
+Install dependencies with yarn.
+
+```bash
+yarn install
+```
+
+Run the development server:
+
+```bash
+yarn dev
+```
+
+## Other required services
+
+Note that this repo is only the frontend and is not fully functional on its own. 
+
+To fully function, the following repos must also be running:
+- [holonym-relayer](https://github.com/holonym-foundation/holonym-relayer)
+- [id-server](https://github.com/holonym-foundation/id-server)
+- [phone-number-server](https://github.com/holonym-foundation/phone-number-server)
