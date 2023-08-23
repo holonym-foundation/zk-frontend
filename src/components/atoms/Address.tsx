@@ -13,16 +13,19 @@ const InnerContent = (props: { address?: string }) => {
 };
 
 const Address = () => {
-  const { data: account, refetch } = useAccount();
+  const { address, connector } = useAccount();
 
   return (
     <div className="nav-btn" style={{ maxHeight: "64px" }}>
       <div
-        // @ts-ignore
-        onClick={refetch}
+        // onClick={() => {
+        //   if (connector) {
+        //     connector.connect();
+        //   }
+        // }}
         className="wallet-connected"
       >
-        <InnerContent address={account?.address} />
+        <InnerContent address={address} />
       </div>
     </div>
   );

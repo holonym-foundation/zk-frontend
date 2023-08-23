@@ -9,7 +9,7 @@ import { SignatureGateData } from "../types";
 export default function useSignatureGate(
   gate: (data: SignatureGateData) => boolean
 ) {
-  const { data: account } = useAccount();
+  const account = useAccount();
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,

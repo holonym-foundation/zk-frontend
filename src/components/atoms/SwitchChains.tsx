@@ -1,8 +1,8 @@
-import { useNetwork } from "wagmi";
+import { useSwitchNetwork } from "wagmi";
 import { desiredChainId } from "../../constants";
 
 const SwitchChains = () => {
-  const { error, switchNetwork } = useNetwork({
+  const { error, switchNetwork } = useSwitchNetwork({
     chainId: desiredChainId,
   });
 

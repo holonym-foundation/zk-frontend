@@ -107,7 +107,7 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
   // ensure that storeCreds is called only when sortedCreds and kolpProof are populated.
   const [numQueuedStoreCredsInvocations, setNumQueuedStoreCredsInvocations] =
     useState(0);
-  const { data: account } = useAccount();
+  const { address } = useAccount();
   const { proofMetadata, loadingProofMetadata } = useProofMetadata();
   const { sortedCreds, loadingCreds, storeCreds } = useCreds();
   const prevSortedCredsRef = useRef(sortedCreds);
@@ -251,7 +251,7 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
       proofsWorker.postMessage({
         message: "uniqueness",
         govIdCreds,
-        userAddress: account!.address,
+        userAddress: address,
         actionId: defaultActionId,
         forceReload,
       });
@@ -259,7 +259,7 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
     if (runInMainThread) {
       try {
         const proof = await antiSybil(
-          account!.address!,
+          address!,
           govIdCreds,
           defaultActionId
         );
@@ -287,7 +287,7 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
       proofsWorker.postMessage({
         message: "uniqueness-phone",
         phoneNumCreds,
-        userAddress: account!.address,
+        userAddress: address,
         actionId: defaultActionId,
         forceReload,
       });
@@ -295,7 +295,7 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
     if (runInMainThread) {
       try {
         const proof = await uniquenessPhone(
-          account!.address!,
+          address!,
           phoneNumCreds,
           defaultActionId
         );
@@ -322,14 +322,14 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
     if (proofsWorker && !runInMainThread) {
       proofsWorker.postMessage({
         message: "us-residency",
-        userAddress: account!.address,
+        userAddress: address,
         govIdCreds,
         forceReload,
       });
     }
     if (runInMainThread) {
       try {
-        const proof = await proofOfResidency(account!.address!, govIdCreds);
+        const proof = await proofOfResidency(address!, govIdCreds);
         setUSResidencyProof(proof);
       } catch (err) {
         console.error(err);
@@ -355,14 +355,14 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
     // if (proofsWorker && !runInMainThread) {
     //   proofsWorker.postMessage({
     //     message: "medical-specialty",
-    //     userAddress: account.address,
+    //     userAddress: address,
     //     medicalCreds,
     //     forceReload,
     //   });
     // }
     // if (runInMainThread) {
     //   try {
-    //     const proof = await proofOfMedicalSpecialty(account.address, medicalCreds);
+    //     const proof = await proofOfMedicalSpecialty(address, medicalCreds);
     //     setMedicalSpecialtyProof(proof);
     //   } catch (err) {
     //     console.error(err)

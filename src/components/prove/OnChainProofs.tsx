@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
-import { useQuery, useAccount, useBalance } from "wagmi";
-import { TransactionResponse } from "@ethersproject/providers";
+import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
+import { TransactionReceipt } from "viem";
 import { Success } from "../success";
 import { truncateAddress } from "../../utils/ui-helpers";
 import RoundedWindow from "../RoundedWindow";
@@ -13,7 +13,7 @@ import useGenericProofsState from "./useGenericProofsState";
 import useSubmitProof from "./useSubmitProof";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
-import { TransactionResponseWithBlockAndHash } from "../../types";
+import { desiredChainId } from "../../constants";
 
 const SUBMIT_PROOF = "submitProof";
 
@@ -51,9 +51,9 @@ const LoadingProofsButton = (props: {
 
 const Proofs = () => {
   const navigate = useNavigate();
-  const { data: account } = useAccount();
+  const { address } = useAccount();
   const { data: balanceData } = useBalance({
-    addressOrName: account?.address,
+    address,
   });
   const {
     params,
@@ -103,33 +103,22 @@ const Proofs = () => {
     proof,
     contractName: proofs[params.proofType! as keyof typeof proofs].contractName,
     chain: defaultChainToProveOn,
-    onSuccess: async (txResponse: TransactionResponse) => {
-      const result = { ...txResponse };
-      if (txResponse?.wait) {
-        const txReceipt = await txResponse.wait();
-        result.blockNumber = txReceipt.blockNumber;
-        // @ts-ignore
-        result.transactionHash = txReceipt.transactionHash;
-      }
-
-      console.log("result from submitProof");
-      console.log(result);
-      addProofMetadataItem(
-        result as TransactionResponseWithBlockAndHash,
-        proof!.inputs[1],
-        params.proofType!,
-        params.actionId
-      );
-      setProofSubmissionSuccess(true);
-    },
     onError: (error: any) => {
       console.error("proofSubmissionError", error);
       const message =
+        error?.shortMessage ??
         error?.response?.data?.error?.reason ??
         error?.data?.message ??
         error?.message;
       datadogLogs.logger.error("proofSubmissionError", message, error);
       datadogRum.addError(error, { message: message });
+
+      // Ignore this error. The ABI does not get set on the first try but gets
+      // set nearly immediately after.
+      if ((message ?? '').includes('ABI encoding params/values length mismatch')) {
+        return;
+      }
+
       setError({
         type: SUBMIT_PROOF,
         balance: balanceData?.formatted,
@@ -137,6 +126,24 @@ const Proofs = () => {
       });
     },
   });
+
+  const {
+    data: txReceipt,
+    isError: waitForTxIsError,
+    isLoading: waitForTxIsLoading,
+  } = useWaitForTransaction({
+    hash: data?.hash,
+    onSuccess: async (txReceipt: TransactionReceipt) => {
+      console.log("txReceipt from submitProof:", txReceipt);
+      addProofMetadataItem(
+        { ...txReceipt, chainId: desiredChainId },
+        proof!.inputs[1],
+        params.proofType!,
+        params.actionId
+      );
+      setProofSubmissionSuccess(true);
+    }
+  })
 
   if (proofSubmissionSuccess) {
     if (params.callback) window.location.href = `https://${params.callback}`;
@@ -214,7 +221,11 @@ const Proofs = () => {
                 className="x-button"
                 onClick={() => {
                   try {
-                    write();
+                    if (write) {
+                      write();
+                    } else {
+                      console.error("Submit Proof error: `write` is undefined");
+                    }
                     // @ts-ignore
                     window.fathom.trackGoal("OLGDI8EP", 0);
                   } catch (err) {
@@ -225,7 +236,7 @@ const Proofs = () => {
                   }
                 }}
               >
-                {isLoading ? (
+                {isLoading || waitForTxIsLoading ? (
                   <div
                     style={{
                       display: "flex",

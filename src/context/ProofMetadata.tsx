@@ -13,14 +13,14 @@ import { useHoloKeyGenSig } from "./HoloKeyGenSig";
 import {
   ProofMetadataContextType,
   ProofMetadataItem,
-  TransactionResponseWithBlockAndHash,
+  TransactionReceiptWithChainId,
 } from "../types";
 
 const ProofMetadataContext = createContext<ProofMetadataContextType>({
   proofMetadata: [],
   loadingProofMetadata: true,
   addProofMetadataItem: (
-    tx: TransactionResponseWithBlockAndHash,
+    tx: TransactionReceiptWithChainId,
     senderAddress: string,
     proofType: string,
     actionId?: string | undefined
@@ -51,7 +51,7 @@ function ProofMetadataProvider({ children }: { children: React.ReactNode }) {
   // TODO: Move calls to localStorage for storing proofMetadata out of secrets.js. Just use
   // useLocalStorage from within this provider. (Be sure to store the values under the same keys as secrets.js)
   async function addProofMetadataItemToContextAndBackup(
-    tx: TransactionResponseWithBlockAndHash,
+    tx: TransactionReceiptWithChainId,
     senderAddress: string,
     proofType: string,
     actionId?: string

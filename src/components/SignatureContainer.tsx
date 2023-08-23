@@ -8,7 +8,7 @@ import { useHoloKeyGenSig } from "../context/HoloKeyGenSig";
 import { holonymAuthMessage, holonymKeyGenMessage } from "../constants";
 
 const SignatureContainer = ({ children }: { children: React.ReactNode }) => {
-  const { data: account } = useAccount();
+  const account = useAccount();
   const {
     signHoloAuthMessage,
     holoAuthSigIsError,

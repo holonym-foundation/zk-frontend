@@ -4,7 +4,7 @@ import { useAccount } from "wagmi";
 import { useState } from "react";
 
 const ConnectWallet = () => {
-  const { data: account } = useAccount();
+  const { address, connector } = useAccount();
   const [walletModalShowing, setWalletModalShowing] = useState(false);
   return (
     <>
@@ -13,7 +13,7 @@ const ConnectWallet = () => {
         setVisible={setWalletModalShowing}
         blur={true}
       />
-      {account?.address && account?.connector ? (
+      {address && connector ? (
         <Address />
       ) : (
         <div className="nav-btn">

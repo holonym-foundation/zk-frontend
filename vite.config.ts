@@ -4,6 +4,9 @@ import wasm from "vite-plugin-wasm"
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from "vite-plugin-top-level-await";
+import * as dotenv from 'dotenv'
+
+dotenv.config()
 
 // https://vitejs.dev/config/
 export default defineConfig({

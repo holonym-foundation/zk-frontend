@@ -14,7 +14,7 @@ const thisUrl =
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { data: account } = useAccount();
+  const { address, connector } = useAccount();
   const [walletModalShowing, setWalletModalShowing] = useState(false);
 
   function handleNavigate(e: any) {
@@ -134,9 +134,9 @@ export default function Navbar() {
                 alt=""
                 className="nav-wallet-img"
               />
-              {account?.address && account?.connector ? (
+              {address && connector ? (
                 <div className="nav-wallet-text">
-                  {truncateAddress(account?.address)}
+                  {truncateAddress(address)}
                 </div>
               ) : (
                 <div

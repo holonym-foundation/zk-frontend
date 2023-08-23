@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
-import { useContractWrite } from "wagmi";
+import { usePrepareContractWrite, useContractWrite } from "wagmi";
+import { parseEther } from 'viem'
 import { TransactionResponse } from "@ethersproject/providers";
 import contractAddresses from "../../constants/contract-addresses.json";
-import ABIs from "../../constants/abis";
+import { jsonABIs } from "../../constants/abis";
 
 type SubmitProofProps = {
   proof: any;
@@ -11,8 +11,8 @@ type SubmitProofProps = {
     | keyof (typeof contractAddresses)["SybilResistanceV2"]["mainnet"]
     | keyof (typeof contractAddresses)["SybilResistanceV2"]["testnet"];
   onSuccess?:
-    | ((txResponse: TransactionResponse) => void)
-    | ((txResponse: TransactionResponse) => Promise<void>);
+    | ((data: TransactionResponse) => void)
+    | ((data: TransactionResponse) => Promise<void>);
   onError?: (error: any) => void;
 };
 
@@ -23,7 +23,6 @@ const useSubmitProof = ({
   proof,
   contractName,
   chain,
-  onSuccess,
   onError,
 }: SubmitProofProps) => {
   const contractMetadata = contractAddresses[contractName];
@@ -34,51 +33,25 @@ const useSubmitProof = ({
       chain as keyof typeof chainSpecificContractMetadata
     ];
 
-  const {
-    data,
-    error,
-    isError,
-    isIdle,
-    isLoading,
-    isSuccess,
-    reset,
-    write,
-    writeAsync,
-  } = useContractWrite(
-    {
-      addressOrName: contractAddress,
-      contractInterface: ABIs[contractName],
-      // signerOrProvider?: Signer | providers.Provider | null
-    },
-    "prove",
-    {
-      args: proof
-        ? [
-            Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
-            proof.inputs,
-          ]
-        : [],
-      overrides: {
-        value: contractName.includes("Sybil")
-          ? ethers.utils.parseEther("0.005")
-          : undefined,
-      },
-      onSuccess: onSuccess,
-      onError: onError,
-    }
-  );
-
-  return {
-    data,
-    error,
-    isError,
-    isIdle,
-    isLoading,
-    isSuccess,
-    reset,
-    write,
-    writeAsync,
-  };
+  const { config } = usePrepareContractWrite({
+    address: contractAddress,
+    abi: jsonABIs[contractName],
+    functionName: 'prove',
+    args: proof
+      ? [
+          Object.keys(proof.proof).map((k) => proof.proof[k]), // Convert struct to ethers format
+          proof.inputs,
+        ]
+      : [],
+    value: contractName.includes("Sybil")
+      ? parseEther("0.005")
+      : undefined,
+    onError: onError,
+  })
+  return useContractWrite({
+    ...config,
+    onError: onError,
+  })
 };
 
 export default useSubmitProof;

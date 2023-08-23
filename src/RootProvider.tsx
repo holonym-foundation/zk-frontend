@@ -1,12 +1,12 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiConfig } from 'wagmi'
+import wagmiConfig from './wagmiConfig'
 import { HoloAuthSigProvider } from "./context/HoloAuthSig";
 import { HoloKeyGenSigProvider } from "./context/HoloKeyGenSig";
 import { ProofMetadataProvider } from "./context/ProofMetadata";
 import { CredsProvider } from "./context/Creds";
 import { ProofsProvider } from "./context/Proofs";
-import { Provider as WagmiProvider } from "wagmi";
-import { wagmiClient } from "./wagmiClient";
 import AccountConnectGate from "./gate/AccountConnectGate";
 import SignatureGate from "./gate/SignatureGate";
 import NetworkGate from "./gate/NetworkGate";
@@ -45,7 +45,7 @@ export function RootProvider({
 }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiProvider client={wagmiClient}>
+      <WagmiConfig config={wagmiConfig}>
         <HoloAuthSigProvider>
           <HoloKeyGenSigProvider>
             <AccountConnectGate
@@ -67,7 +67,7 @@ export function RootProvider({
             </AccountConnectGate>
           </HoloKeyGenSigProvider>
         </HoloAuthSigProvider>
-      </WagmiProvider>
+      </WagmiConfig>
     </QueryClientProvider>
   );
 }

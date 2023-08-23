@@ -22,7 +22,7 @@ const useProofsState = () => {
   const [proof, setProof] = useState<any>();
   const [submissionConsent, setSubmissionConsent] = useState(false);
   const [proofSubmissionSuccess, setProofSubmissionSuccess] = useState(false);
-  const { data: account } = useAccount();
+  const account = useAccount();
   const { sortedCreds } = useCreds();
   const {
     uniquenessProof,

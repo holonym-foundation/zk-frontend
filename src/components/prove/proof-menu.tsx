@@ -6,11 +6,11 @@ import { truncateAddress } from "../../utils/ui-helpers";
 import RoundedWindow from "../RoundedWindow";
 
 const ProofMenu = () => {
-  const { data: account } = useAccount();
+  const { address } = useAccount();
   const navigate = useNavigate();
   return (
     <RoundedWindow>
-      {!account?.address ? (
+      {!address ? (
         <ConnectWalletScreen />
       ) : (
         <div className="x-wrapper small-center" style={{ width: "100%" }}>

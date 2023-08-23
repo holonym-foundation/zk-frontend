@@ -1,5 +1,7 @@
 import React from "react";
 import { useConnect } from "wagmi";
+import type { Connector } from "wagmi";
+import type { ConnectArgs } from "@wagmi/core";
 import { Modal } from "./Modal";
 import metamaskLogo from "../../img/metamask.svg";
 import coinbaseLogo from "../../img/coinbaseWallet.svg";
@@ -55,7 +57,7 @@ const WalletModal = (props: {
           .sort((a, b) =>
             a.id === "injected" ? 1 : b.id === "injected" ? -1 : 0
           )
-          .map((connector) => {
+          .map((connector: Connector) => {
             if (!connector.ready) {
               return null;
             }
@@ -93,8 +95,8 @@ const WalletOption = ({
   name,
   description,
 }: {
-  connector: any;
-  connect: any;
+  connector: Connector;
+  connect: (args?: Partial<ConnectArgs> | undefined) => void;
   setVisible: (visible: boolean) => void;
   logo: string;
   name: string;
@@ -103,7 +105,9 @@ const WalletOption = ({
   <div key={connector.id}>
     <div
       onClick={() => {
-        connect(connector);
+        connect({
+          connector
+        });
         setVisible(false);
       }}
     >

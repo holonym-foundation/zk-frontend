@@ -1,5 +1,6 @@
 import { Buffer } from "buffer";
 import { ethers, Transaction } from "ethers";
+import { TransactionReceipt } from "viem";
 import aesjs from "aes-js";
 import {
   idServerUrl,
@@ -11,7 +12,7 @@ import { proveKnowledgeOfLeafPreimage } from "./proofs";
 import {
   SortedCreds,
   ProofMetadataItem,
-  TransactionResponseWithBlockAndHash,
+  TransactionReceiptWithChainId,
 } from "../types";
 
 /**
@@ -321,7 +322,7 @@ export async function storeCredentials(
 }
 
 export function proofMetadataItemFromTx(
-  tx: TransactionResponseWithBlockAndHash,
+  tx: TransactionReceiptWithChainId,
   senderAddress: string,
   proofType: string,
   actionId?: string
@@ -354,6 +355,15 @@ export async function addProofMetadataItem(
   holoKeyGenSigDigest: string
 ) {
   try {
+
+    // convert all bigints in proofmetadataitem to strings
+    for (const key of Object.keys(proofMetadataItem)) {
+      if (typeof proofMetadataItem[key as keyof typeof proofMetadataItem] === "bigint") {
+        // @ts-ignore
+        proofMetadataItem[key] = proofMetadataItem[key].toString();
+      }
+    }
+
     // const proofMetadataItem = proofMetadataItemFromTx(tx, senderAddress, proofType, actionId);
     // 1. Get old proof metadata
     const oldProofMetadata = await getProofMetadata(

@@ -11,7 +11,7 @@ export default function AccountConnectGate({
   fallback: React.ReactNode;
   gate: (data: WagmiAccount) => boolean;
 }) {
-  const { data: account } = useAccount();
+  const account = useAccount();
   const isGateOpen = gate({ account });
   if (isGateOpen) {
     return <>{children}</>;

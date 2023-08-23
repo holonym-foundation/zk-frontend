@@ -167,20 +167,19 @@ export type ProofMetadataItem = {
   actionId?: string; // Only required if proofType is 'uniqueness'
   address: string;
   chainId: number;
-  blockNumber?: number;
+  blockNumber?: number | bigint | string;
   txHash: string;
 };
 
-export type TransactionResponseWithBlockAndHash = TransactionResponse & {
-  blockNumber: number;
-  transactionHash: string;
-};
+export type TransactionReceiptWithChainId = TransactionReceipt & {
+  chainId: number;
+}
 
 export type ProofMetadataContextType = {
   proofMetadata: Array<ProofMetadataItem>;
   loadingProofMetadata: boolean;
   addProofMetadataItem: (
-    tx: TransactionResponseWithBlockAndHash,
+    tx: TransactionReceiptWithChainId,
     senderAddress: string,
     proofType: string,
     actionId?: string
