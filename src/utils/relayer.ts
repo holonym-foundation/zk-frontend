@@ -9,7 +9,7 @@ const Relayer = {
     let res;
     let error;
     try {
-      res = await axios.post(`${relayerUrl}/v2/addLeaf`, args);
+      res = await axios.post(`${relayerUrl}/v3/addLeaf`, args);
       if (res.status === 200) {
         onSuccess(res);
       }
@@ -37,7 +37,7 @@ const Relayer = {
     let res;
     let error;
     try {
-      const response = await axios.get(`${relayerUrl}/v2/getTree/`);
+      const response = await axios.get(`${relayerUrl}/v3/getTree/`);
       res = response.data;
     } catch (e) {
       onError?.(e);
@@ -45,6 +45,11 @@ const Relayer = {
     }
     return res || error;
   },
+
+  getLeafExists: async function (leaf: string) {
+    const response = await axios.get(`${relayerUrl}/v3/leafExists/${leaf}`);
+    return response.data;
+  }
 };
 
 export default Relayer;

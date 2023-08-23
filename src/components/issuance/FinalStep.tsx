@@ -8,6 +8,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { isEqual } from "lodash";
 import { useSessionStorage } from "usehooks-ts";
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   encryptWithAES,
   setLocalUserCredentials,
@@ -345,6 +346,7 @@ export function useStoreCredentialsState({
 }
 
 export function useAddLeafState({ onSuccess }: { onSuccess: () => void }) {
+  const queryClient = useQueryClient()
   const [error, setError] = useState<string>();
   const status = useRef("idle"); // 'idle' | 'addingLeaf' | 'generatingKOLPProof' | 'backingUpCreds'
   const [credsForAddLeaf, setCredsForAddLeaf] =
@@ -368,20 +370,40 @@ export function useAddLeafState({ onSuccess }: { onSuccess: () => void }) {
     }
   }, [kolpProof, reloadCreds, storeCreds]);
 
+  const [leafExistsQueryRefetchInterval, setLeafExistsQueryRefetchInterval] = useState(Infinity)
+  useQuery(
+    ["leafExists", credsForAddLeaf?.newLeaf ?? ''],
+    async () => Relayer.getLeafExists(credsForAddLeaf?.newLeaf ?? ''),
+    {
+      enabled: !!credsForAddLeaf?.newLeaf,
+      refetchInterval: leafExistsQueryRefetchInterval,
+      onSuccess: (data: { exists: boolean }) => {
+        if (data?.exists) {
+          loadKOLPProof(
+            false,
+            false,
+            credsForAddLeaf!.creds.newSecret,
+            credsForAddLeaf!.creds.serializedAsNewPreimage!
+          );
+          setReadyToSendToServer(true);
+        }
+      }
+    }
+  )
+
   const addLeaf = useCallback(async () => {
     const circomProof = await onAddLeafProof(credsForAddLeaf!);
     console.log("circom proof for adding leaf", circomProof);
     await Relayer.addLeaf(
       circomProof,
       async () => {
-        status.current = "generatingKOLPProof";
-        loadKOLPProof(
-          false,
-          false,
-          credsForAddLeaf!.creds.newSecret,
-          credsForAddLeaf!.creds.serializedAsNewPreimage!
-        );
-        setReadyToSendToServer(true);
+        status.current = "generatingKOLPProof";   
+          
+        setLeafExistsQueryRefetchInterval(2000)
+
+        await queryClient.invalidateQueries(
+          ["leafExists", credsForAddLeaf?.newLeaf ?? '']
+        )
       },
       (err) => {
         // setError('Error: An error occurred while adding leaf to Merkle tree.')
