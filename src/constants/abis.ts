@@ -7,6 +7,176 @@ const sybilResistanceABI = [
   "function prove(tuple(tuple(uint256,uint256),tuple(uint256[2],uint256[2]),tuple(uint256,uint256)),uint256[])",
 ];
 
+const sybilResistanceJSONABI = [
+  {
+    "type": "constructor",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address"
+      },
+      {
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Uniqueness",
+    "inputs": [
+      {
+        "type": "address"
+      },
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "isUniqueForAction",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address"
+      },
+      {
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "masalaWasUsed",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "proofIsValid",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple",
+        "components": [
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256"
+              },
+              {
+                "type": "uint256"
+              }
+            ]
+          },
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256[2]"
+              },
+              {
+                "type": "uint256[2]"
+              }
+            ]
+          },
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256"
+              },
+              {
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "prove",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple",
+        "components": [
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256"
+              },
+              {
+                "type": "uint256"
+              }
+            ]
+          },
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256[2]"
+              },
+              {
+                "type": "uint256[2]"
+              }
+            ]
+          },
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256"
+              },
+              {
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "uint256[]"
+      }
+    ],
+    "outputs": []
+  }
+]
+
 const theABIs = {
   Hub: [
     "constructor(address)",
@@ -71,4 +241,1158 @@ const theABIs = {
     "function transferOwnership(address) public virtual",
   ],
 };
+
+const jsonABIs = {
+  Hub: [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "addLeaf",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint8"
+        },
+        {
+          "type": "bytes32"
+        },
+        {
+          "type": "bytes32"
+        },
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[3]"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "getLeaves",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256[]"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getLeavesFrom",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256[]"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "isFromIssuer",
+      "constant": true,
+      "stateMutability": "pure",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes"
+        },
+        {
+          "type": "uint8"
+        },
+        {
+          "type": "bytes32"
+        },
+        {
+          "type": "bytes32"
+        },
+        {
+          "type": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "mostRecentRoot",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "mt",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "oldLeafUsed",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "router",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "verifyProof",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[]"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  SybilResistance: sybilResistanceJSONABI,
+  SybilResistance2: sybilResistanceJSONABI,
+  SybilResistanceV2: [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "Uniqueness",
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "isUniqueForAction",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "masalaWasUsed",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "proofIsValid",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[5]"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "prove",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[5]"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  SybilResistancePhone: [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "Uniqueness",
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "isUniqueForAction",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "prove",
+      "constant": false,
+      "stateMutability": "payable",
+      "payable": true,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[5]"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  IsUSResident: [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "USResidency",
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "masalaWasUsed",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "proofIsValid",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[]"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "prove",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[]"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "usResidency",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  IsUSResidentV2: [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "USResidency",
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "masalaWasUsed",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "proofIsValid",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[6]"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "prove",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[6]"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "usResidency",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "isValidIssuer",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "allowIssuers",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256[]"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  MedicalSpecialty: [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "UserHasMedicalSpecialty",
+      "inputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "hashbrownsWasUsed",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "proofIsValid",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[6]"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "prove",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256[2]"
+                },
+                {
+                  "type": "uint256[2]"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "components": [
+                {
+                  "type": "uint256"
+                },
+                {
+                  "type": "uint256"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "uint256[6]"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "specialty",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "isValidIssuer",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "allowIssuers",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256[]"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  Roots: [
+    {
+      "type": "function",
+      "name": "addRoot",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "mostRecentRoot",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "rootIsRecent",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "transferOwnership",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+}
+
+export { jsonABIs };
 export default theABIs;
