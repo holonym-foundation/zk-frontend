@@ -1,10 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
 import { InfoButton } from "../info-button";
+import { useAccount, useContractRead } from 'wagmi'
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { useProofMetadata } from "../../context/ProofMetadata";
 import { ProofMetadataItem } from "../../types";
+import { defaultActionId } from "../../constants";
+import contractAddresses from '../../constants/contract-addresses.json'
+import { jsonABIs } from '../../constants/abis'
+
+type ZeroXString = `0x${string}`;
+
+const mainnetOrTestnet = process.env.NODE_ENV === 'development' ? 'testnet' : 'mainnet'
+const opOrOpGoerli = process.env.NODE_ENV === 'development' ? 'optimism-goerli' : 'optimism'
+
+const sybilGovIdAddresses = contractAddresses.SybilResistanceV2[mainnetOrTestnet]
+const sybilGovIdAddress = sybilGovIdAddresses[opOrOpGoerli as keyof typeof sybilGovIdAddresses] as ZeroXString
+
+const isUSResidentAddresses = contractAddresses.SybilResistanceV2[mainnetOrTestnet]
+const isUSResidentAddress = isUSResidentAddresses[opOrOpGoerli as keyof typeof isUSResidentAddresses] as ZeroXString
+
+const sybilPhoneAddresses = contractAddresses.SybilResistanceV2[mainnetOrTestnet]
+const sybilPhoneAddress = sybilPhoneAddresses[opOrOpGoerli as keyof typeof sybilPhoneAddresses] as ZeroXString
 
 type ProofMetadataItemForDisplay = ProofMetadataItem & {
   displayName: string;
@@ -82,6 +100,71 @@ export default function PublicInfoCard() {
   const [formattedProofMetadata, setFormattedProofMetadata] =
     useState<FormattedProofMetadata>();
 
+  const { address } = useAccount()
+
+  const { 
+    data: sybilGovIdIsUnique,
+    isError: sybilGovIdIsUniqueIsError, 
+    isLoading: sybilGovIdIsUniqueIsLoading,
+  } = useContractRead({
+    address: sybilGovIdAddress,
+    abi: jsonABIs.SybilResistanceV2,
+    functionName: 'isUniqueForAction',
+    args: [
+      address,
+      defaultActionId,
+    ]
+  })
+
+  const { 
+    data: isUSResident,
+    isError: isUSResidentIsError,
+    isLoading: isUSResidentIsLoading,
+  } = useContractRead({
+    address: isUSResidentAddress,
+    abi: jsonABIs.IsUSResidentV2,
+    functionName: 'usResidency',
+    args: [address]
+  })
+
+  const { 
+    data: sybilPhoneIsUnique,
+    isError: sybilPhoneIsUniqueIsError, 
+    isLoading: sybilPhoneIsUniqueIsLoading,
+  } = useContractRead({
+    address: sybilPhoneAddress,
+    abi: jsonABIs.SybilResistancePhone,
+    functionName: 'isUniqueForAction',
+    args: [
+      address,
+      defaultActionId,
+    ]
+  })
+
+  const sybilGovIdSBTRecipient = useMemo(() => {
+    if (formattedProofMetadata?.["uniqueness"]?.address) {
+      return formattedProofMetadata?.["uniqueness"]?.address
+    } else if (sybilGovIdIsUnique) {
+      return address
+    }
+  }, [formattedProofMetadata, sybilGovIdIsUnique, address])
+
+  const isUSResidentSBTRecipient = useMemo(() => {
+    if (formattedProofMetadata?.["us-residency"]?.address) {
+      return formattedProofMetadata?.["us-residency"]?.address
+    } else if (isUSResident) {
+      return address
+    }
+  }, [formattedProofMetadata, isUSResident, address])
+
+  const sybilPhoneSBTRecipient = useMemo(() => {
+    if (formattedProofMetadata?.["uniqueness-phone"]?.address) {
+      return formattedProofMetadata?.["uniqueness-phone"]?.address
+    } else if (sybilPhoneIsUnique) {
+      return address
+    }
+  }, [formattedProofMetadata, sybilPhoneIsUnique, address])
+  
   useEffect(() => {
     const formattedData =
       populateProofMetadataDisplayDataAndRestructure(proofMetadata);
@@ -136,23 +219,21 @@ export default function PublicInfoCard() {
                 <ProofRow
                   proofTitle="Unique Person (government ID)"
                   infoText={`This shows whether you have publicly claimed a "Unique person (government ID)" SBT at a certain address. You can only prove this at one address from one government ID, allowing for robust Sybil resistance`}
-                  address={formattedProofMetadata?.["uniqueness"]?.address}
+                  address={sybilGovIdSBTRecipient}
                   onClickProve={() => navigate("/prove/uniqueness")}
                   buttonText="Prove uniqueness (government ID)"
                 />
                 <ProofRow
                   proofTitle="US Resident"
                   infoText={`This shows whether you've publicly claimed a US residency SBT at a certain address`}
-                  address={formattedProofMetadata?.["us-residency"]?.address}
+                  address={isUSResidentSBTRecipient}
                   onClickProve={() => navigate("/prove/us-residency")}
                   buttonText="Prove US residency"
                 />
                 <ProofRow
                   proofTitle="Unique Person (phone number)"
                   infoText={`This shows whether you have publicly claimed a "Unique person (phone number)" SBT at a certain address. You can only prove this at one address from one phone number, allowing for robust Sybil resistance`}
-                  address={
-                    formattedProofMetadata?.["uniqueness-phone"]?.address
-                  }
+                  address={sybilPhoneSBTRecipient}
                   onClickProve={() => navigate("/prove/uniqueness-phone")}
                   buttonText="Prove uniqueness (phone number)"
                 />
