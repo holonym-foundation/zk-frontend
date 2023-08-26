@@ -154,6 +154,12 @@ const IssuanceOptions = () => {
         {/* TODO: add buttons for future credential types such as accredited investor status */}
         {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
       </div>
+      <div 
+        className="x-wrapper small-center"
+        style={{ marginTop: "30px", width: "80%" }}
+      >
+        <p>Holonym is a privacy tool to verify your identity with minimal leakage of information. Your phone number and governtment ID is never linked to your address. Data is deleted from third party servers after you complete verification. Your data is encrypted with your wallet key and can only be read by you.</p>
+      </div>
     </RoundedWindow>
   );
 };
