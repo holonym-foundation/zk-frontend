@@ -135,8 +135,7 @@ const StepIDVVeriff = () => {
               </p>
               <p>
                 Once your verification is successful, you will be redirected to
-                the next step. You can also see the status of your verification
-                on your profile page.
+                the next step.
               </p>
             </div>
           )}
