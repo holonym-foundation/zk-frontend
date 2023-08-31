@@ -3,74 +3,24 @@
  * issuance page.
  */
 import { useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { useCreds } from "../../../context/Creds";
 import { serverAddress } from "../../../constants";
-import { getIDVProvider } from "../../../utils/misc";
 import VerificationContainer from "../IssuanceContainer";
-import { IPAndCountry } from "../../../types";
+import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
+import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
 
 const steps = ["Verify", "Finalize"];
-
-const useSniffedIpAndCountry = () => {
-  return useQuery({
-    queryKey: ["ipAndCountry"],
-    queryFn: async () => {
-      const resp = await fetch(
-        "https://id-server.holonym.io/ip-info/ip-and-country"
-      );
-      return resp.json();
-    },
-    staleTime: Infinity,
-  });
-};
-
-const usePreferredProvider = (
-  ipAndCountry: IPAndCountry,
-  {
-    enabled,
-  }: {
-    enabled: boolean;
-  }
-) => {
-  const [searchParams] = useSearchParams();
-
-  return useQuery({
-    queryKey: ["preferredIDVProvider"],
-    queryFn: async () => {
-      let preferredProvider = "veriff";
-      // If provider is specified in the URL, use it. Otherwise, use the provider that best
-      // suites the country associated with the user's IP address.
-      if (searchParams.get("provider") === "veriff") {
-        preferredProvider = "veriff";
-      } else if (searchParams.get("provider") === "idenfy") {
-        preferredProvider = "idenfy";
-      } else if (searchParams.get("provider") === "onfido") {
-        preferredProvider = "onfido";
-      } else {
-        preferredProvider = await getIDVProvider(
-          ipAndCountry?.ip,
-          ipAndCountry?.country
-        );
-      }
-
-      return preferredProvider;
-    },
-    staleTime: Infinity,
-    enabled: enabled,
-  });
-};
 
 const GovIDRedirect = () => {
   const navigate = useNavigate();
   const { sortedCreds, loadingCreds } = useCreds();
 
   const { data: ipAndCountry, isLoading: ipAndCountryIsLoading } =
-    useSniffedIpAndCountry();
+    useSniffedIPAndCountry();
 
   const { data: preferredProvider, isLoading: preferredProviderIsLoading } =
-    usePreferredProvider(ipAndCountry, {
+    usePreferredIDVProvider(ipAndCountry, {
       enabled: !ipAndCountryIsLoading,
     });
 
