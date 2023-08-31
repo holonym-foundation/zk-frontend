@@ -260,6 +260,18 @@ export type SessionStatusResponse = {
   };
 };
 
+export type IdServerSessionsResponse = Array<{
+  _id: string;
+  sigDigest: string;
+  idvProvider: string;
+  status: 'NEEDS_PAYMENT' | 'IN_PROGRESS' | 'ISSUED' | 'VERIFICATION_FAILED';
+  txHash?: string;
+  chainId?: number;
+  sessionId?: string;
+  scanRef?: string;
+  check_id?: string;  
+}>;
+
 export type IPAndCountry = {
   ip: string;
   country: string;
