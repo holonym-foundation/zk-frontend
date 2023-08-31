@@ -116,6 +116,13 @@ export default function Navbar() {
             >
               Prove
             </a>
+            <a
+              href="/privacy"
+              onClick={handleNavigate}
+              className="nav-link w-nav-link"
+            >
+              Privacy
+            </a>
             {/* rome-ignore lint/a11y/useValidAnchor: <explanation> */}
             <a
               href="/profile"
