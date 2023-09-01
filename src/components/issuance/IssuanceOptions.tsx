@@ -3,20 +3,11 @@ import { useNavigate } from "react-router-dom";
 import RoundedWindow from "../RoundedWindow";
 import phoneImg from "../../img/phone.png";
 import idImg from "../../img/id.png";
-import stethoscopeImg from "../../img/stethoscope-emoji.png";
+// import stethoscopeImg from "../../img/stethoscope-emoji.png";
 import moneyImg from "../../img/money.png";
 import questionImg from "../../img/question.png";
 
 const opts = [
-  {
-    name: "Phone Number",
-    url: "/issuance/phone",
-    image: phoneImg,
-    description:
-      "Verifies a real phone number, blocking burners. Helps show you're not a bot.",
-    price: ".005",
-    disabled: false,
-  },
   {
     name: "Government ID",
     url: "/issuance/idgov",
@@ -35,6 +26,15 @@ const opts = [
     price: ".005",
     disabled: false,
   },
+  {
+    name: "Phone Number",
+    url: "/issuance/", // "/issuance/phone",
+    image: phoneImg,
+    description:
+      "Verifies a real phone number, blocking burners. Helps show you're not a bot. Under maintanence.",
+    price: ".005",
+    disabled: true,
+  },
   // {
   //     name: "Medical Credentials",
   //     // url: "/issuance/med",
@@ -45,7 +45,7 @@ const opts = [
   // },
   {
     name: "Accredited Investor Status",
-    url: "/",
+    url: "/issuance/",
     image: moneyImg,
     description:
       "This allows you to prove you are an accredited investor. It currently is not implemented.",
@@ -116,7 +116,7 @@ const IssuanceOption = (props: {
       >
         <p>{props.description}</p>
         {props.price ? (
-          <p style={{ color: "greenyellow" }}>
+          <p style={{ color: props.disabled ? "grey" : "greenyellow" }}>
             <b>NFT:</b> {props.price} ETH
           </p>
         ) : null}
@@ -158,7 +158,7 @@ const IssuanceOptions = () => {
         className="x-wrapper small-center"
         style={{ marginTop: "30px", width: "80%" }}
       >
-        <p>Holonym is a privacy tool to verify your identity with minimal leakage of information. Your phone number and governtment ID is never linked to your address. Data is deleted from third party servers after you complete verification. Your data is encrypted with your wallet key and can only be read by you.</p>
+        {/* <p>Holonym is a privacy tool to verify your identity with minimal leakage of information. Your phone number and government ID is never linked to your address. Data is deleted from third party servers after you complete verification. Your data is encrypted with your wallet key and can only be read by you.</p> */}
       </div>
     </RoundedWindow>
   );
