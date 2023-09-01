@@ -11,7 +11,7 @@ import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
 import useIdServerSessions from '../../../hooks/useIdServerSessions'
 
-const steps = ["Verify", "Finalize"];
+const steps = ["Pay", "Verify", "Finalize"];
 
 const GovIDRedirect = () => {
   const navigate = useNavigate();
@@ -76,7 +76,7 @@ const GovIDRedirect = () => {
           const encodedRetrievalEndpoint = encodeURIComponent(
             window.btoa(retrievalEndpoint)
           );
-          navigate(`/issuance/idgov-${provider}/store?retrievalEndpoint=${encodedRetrievalEndpoint}`);
+          navigate(`/issuance/idgov-${provider}/store?sid=${completedSessions[0]._id}&retrievalEndpoint=${encodedRetrievalEndpoint}`);
           return;
         }
 
@@ -87,7 +87,7 @@ const GovIDRedirect = () => {
         );
         if (inProgressSessions.length > 0) {
           const provider = inProgressSessions[0].idvProvider;
-          navigate(`/issuance/idgov-${provider}`);
+          navigate(`/issuance/idgov-${provider}?sid=${inProgressSessions[0]._id}`);
           return;
         }
 
@@ -98,7 +98,7 @@ const GovIDRedirect = () => {
         );
         if (needsPaymentSessions.length > 0) {
           const provider = needsPaymentSessions[0].idvProvider;
-          navigate(`/issuance/idgov-${provider}`);
+          navigate(`/issuance/idgov-${provider}?sid=${needsPaymentSessions[0]._id}`);
           return;
         }
       }
