@@ -7,11 +7,11 @@ import { IdServerSessionsResponse } from "../types";
  * @param sessionId ID of the id-server session; NOT a Veriff sessionId.
  * @param options 
  */
-const useIdServerSessions = (sessionId?: string, options = {}) => {
+const useIdServerSessions = (sid?: string, options = {}) => {
   const { holoAuthSigDigest } = useHoloAuthSig();
 
-  const queryKey = sessionId
-    ? ["idvSessionStatus", sessionId]
+  const queryKey = sid
+    ? ["idvSessionStatus", sid]
     : ["idvSessionStatus"];
 
   return useQuery<IdServerSessionsResponse>({
@@ -19,8 +19,8 @@ const useIdServerSessions = (sessionId?: string, options = {}) => {
     queryKey,
     queryFn: async () => {
       let url = `${idServerUrl}/sessions?sigDigest=${holoAuthSigDigest}`;
-      if (sessionId) {
-        url += `&id=${sessionId}`;
+      if (sid) {
+        url += `&id=${sid}`;
       }
       const resp = await fetch(url);
       return await resp.json();
