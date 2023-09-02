@@ -56,37 +56,6 @@ const GovIDRedirect = () => {
       // for cases to arise where this assumption doesn't hold. We should rewrite
       // this to handle all possible cases.
       if (Array.isArray(idServerSessions) && idServerSessions.length > 0) {
-        // If the user has paid for and completed verification but has not been
-        // issued credentials, send them to the issuance finalization page.
-        const completedSessions = idServerSessions.filter(
-          (session) => session.status === "ISSUED"
-        )
-        if (completedSessions.length > 0) {
-          const provider = completedSessions[0].idvProvider;
-          let identifierName: string;
-          switch (provider) {
-            case 'veriff':
-              identifierName = 'sessionId';
-              break;
-            case 'idenfy':
-              identifierName = 'scanRef';
-              break;
-            case 'onfido':
-              identifierName = 'check_id';
-              break;
-            default:
-              identifierName = 'sessionId';
-              break;
-          }
-          const identifier = completedSessions[0][identifierName as keyof typeof completedSessions[0]];
-          const retrievalEndpoint = `${idServerUrl}/${provider}/credentials?${identifierName}=${identifier}`;
-          const encodedRetrievalEndpoint = encodeURIComponent(
-            window.btoa(retrievalEndpoint)
-          );
-          navigate(`/issuance/idgov-${provider}/store?sid=${completedSessions[0]._id}&retrievalEndpoint=${encodedRetrievalEndpoint}`);
-          return;
-        }
-
         // If user has already paid for a session but hasn't completed verification,
         // direct them to the page where they can start verification.
         const inProgressSessions = idServerSessions.filter(

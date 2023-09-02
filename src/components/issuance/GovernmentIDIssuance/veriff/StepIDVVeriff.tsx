@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import useIdvSessionStatus from "../../../../hooks/useIdvSessionStatus";
 import useVeriffIDV from "../../../../hooks/useVeriffIDV";
 import { idServerUrl } from "../../../../constants";

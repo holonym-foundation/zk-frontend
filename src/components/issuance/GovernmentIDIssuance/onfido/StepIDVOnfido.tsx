@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useIdvSessionStatus from "../../../../hooks/useIdvSessionStatus";
 import useOnfidoIDV from "../../../../hooks/useOnfidoIDV";
 import { idServerUrl } from "../../../../constants";
 import { datadogLogs } from "@datadog/browser-logs";
 import { SessionStatusResponse } from "../../../../types";
 
-const StepIDV = () => {
+const StepIDV = ({ sdk_token }: { sdk_token?: string }) => {
   useEffect(() => {
     try {
       datadogLogs.logger.info("StartGovID", {});
@@ -19,6 +18,8 @@ const StepIDV = () => {
   }, []);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
   const [
     returningUserHasSuccessfulSession,
     setReturningUserHasSuccessfulSession,
@@ -29,11 +30,12 @@ const StepIDV = () => {
   ] = useState("");
   const { encodedRetrievalEndpoint: onfidoRetrievalEndpoint } = useOnfidoIDV({
     enabled: returningUserHasSuccessfulSession === "no",
+    sdk_token
   });
 
   const [verificationError, setVerificationError] = useState("");
 
-  const idvSessionStatusQuery = useIdvSessionStatus("onfido", {
+  const idvSessionStatusQuery = useIdvSessionStatus(sid ?? undefined, {
     onSuccess: (data: Omit<SessionStatusResponse, "veriff" | "idenfy">) => {
       if (!data) return;
 

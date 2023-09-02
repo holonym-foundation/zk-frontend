@@ -14,7 +14,10 @@ const useIdvSessionStatus = (sid?: string, options = {}) => {
       if (!sid) return {};
       const url = `${idServerUrl}/session-status/v2?sid=${sid}`;
       const resp = await fetch(url);
-      return await resp.json();
+      if (!resp.ok) {
+        throw new Error(`Failed to get session status. Response status code: ${resp.status}`);
+      }
+      return resp.json();
     },
     refetchInterval: 5000,
   });

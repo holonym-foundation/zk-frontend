@@ -1,41 +1,27 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { init as initOnfido, SdkHandle } from "onfido-sdk-ui";
-import { useHoloAuthSig } from "../context/HoloAuthSig";
 import { idServerUrl } from "../constants";
 
-const useOnfidoIDV = ({ enabled }: { enabled: boolean }) => {
+const useOnfidoIDV = ({ enabled, sdk_token }: { enabled: boolean, sdk_token?: string }) => {
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
   const queryClient = useQueryClient();
   const [encodedRetrievalEndpoint, setEncodedRetrievalEndpoint] = useState("");
-
-  const { holoAuthSigDigest } = useHoloAuthSig();
-
-  const { data: applicant } = useQuery({
-    queryKey: ["onfidoApplicant"],
-    queryFn: async () => {
-      const resp = await fetch(`${idServerUrl}/onfido/applicant`, {
-        method: "POST",
-      });
-      return await resp.json();
-    },
-    staleTime: Infinity,
-    enabled: enabled,
-  });
 
   const { data: check, refetch: refetchCheck } = useQuery({
     queryKey: ["onfidoCheck"],
     queryFn: async () => {
-      const resp = await fetch(`${idServerUrl}/onfido/v2/check`, {
+      if (!sid) throw new Error("No sid provided");
+      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session/onfido/check`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          applicant_id: applicant.applicant_id,
-          sigDigest: holoAuthSigDigest,
-        }),
+        body: JSON.stringify({}),
       });
-      return await resp.json();
+      return resp.json();
     },
     onSuccess: (data) => {
       // Navigate to retrievalEndpoint when user is approved
@@ -59,7 +45,7 @@ const useOnfidoIDV = ({ enabled }: { enabled: boolean }) => {
       // re-initialize the SDK.
 
       onfido = initOnfido({
-        token: applicant.sdk_token,
+        token: sdk_token,
         containerId: "onfido-mount",
         // containerEl: <div id="root" />, // ALTERNATIVE to `containerId`
         useModal: true,
@@ -97,7 +83,7 @@ const useOnfidoIDV = ({ enabled }: { enabled: boolean }) => {
       return onfido;
     },
     staleTime: Infinity,
-    enabled: enabled && !!applicant?.sdk_token,
+    enabled: enabled && !!sdk_token,
   });
 
   return {
