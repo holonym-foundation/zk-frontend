@@ -14,8 +14,7 @@ import { RootProvider } from "./RootProvider";
 import { Layout } from "./Layout";
 import { AppRoutes } from "./AppRoutes";
 import useScriptWithURL from "./hooks/useScriptWithURL";
-import { init, datadogLogs, datadogRum } from "./utils/datadog";
-import { PaymentScreen } from "./components/instructions";
+import { init } from "./utils/datadog";
 
 // Analytics. They shouldn't tracking anything sensitive and shouldn't be used to perform any individual analysis / targeting, primarly just for aggregate statistics to understand our users
 // and understanding why errors might be happening.
