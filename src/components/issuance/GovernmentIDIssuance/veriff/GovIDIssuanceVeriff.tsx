@@ -8,7 +8,6 @@ import VerificationContainer from "../../IssuanceContainer";
 import StepSuccessWithAnalytics from "../StepSuccessWithAnalytics";
 import GovIDPayment from "../GovIDPayment";
 import useGovernmentIDIssuanceState from "../../../../hooks/useGovIDIssuanceState";
-import useIdServerSessions from "../../../../hooks/useIdServerSessions";
 
 const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
@@ -16,20 +15,12 @@ const GovernmentIDIssuance = () => {
   const sid = searchParams.get("sid");
 
   const {
-    data: idServerSessions,
-    isLoading: idServerSessionsIsLoading,
-    refetch: refetchIdServerSessions
-  } = useIdServerSessions(sid ?? undefined);
-
-  const {
     success,
     setSuccess,
     currentIdx,
     steps,
     currentStep
-  } = useGovernmentIDIssuanceState({
-    sessionStatus: sid ? idServerSessions?.[0]?.status : undefined
-  });
+  } = useGovernmentIDIssuanceState();
 
   const {
     data: idvSessionMetadata,
