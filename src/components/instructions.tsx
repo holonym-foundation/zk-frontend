@@ -1,6 +1,22 @@
 import RoundedWindow from "./RoundedWindow"
 
-const PaymentScreen = () => { 
+export const PaymentScreen = () => { 
+    return <RoundedWindow>
+       <div
+          className="x-wrapper small-center"
+          style={{ display: "flex", height: "95%", width: "80%", alignItems: "stretch", justifyContent: "stretch", flexDirection: "column", gap: "50px" }}
+        >
+            <h1>Bond & Fee</h1>
+
+        <a className="glowy-green-button" style={{ width: "100%", fontSize: "20px" }}>Pay In FTM</a>
+        <a className="glowy-red-button" style={{ width: "100%", fontSize: "20px" }}>Pay In OP ETH</a>
+        <a className="x-button-blue greyed-out-button" style={{ width: "100%", fontSize: "20px" }}>Pay In Fiat (coming soon)</a>
+
+    </div> 
+    </RoundedWindow>
+}
+
+export const PaymentPrereqs = () => { 
     return <RoundedWindow>
        <div
           className="x-wrapper small-center"
@@ -8,12 +24,7 @@ const PaymentScreen = () => {
         >
   
           <h1>Before we proceed, make sure you have:</h1>
-          {/* <h5 className="h5">to add to your Holo.</h5> */}
-          {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
-                      <InfoButton
-                          type="proofMenu"
-                          text={`Anonymity is provided by the anonymity set, a.k.a. Privacy Pool. If we wanted to spy and you only waited a minute, we could see you verified at a certain time and that some wallet submitted a proof a minute later. We could then guess you were that wallet. But if you waited a whole week, a lot of people have also will have registered, so we can't tell it's you. Everyone's verification would be pooled together, so we would only know the prover was one person in the whole pool. Whether you wait a second, a day, or year depends on how much you want to stay anonymous to Holonym Foundation. If you trust us not to track you, you can prove now...`}
-                      /> */}
+         
           <div
             className="checklist"
           >
@@ -30,5 +41,3 @@ const PaymentScreen = () => {
     </div> 
     </RoundedWindow>
 }
-
-export default PaymentScreen;
