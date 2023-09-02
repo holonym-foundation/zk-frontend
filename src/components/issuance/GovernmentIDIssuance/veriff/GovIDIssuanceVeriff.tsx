@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import { idServerUrl } from "../../../../constants";
+import { useNavigate } from "react-router-dom";
 import StepIDVVeriff from "./StepIDVVeriff";
 import FinalStep from "../../FinalStep";
 import VerificationContainer from "../../IssuanceContainer";
@@ -11,40 +9,17 @@ import useGovernmentIDIssuanceState from "../../../../hooks/useGovIDIssuanceStat
 
 const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const sid = searchParams.get("sid");
-
   const {
     success,
     setSuccess,
     currentIdx,
     steps,
-    currentStep
+    currentStep,
+    idvSessionMetadata,
+    idvSessionMetadataIsLoading,
+    idvSessionMetadataIsError,
+    createIdvSession
   } = useGovernmentIDIssuanceState();
-
-  const {
-    data: idvSessionMetadata,
-    mutate: createIdvSession
-  } = useMutation(
-    async (data: { chainId?: number, txHash?: string }) => {
-      if (!sid) throw new Error("No session ID");
-      if (!data?.chainId) throw new Error("No chain ID");
-      if (!data?.txHash) throw new Error("No transaction hash");
-
-      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: sid,
-          chainId: data.chainId,
-          txHash: data.txHash,
-        }),
-      })
-      return resp.json()
-    }
-  )
 
   useEffect(() => {
     if (success && window.localStorage.getItem("register-credentialType")) {
