@@ -11,8 +11,8 @@ const useIdServerSessions = (sid?: string, options = {}) => {
   const { holoAuthSigDigest } = useHoloAuthSig();
 
   const queryKey = sid
-    ? ["idvSessionStatus", sid]
-    : ["idvSessionStatus"];
+    ? ["idServerSession", sid]
+    : ["idServerSession"];
 
   return useQuery<IdServerSessionsResponse>({
     ...options,

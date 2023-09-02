@@ -1,17 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import { IdServerSession } from '../types'
 
-const steps = ["Verify", "Finalize"];
+const steps = ["Pay", "Verify", "Finalize"];
 
-function useGovernmentIDIssuanceState() {
+function useGovernmentIDIssuanceState({ sessionStatus }: { sessionStatus?: string }) {
   const { store } = useParams();
   const [success, setSuccess] = useState<boolean>(false);
   const [currentIdx, setCurrentIdx] = useState(0);
 
   const currentStep = useMemo(() => {
+    if (sessionStatus === "NEEDS_PAYMENT") return "Pay";
     if (!store) return "Verify";
     else return "Finalize";
-  }, [store]);
+  }, [sessionStatus, store]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));

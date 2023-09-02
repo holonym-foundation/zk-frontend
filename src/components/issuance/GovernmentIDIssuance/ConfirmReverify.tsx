@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
+import useCreateIdServerSession from '../../../hooks/useCreateIdServerSession'
 
 const ConfirmReverify = () => {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ const ConfirmReverify = () => {
     usePreferredIDVProvider(ipAndCountry, {
       enabled: !ipAndCountryIsLoading,
     });
+
+  const {
+    mutateAsync: createSessionAsync
+  } = useCreateIdServerSession({
+    preferredProvider
+  });
 
   return (
     <VerificationContainer steps={[]} currentIdx={0}>
@@ -33,7 +40,15 @@ const ConfirmReverify = () => {
               fontSize: "16px",
             }}
             disabled={preferredProviderIsLoading}
-            onClick={() => navigate(`/issuance/idgov-${preferredProvider}`)}
+            onClick={() => {
+              // TODO: See GovIDRedirect component and the cases handled in there wrt
+              // the different possible session states. Handle the same cases here.
+              createSessionAsync()
+                .then((data: { session: { _id: string }}) => 
+                  navigate(`/issuance/idgov-${preferredProvider}?sid=${data.session._id}`)
+                )
+                .catch(console.error)
+            }}
           >
             {preferredProviderIsLoading ? 'Loading...' : 'Reverify'}
           </button>

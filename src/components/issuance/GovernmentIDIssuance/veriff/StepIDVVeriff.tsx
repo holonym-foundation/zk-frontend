@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import useIdvSessionStatus from "../../../../hooks/useIdvSessionStatus";
 import useVeriffIDV from "../../../../hooks/useVeriffIDV";
@@ -7,7 +7,7 @@ import { idServerUrl } from "../../../../constants";
 import { datadogLogs } from "@datadog/browser-logs";
 import { SessionStatusResponse } from "../../../../types";
 
-const StepIDVVeriff = () => {
+const StepIDVVeriff = ({ url, sessionId }: { url?: string, sessionId: string }) => {
   useEffect(() => {
     try {
       datadogLogs.logger.info("StartGovID", {});
@@ -19,6 +19,8 @@ const StepIDVVeriff = () => {
   }, []);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
   const [
     returningUserHasSuccessfulSession,
     setReturningUserHasSuccessfulSession,
@@ -28,12 +30,13 @@ const StepIDVVeriff = () => {
     setRetrievalEndpointForReturningUser,
   ] = useState("");
   const { encodedRetrievalEndpoint: veriffRetrievalEndpoint } = useVeriffIDV({
-    enabled: returningUserHasSuccessfulSession === "no",
+    url,
+    sessionId
   });
 
   const [verificationError, setVerificationError] = useState("");
 
-  const idvSessionStatusQuery = useIdvSessionStatus("veriff", {
+  const idvSessionStatusQuery = useIdvSessionStatus(sid ?? undefined, {
     onSuccess: (data: Omit<SessionStatusResponse, "idenfy" | "onfido">) => {
       if (!data) return;
 
@@ -50,7 +53,7 @@ const StepIDVVeriff = () => {
         if (veriffRetrievalEndpoint) {
           if (data?.veriff?.status === "approved") {
             navigate(
-              `/issuance/idgov-veriff/store?retrievalEndpoint=${veriffRetrievalEndpoint}`
+              `/issuance/idgov-veriff/store?sid=${sid}&retrievalEndpoint=${veriffRetrievalEndpoint}`
             );
           } else if (
             unsuccessfulVeriffStatuses.includes(data?.veriff?.status)
@@ -114,7 +117,7 @@ const StepIDVVeriff = () => {
                 }}
                 onClick={() => {
                   navigate(
-                    `/issuance/idgov-veriff/store?retrievalEndpoint=${retrievalEndpointForReturningUser}`
+                    `/issuance/idgov-veriff/store?sid=${sid}&retrievalEndpoint=${retrievalEndpointForReturningUser}`
                   );
                 }}
               >

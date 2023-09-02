@@ -1,16 +1,59 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { idServerUrl } from "../../../../constants";
 import StepIDVVeriff from "./StepIDVVeriff";
 import FinalStep from "../../FinalStep";
 import VerificationContainer from "../../IssuanceContainer";
 import StepSuccessWithAnalytics from "../StepSuccessWithAnalytics";
+import GovIDPayment from "../GovIDPayment";
 import useGovernmentIDIssuanceState from "../../../../hooks/useGovIDIssuanceState";
+import useIdServerSessions from "../../../../hooks/useIdServerSessions";
 
 const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
-  const { success, setSuccess, currentIdx, steps, currentStep } =
-    useGovernmentIDIssuanceState();
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
+
+  const {
+    data: idServerSessions,
+    isLoading: idServerSessionsIsLoading,
+    refetch: refetchIdServerSessions
+  } = useIdServerSessions(sid ?? undefined);
+
+  const {
+    success,
+    setSuccess,
+    currentIdx,
+    steps,
+    currentStep
+  } = useGovernmentIDIssuanceState({
+    sessionStatus: sid ? idServerSessions?.[0]?.status : undefined
+  });
+
+  const {
+    data: idvSessionMetadata,
+    mutate: createIdvSession
+  } = useMutation(
+    async (data: { chainId?: number, txHash?: string }) => {
+      if (!sid) throw new Error("No session ID");
+      if (!data?.chainId) throw new Error("No chain ID");
+      if (!data?.txHash) throw new Error("No transaction hash");
+
+      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: sid,
+          chainId: data.chainId,
+          txHash: data.txHash,
+        }),
+      })
+      return resp.json()
+    }
+  )
 
   useEffect(() => {
     if (success && window.localStorage.getItem("register-credentialType")) {
@@ -28,8 +71,10 @@ const GovernmentIDIssuance = () => {
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccessWithAnalytics />
+      ) : currentStep === "Pay" ? (
+        <GovIDPayment onPaymentSuccess={createIdvSession} />
       ) : currentStep === "Verify" ? (
-        <StepIDVVeriff />
+        <StepIDVVeriff url={idvSessionMetadata?.url} sessionId={idvSessionMetadata?.id} />
       ) : (
         // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />

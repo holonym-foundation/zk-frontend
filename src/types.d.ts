@@ -260,7 +260,7 @@ export type SessionStatusResponse = {
   };
 };
 
-export type IdServerSessionsResponse = Array<{
+export type IdServerSession = {
   _id: string;
   sigDigest: string;
   idvProvider: string;
@@ -270,7 +270,9 @@ export type IdServerSessionsResponse = Array<{
   sessionId?: string;
   scanRef?: string;
   check_id?: string;  
-}>;
+}
+
+export type IdServerSessionsResponse = Array<IdServerSession>;
 
 export type IPAndCountry = {
   ip: string;

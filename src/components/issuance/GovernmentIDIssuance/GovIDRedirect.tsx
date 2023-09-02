@@ -10,6 +10,7 @@ import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
 import useIdServerSessions from '../../../hooks/useIdServerSessions'
+import useCreateIdServerSession from '../../../hooks/useCreateIdServerSession'
 
 const steps = ["Pay", "Verify", "Finalize"];
 
@@ -29,6 +30,12 @@ const GovIDRedirect = () => {
     data: idServerSessions,
     isLoading: idServerSessionsIsLoading,
   } = useIdServerSessions();
+
+  const {
+    mutateAsync: createSessionAsync
+  } = useCreateIdServerSession({
+    preferredProvider
+  });
 
   useEffect(
     () => {
@@ -103,8 +110,14 @@ const GovIDRedirect = () => {
         }
       }
 
-      // Redirect the user to the issuance page that uses the correct IDV provider
-      navigate(`/issuance/idgov-${preferredProvider}`);
+      createSessionAsync()
+        .then((data: { session: { _id: string }}) => {
+          // Redirect the user to the issuance page that uses the correct IDV provider
+          navigate(`/issuance/idgov-${preferredProvider}?sid=${data.session._id}`);    
+        })
+        .catch((err) => {
+          console.error('Error creating session:', err)
+        })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [

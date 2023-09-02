@@ -54,6 +54,10 @@ export const issuerWhitelist = [
   '0x198c8c83f3e3dfab87ce363bcc2e5587dcda7dfcf56d24fc0bfa5c82454812ba', // MedDAO issuer
 ]
 
+export const sbtPaymentRecipients = {
+  "idgov": "0xb1f50c6c34c72346b1229e5c80587d0d659556fd",
+}
+
 export const holonymAuthMessage = "Signature requested for holonym.id. Do not sign this on any other website!"
 
 export const holonymKeyGenMessage = "Holonym keygen"
