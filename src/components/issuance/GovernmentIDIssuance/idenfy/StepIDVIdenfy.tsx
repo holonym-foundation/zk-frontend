@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useIdvSessionStatus from "../../../../hooks/useIdvSessionStatus";
 import useIdenfyIDV from "../../../../hooks/useIdenfyIDV";
 import { idServerUrl } from "../../../../constants";
 import { datadogLogs } from "@datadog/browser-logs";
 import { SessionStatusResponse } from "../../../../types";
 
-const StepIDVIdenfy = () => {
+const StepIDVIdenfy = ({ url, scanRef }: { url?: string, scanRef?: string }) => {
   useEffect(() => {
     try {
       datadogLogs.logger.info("StartGovID", {});
@@ -19,6 +18,8 @@ const StepIDVIdenfy = () => {
   }, []);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
   const [
     returningUserHasSuccessfulSession,
     setReturningUserHasSuccessfulSession,
@@ -28,16 +29,12 @@ const StepIDVIdenfy = () => {
     setRetrievalEndpointForReturningUser,
   ] = useState("");
   const {
-    verificationUrl,
-    canStart,
     encodedRetrievalEndpoint: idenfyRetrievalEndpoint,
-  } = useIdenfyIDV({
-    enabled: returningUserHasSuccessfulSession === "no",
-  });
+  } = useIdenfyIDV({ scanRef });
 
   const [verificationError, setVerificationError] = useState("");
 
-  const idvSessionStatusQuery = useIdvSessionStatus("idenfy", {
+  const idvSessionStatusQuery = useIdvSessionStatus(sid ?? undefined, {
     onSuccess: (data: Omit<SessionStatusResponse, "veriff" | "onfido">) => {
       if (!data) return;
 
@@ -149,9 +146,9 @@ const StepIDVIdenfy = () => {
                   lineHeight: "1",
                   fontSize: "16px",
                 }}
-                disabled={!canStart}
+                disabled={!scanRef}
                 onClick={() => {
-                  window.open(verificationUrl, "_blank");
+                  window.open(url, "_blank");
                 }}
               >
                 Start Verification

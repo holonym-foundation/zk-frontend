@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { idServerUrl } from "../../../../constants";
 import StepIDVVeriff from "./StepIDVVeriff";
 import FinalStep from "../../FinalStep";
