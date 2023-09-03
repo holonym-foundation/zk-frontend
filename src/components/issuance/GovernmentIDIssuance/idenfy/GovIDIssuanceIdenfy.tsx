@@ -37,8 +37,12 @@ const GovernmentIDIssuance = () => {
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccessWithAnalytics />
-      ) : currentStep === "Pay" ? (
+      ) : currentStep === "Pay" && !idvSessionMetadataIsLoading ? (
         <GovIDPayment onPaymentSuccess={createIdvSession} />
+      ) : currentStep === "Pay" && idvSessionMetadataIsLoading ? (
+        <div>
+          <p>Loading...</p>
+        </div>
       ) : currentStep === "Verify" ? (
         <StepIDVIdenfy
           url={idvSessionMetadata?.url}

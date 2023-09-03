@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
 import {
   useNetwork,
   usePrepareSendTransaction,
@@ -8,9 +7,8 @@ import {
 import { parseEther } from "viem";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
-import { idServerUrl, sbtPaymentRecipients } from "../../../constants";
+import { sbtPaymentRecipients } from "../../../constants";
 import { chainIdToNativeCurrency, govIDSBTPrices } from "../../../constants/prices";
-import useIdServerSessions from "../../../hooks/useIdServerSessions";
 
 const GovIDPayment = ({ onPaymentSuccess }: { onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void }) => {
   const { chain } = useNetwork();
@@ -41,10 +39,6 @@ const GovIDPayment = ({ onPaymentSuccess }: { onPaymentSuccess: (data: { chainId
     isSuccess: txIsSuccess,
     sendTransaction,
   } = useSendTransaction(config);
-
-  // const { data: idServerSessions, isLoading: idServerSessionsIsLoading } =
-  //   useIdServerSessions();
-
 
   useEffect(() => {
     if (!txIsSuccess) return;
@@ -96,7 +90,7 @@ const GovIDPayment = ({ onPaymentSuccess }: { onPaymentSuccess: (data: { chainId
             }
           }}
         >
-          {preparingTx ? 'Loading...' : 'Submit transaction'}
+          {preparingTx || txIsLoading ? 'Loading...' : 'Submit transaction'}
         </button>
       </div>
     </div>

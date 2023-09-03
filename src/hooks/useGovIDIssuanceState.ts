@@ -52,6 +52,11 @@ function useGovernmentIDIssuanceState() {
         }),
       })
       return resp.json()
+    },
+    {
+      onSuccess: () => {
+        refetchIdServerSessions();
+      }
     }
   )
 
