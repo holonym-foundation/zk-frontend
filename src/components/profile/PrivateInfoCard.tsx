@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import classNames from "classnames";
 import { Oval } from "react-loader-spinner";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, QueryFunctionContext } from "@tanstack/react-query";
 import { InfoButton } from "../info-button";
 import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { serverAddress, idServerUrl } from "../../constants";
 import useIdvSessionStatus from "../../hooks/useIdvSessionStatus";
+import useIdServerSessions from "../../hooks/useIdServerSessions";
 import { useHoloAuthSig } from "../../context/HoloAuthSig";
 import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import VerificationStatusModal from "./VerificationStatusModal";
+import { SessionStatusResponse } from '../../types';
 
 const issuerAddrToName = Object.fromEntries(
   Object.values(serverAddress).map((addr) => [addr, "Holonym"])
@@ -136,31 +138,83 @@ export default function PrivateInfoCard({
     disabled: !authSigs,
   });
 
-  const { data: idvSessionStatus } = useIdvSessionStatus();
+  const { data: idServerSessions } = useIdServerSessions();
+  // const { data: idvSessionStatus } = useIdvSessionStatus();
+  const idvSessionStatusQueryFn = async (context: QueryFunctionContext) => {
+    const [_, sid] = context.queryKey;
+    if (!sid) return {};
+    const url = `${idServerUrl}/session-status/v2?sid=${sid}`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      throw new Error(`Failed to get session status. Response status code: ${resp.status}`);
+    }
+    return resp.json();
+  }
+
+  const idvSessionStatuses = useQueries({
+    queries: (idServerSessions ?? []).filter(
+      (session) => session.status === "IN_PROGRESS"
+    ).map((session) => ({
+      queryKey: ['idvSessionStatus', session._id],
+      queryFn: idvSessionStatusQueryFn,
+      staleTime: Infinity
+    }))
+  })
+
+  const consolidatedIdvSessionStatus = useMemo(() => {
+    if (!idvSessionStatuses) return {} as SessionStatusResponse;
+
+    // Filter out unapproved sessions
+    idvSessionStatuses.filter((statusData) => {
+      if (!statusData.data) return false;
+      if (statusData.data.veriff?.status === "approved") return true;
+      if (statusData.data.idenfy?.status === "APPROVED") return true;
+      if (
+        statusData.data.onfido?.status === "complete" &&
+        statusData.data.onfido?.result === "clear"
+      )
+        return true;
+      return false;
+    })
+
+    // Merge all approved sessions into one object
+    const idvSessionStatus: SessionStatusResponse = idvSessionStatuses.reduce(
+      (acc, statusData) => {
+        if (!statusData.data) return acc;
+        return {
+          ...acc,
+          ...statusData.data
+        }
+      }, 
+      {} as SessionStatusResponse
+    )
+    return idvSessionStatus;
+  }, [idvSessionStatuses])
 
   const govIdRetrievalEndpoints = useMemo(() => {
+    if (!consolidatedIdvSessionStatus) return {};
     const endpoints: {
       veriff?: string;
       idenfy?: string;
       onfido?: string;
     } = {};
-    if (idvSessionStatus?.veriff?.status === "approved") {
-      const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${idvSessionStatus?.veriff?.sessionId}`;
+    if (consolidatedIdvSessionStatus?.veriff?.status === "approved") {
+      const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${consolidatedIdvSessionStatus?.veriff?.sessionId}`;
       endpoints.veriff = encodeURIComponent(window.btoa(retrievalEndpoint));
     }
-    if (idvSessionStatus?.idenfy?.status === "APPROVED") {
-      const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${idvSessionStatus?.idenfy?.scanRef}`;
+    if (consolidatedIdvSessionStatus?.idenfy?.status === "APPROVED") {
+      const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${consolidatedIdvSessionStatus?.idenfy?.scanRef}`;
       endpoints.idenfy = encodeURIComponent(window.btoa(retrievalEndpoint));
     }
     if (
-      idvSessionStatus?.onfido?.status === "complete" &&
-      idvSessionStatus?.onfido?.result === "clear"
+      consolidatedIdvSessionStatus?.onfido?.status === "complete" &&
+      consolidatedIdvSessionStatus?.onfido?.result === "clear"
     ) {
-      const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${idvSessionStatus?.onfido?.check_id}`;
+      const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${consolidatedIdvSessionStatus?.onfido?.check_id}`;
       endpoints.onfido = encodeURIComponent(window.btoa(retrievalEndpoint));
     }
     return endpoints;
-  }, [idvSessionStatus]);
+  }, [idvSessionStatuses]);
 
   const govIdRetrievalEndpoint = useMemo(() => {
     if (Object.keys(govIdRetrievalEndpoints).length === 1) {
@@ -310,9 +364,9 @@ export default function PrivateInfoCard({
                       text="Your Government ID credentials are ready - Click here to complete issuance"
                     />
                   </>
-                ) : idvSessionStatus?.veriff?.status ||
-                  idvSessionStatus?.idenfy?.status ||
-                  idvSessionStatus?.onfido?.status ? (
+                ) : consolidatedIdvSessionStatus?.veriff?.status ||
+                  consolidatedIdvSessionStatus?.idenfy?.status ||
+                  consolidatedIdvSessionStatus?.onfido?.status ? (
                   <>
                     <div className="private-info-attribute-name">
                       Government ID
