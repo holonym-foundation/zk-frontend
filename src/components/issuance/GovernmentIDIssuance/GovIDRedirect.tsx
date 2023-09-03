@@ -2,10 +2,10 @@
  * A component for performing redirection, based on app state, to the correct GovID
  * issuance page.
  */
-import { useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreds } from "../../../context/Creds";
-import { serverAddress, idServerUrl } from "../../../constants";
+import { serverAddress } from "../../../constants";
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
@@ -16,6 +16,8 @@ const steps = ["Pay", "Verify", "Finalize"];
 
 const GovIDRedirect = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const provider = searchParams.get("provider");
   const { sortedCreds, loadingCreds } = useCreds();
 
   const { data: ipAndCountry, isLoading: ipAndCountryIsLoading } =
@@ -44,7 +46,11 @@ const GovIDRedirect = () => {
 
       // User already has gov id creds. Send them to the confirm reverify page.
       if (sortedCreds?.[serverAddress["idgov-v2"]]) {
-        navigate("/issuance/idgov-confirm-reverify");
+        let url = `/issuance/idgov-confirm-reverify`;
+        if (provider) {
+          url += `?provider=${provider}`;
+        }
+        navigate(url);
         return;
       }
 
