@@ -1,19 +1,82 @@
+import { useNavigate } from "react-router-dom";
 import RoundedWindow from "./RoundedWindow"
+import { Modal } from "./atoms/Modal";
+import { useEffect, useState } from "react";
+import { PRICE_USD, paymentRecieverAddress } from "../constants";
+import { useEffectOnce } from "usehooks-ts";
+import { BigNumber } from "bignumber.js";
 
-export const PaymentScreen = () => { 
-    return <RoundedWindow>
-       <div
-          className="x-wrapper small-center"
-          style={{ display: "flex", height: "95%", width: "80%", alignItems: "stretch", justifyContent: "stretch", flexDirection: "column", gap: "50px" }}
-        >
-            <h1>Bond & Fee</h1>
+type Currency = {
+  name: string,
+  coinGeckoName: string,
+  symbol: string,
+}
+const fetchPrice = async (c: Currency) => {
+  const priceData = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${c.coinGeckoName}&vs_currencies=USD`)
+  if (priceData.status !== 200) {
+    throw new Error("Failed to fetch price")
+  } else {
+    return (await priceData.json())[c.coinGeckoName].usd
+  }
+  
+}
+export const PaymentScreen = (props: { currency: Currency }) => {   
+  const [diffWallet, setDiffWallet] = useState(true);
 
-        <a className="glowy-green-button" style={{ width: "100%", fontSize: "20px" }}>Pay In FTM</a>
-        <a className="glowy-red-button" style={{ width: "100%", fontSize: "20px" }}>Pay In OP ETH</a>
-        <a className="x-button-blue greyed-out-button" style={{ width: "100%", fontSize: "20px" }}>Pay In Fiat (coming soon)</a>
 
-    </div> 
-    </RoundedWindow>
+  return <RoundedWindow>
+      <Modal children={<PayWithDiffWallet {...props} />} visible={diffWallet} setVisible={setDiffWallet} />
+      <div
+        className="x-wrapper small-center"
+        style={{ display: "flex", height: "95%", width: "80%", alignItems: "stretch", justifyContent: "stretch", flexDirection: "column", gap: "50px" }}
+      >
+        <h1>Payment Options</h1>
+        <a className="x-button secondary">Continue With This Wallet</a>
+        <a className="x-button secondary outline" onClick={()=>setDiffWallet(true)}>Pay From A Burner Wallet</a>
+
+  </div> 
+
+  </RoundedWindow>
+}
+
+export const PayWithDiffWallet = (props: { currency: Currency }) => { 
+  const [amountToPay, setAmountToPay] = useState<BigNumber>();
+  const navigate = useNavigate();
+
+  useEffectOnce(() => {
+    const f = async () => { return await fetchPrice(props.currency) }
+    f().then(price=>setAmountToPay(PRICE_USD.div(BigNumber(price))))
+  })
+  return <>
+    <h1>How To</h1>
+    <br />
+    <p>Please send {amountToPay ? amountToPay.toString() : ""} in {props.currency.symbol} to {paymentRecieverAddress}, then copy the transaction hash of the payment here:    </p>
+    <input type="text" className="text-field" placeholder="0x..." style={{marginBottom: "10px", width: "100%"}} />
+    <button style={{width: "100%"}} className="x-button secondary" onClick={()=>{} /*TODO*/} >Done</button>
+  </>
+}
+
+export const PaymentOptions = () => { 
+  const navigate = useNavigate();
+  return <RoundedWindow>
+      <div
+        className="x-wrapper small-center"
+        style={{ display: "flex", height: "95%", width: "80%", alignItems: "stretch", justifyContent: "stretch", flexDirection: "column", gap: "50px" }}
+      >
+          <h1>Bond & Fee</h1>
+
+      <a className="glowy-green-button" style={{ width: "100%", fontSize: "20px" }} onClick={(event) => {
+              event.preventDefault();
+              navigate("/pay/ftm");
+      }}>Pay In FTM</a>
+      <a className="glowy-red-button" style={{ width: "100%", fontSize: "20px" }} onClick={(event) => {
+              event.preventDefault();
+              navigate("/pay/opeth");
+      }}>Pay In OP ETH</a>
+      <a className="x-button-blue greyed-out-button" style={{ width: "100%", fontSize: "20px" }}>Pay In Fiat (coming soon)</a>
+
+  </div> 
+  </RoundedWindow>
 }
 
 export const PaymentPrereqs = () => { 
