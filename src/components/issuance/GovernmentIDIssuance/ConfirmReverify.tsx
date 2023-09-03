@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { getSessionPath } from '../../../utils/misc';
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
+import useIdServerSessions from '../../../hooks/useIdServerSessions'
 import useCreateIdServerSession from '../../../hooks/useCreateIdServerSession'
 
 const ConfirmReverify = () => {
@@ -19,6 +21,11 @@ const ConfirmReverify = () => {
   } = useCreateIdServerSession({
     preferredProvider
   });
+
+  const {
+    data: idServerSessions,
+    isLoading: idServerSessionsIsLoading,
+  } = useIdServerSessions();
 
   return (
     <VerificationContainer steps={[]} currentIdx={0}>
@@ -41,13 +48,20 @@ const ConfirmReverify = () => {
             }}
             disabled={preferredProviderIsLoading}
             onClick={() => {
-              // TODO: See GovIDRedirect component and the cases handled in there wrt
-              // the different possible session states. Handle the same cases here.
+              const path = getSessionPath(idServerSessions);
+              if (path) {
+                navigate(path)
+                return;
+              }
+
               createSessionAsync()
-                .then((data: { session: { _id: string }}) => 
-                  navigate(`/issuance/idgov-${preferredProvider}?sid=${data.session._id}`)
-                )
-                .catch(console.error)
+                .then((data: { session: { _id: string }}) => {
+                  // Redirect the user to the issuance page that uses the correct IDV provider
+                  navigate(`/issuance/idgov-${preferredProvider}?sid=${data.session._id}`);    
+                })
+                .catch((err) => {
+                  console.error('Error creating session:', err)
+                })
             }}
           >
             {preferredProviderIsLoading ? 'Loading...' : 'Reverify'}

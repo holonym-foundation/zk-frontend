@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreds } from "../../../context/Creds";
 import { serverAddress } from "../../../constants";
+import { getSessionPath } from '../../../utils/misc';
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
@@ -56,33 +57,12 @@ const GovIDRedirect = () => {
 
       // If user already has one or more sessions, redirect them to the correct
       // one. Otherwise, redirect them to the issuance page for the preferred
-      // provider (as determined by a function of the country of their IP address).
-      // TODO: Each of the following if statements assumes the first item in the
-      // array will always be the correct one to use. It's possible, though unlikely,
-      // for cases to arise where this assumption doesn't hold. We should rewrite
-      // this to handle all possible cases.
-      if (Array.isArray(idServerSessions) && idServerSessions.length > 0) {
-        // If user has already paid for a session but hasn't completed verification,
-        // direct them to the page where they can start verification.
-        const inProgressSessions = idServerSessions.filter(
-          (session) => session.status === "IN_PROGRESS"
-        );
-        if (inProgressSessions.length > 0) {
-          const provider = inProgressSessions[0].idvProvider;
-          navigate(`/issuance/idgov-${provider}?sid=${inProgressSessions[0]._id}`);
-          return;
-        }
+      // provider.
 
-        // If the user has already initiated a session but hasn't paid for it,
-        // direct them to the page where they can pay for the session.
-        const needsPaymentSessions = idServerSessions.filter(
-          (session) => session.status === "NEEDS_PAYMENT"
-        );
-        if (needsPaymentSessions.length > 0) {
-          const provider = needsPaymentSessions[0].idvProvider;
-          navigate(`/issuance/idgov-${provider}?sid=${needsPaymentSessions[0]._id}`);
-          return;
-        }
+      const path = getSessionPath(idServerSessions);
+      if (path) {
+        navigate(path)
+        return;
       }
 
       createSessionAsync()
