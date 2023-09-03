@@ -10,7 +10,7 @@ const useVeriffIDV = ({ url, sessionId }: { url?: string, sessionId?: string }) 
   const veriffIframeCreatedRef = useRef(false);
 
   useEffect(() => {
-    if (!url || veriffIframeCreatedRef.current)
+    if (!url || !sessionId || veriffIframeCreatedRef.current)
       return;
     veriffIframeCreatedRef.current = true;
 
