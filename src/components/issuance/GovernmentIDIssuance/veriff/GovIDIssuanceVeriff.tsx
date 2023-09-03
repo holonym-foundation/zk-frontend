@@ -1,14 +1,22 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import StepIDVVeriff from "./StepIDVVeriff";
 import FinalStep from "../../FinalStep";
 import VerificationContainer from "../../IssuanceContainer";
 import StepSuccessWithAnalytics from "../StepSuccessWithAnalytics";
 import GovIDPayment from "../GovIDPayment";
 import useGovernmentIDIssuanceState from "../../../../hooks/useGovIDIssuanceState";
+import useIdServerSessions from "../../../../hooks/useIdServerSessions";
 
 const GovernmentIDIssuance = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
+
+  const {
+    data: idServerSessions,
+  } = useIdServerSessions(sid ?? undefined);
+
   const {
     success,
     setSuccess,
@@ -44,7 +52,10 @@ const GovernmentIDIssuance = () => {
           <p>Loading...</p>
         </div>
       ) : currentStep === "Verify" ? (
-        <StepIDVVeriff url={idvSessionMetadata?.url} sessionId={idvSessionMetadata?.id} />
+        <StepIDVVeriff 
+          url={idvSessionMetadata?.url ?? idServerSessions?.[0].veriffUrl}
+          sessionId={idvSessionMetadata?.id ?? idServerSessions?.[0].sessionId} 
+        />
       ) : (
         // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />

@@ -268,8 +268,12 @@ export type IdServerSession = {
   txHash?: string;
   chainId?: number;
   sessionId?: string;
+  veriffUrl?: string;
   scanRef?: string;
-  check_id?: string;  
+  idenfyAuthToken?: string;
+  applicant_id?: string;
+  check_id?: string; 
+  onfido_sdk_token?: string; 
 }
 
 export type IdServerSessionsResponse = Array<IdServerSession>;
