@@ -13,7 +13,6 @@ import useGenericProofsState from "./useGenericProofsState";
 import useSubmitProof from "./useSubmitProof";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
-import { desiredChainId } from "../../constants";
 
 const SUBMIT_PROOF = "submitProof";
 
@@ -136,7 +135,10 @@ const Proofs = () => {
     onSuccess: async (txReceipt: TransactionReceipt) => {
       console.log("txReceipt from submitProof:", txReceipt);
       addProofMetadataItem(
-        { ...txReceipt, chainId: desiredChainId },
+        { 
+          ...txReceipt, 
+          chainId: process.env.NODE_ENV === "development" ? 420 : 10,
+        },
         proof!.inputs[1],
         params.proofType!,
         params.actionId

@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-export * from './desiredChain';
+export * from './allowedChains';
 
 export const preprocEndpoint =  
   process.env.PREPROC_CACHED_LOCALLY === "true" 

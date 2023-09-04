@@ -10,17 +10,18 @@ import { ProofsProvider } from "./context/Proofs";
 import AccountConnectGate from "./gate/AccountConnectGate";
 import SignatureGate from "./gate/SignatureGate";
 import NetworkGate from "./gate/NetworkGate";
-import { desiredChainId } from "./constants";
+import { allowedChains } from "./constants";
 import { WagmiAccount, ActiveChain, SignatureGateData } from "./types";
 
-export const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
 const connectWalletGateFn = (data: WagmiAccount) => {
   return !!data?.account?.address && !!data?.account?.connector;
 };
 
 const networkGateFn = (data: ActiveChain) => {
-  return data?.activeChain?.id === desiredChainId;
+  const allowedChainIds = allowedChains.map((chain) => chain.id)
+  return allowedChainIds.includes(data?.activeChain?.id as typeof allowedChainIds[number]);
 };
 
 const signMessagesGateFn = (data: SignatureGateData) => {

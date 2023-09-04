@@ -1,14 +1,13 @@
 import { configureChains, createConfig } from 'wagmi'
-import { optimism, optimismGoerli } from '@wagmi/core/chains'
 import { publicProvider } from '@wagmi/core/providers/public'
 import { alchemyProvider } from '@wagmi/core/providers/alchemy'
 import { InjectedConnector } from '@wagmi/core/connectors/injected'
 import { MetaMaskConnector } from '@wagmi/core/connectors/metaMask'
 import { CoinbaseWalletConnector } from '@wagmi/core/connectors/coinbaseWallet'
-import { desiredChainId } from "./constants";
+import { allowedChains } from "./constants";
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [desiredChainId === optimismGoerli.id ? optimismGoerli : optimism],
+  allowedChains,
   [
     alchemyProvider({ apiKey: process.env.ALCHEMY_API_KEY ?? '' }), 
     publicProvider()
