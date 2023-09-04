@@ -1,6 +1,7 @@
+import { BigNumber } from "bignumber.js";
 export * from './desiredChain';
 
-export const preprocEndpoint = 
+export const preprocEndpoint =  
   process.env.PREPROC_CACHED_LOCALLY === "true" 
   ? "http://localhost:8000"
   : "https://preproc-zkp.s3.us-east-2.amazonaws.com";
@@ -40,6 +41,11 @@ export const serverAddress = {
   "med": "0x198c8c83f3e3dfab87ce363bcc2e5587dcda7dfcf56d24fc0bfa5c82454812ba"
 }
 
+export const paymentRecieverAddress = "0xdeadbeef";
+
+export const BOND_USD = BigNumber("2.47");
+export const MINT_USD = BigNumber("10.00");
+export const PRICE_USD = BOND_USD.plus(MINT_USD);
 // Necessary now that any site can redirect a user to Holonym and store user credentials. A user's
 // credential set could get cluttered with untrusted sites if we don't check against the whitelist.
 export const issuerWhitelist = [

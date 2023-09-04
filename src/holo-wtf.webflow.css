@@ -639,9 +639,39 @@ p {
   animation-direction: alternate;
   animation-iteration-count: infinite;
 }
-
+.glowy-red-button {
+  padding: 20px 35px;
+  border-radius: 7px;
+  background-color: rgb(205,25,25);
+  -webkit-transition: background-color 500ms cubic-bezier(.23, 1, .32, 1);
+  transition: background-color 500ms cubic-bezier(.23, 1, .32, 1);
+  font-family: 'Clover Medium', sans-serif;
+  color: #02070c;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  animation-name: glowy-red-button;
+  animation-duration: 2s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+}
 .glowy-green-button:hover {
   background-color: #fff;
+}
+.glowy-red-button:hover {
+  background-color: #fff;
+}
+
+@keyframes glowy-red-button {
+  0% {box-shadow: 0px 0px 10px 1px rgb(205,92,92)}
+  /* 0%   {width: 230px; height: 85px;} */
+  /* 25%  {width: 100px;}
+  50%  {width: 169px;}
+  75%  {width: 65px;} */
+  100% {box-shadow: 0px 0px 10px 1px rgb(205,25,2 )}
+  /* 100%   {width: 250px; height: 90px;} */
 }
 
 @keyframes glowy-green-button {
@@ -653,6 +683,7 @@ p {
   100% {box-shadow: 0px 0px 10px 1px skyblue;}
   /* 100%   {width: 250px; height: 90px;} */
 }
+
 /* Old buttons: */
 /* .x-button {
   padding: 20px 30px;

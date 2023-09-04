@@ -25,6 +25,7 @@
     "aes-js": "^3.1.2",
     "axios": "^1.2.0",
     "big-integer": "^1.6.51",
+    "bignumber.js": "^9.1.2",
     "buffer": "^6.0.3",
     "buffer-xor": "^2.0.2",
     "classnames": "^2.3.2",
