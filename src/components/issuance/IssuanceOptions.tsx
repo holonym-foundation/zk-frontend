@@ -10,7 +10,7 @@ import questionImg from "../../img/question.png";
 const opts = [
   {
     name: "Government ID",
-    url: "/issuance/idgov",
+    url: "/issuance/idgov-prereqs",
     image: idImg,
     description: (
       <>

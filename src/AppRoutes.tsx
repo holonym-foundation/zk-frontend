@@ -15,6 +15,7 @@ import MedicalCredentialsIssuance from './components/issuance/MedicalCredentials
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
 import OnChainProofs from "./components/prove/OnChainProofs";
+import { PaymentPrereqs } from "./components/payment";
 
 // const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 
@@ -25,6 +26,7 @@ export function AppRoutes() {
       <Route path={"/"} element={<Landing />} />
       <Route path={"/issuance"} element={<IssuanceOptions />} />
 
+      <Route path={"/issuance/idgov-prereqs"} element={<PaymentPrereqs />} />
       <Route path={"/issuance/idgov"} element={<GovIDRedirect />} />
       <Route path={"/issuance/idgov-confirm-reverify"} element={<ConfirmReverify />} />
       <Route path={"/issuance/idgov-veriff"} element={<GovIDIssuanceVeriff />} />

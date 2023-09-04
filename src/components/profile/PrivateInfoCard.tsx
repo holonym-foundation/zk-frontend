@@ -383,7 +383,7 @@ export default function PrivateInfoCard({
                       Government ID
                     </div>
                     <VerifyButton
-                      onClick={() => navigate("/issuance/idgov")}
+                      onClick={() => navigate("/issuance/idgov-prereqs")}
                       text="Verify Government ID"
                     />
                   </>

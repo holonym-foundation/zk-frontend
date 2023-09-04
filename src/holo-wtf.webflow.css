@@ -659,6 +659,7 @@ p {
 }
 .glowy-green-button:hover {
   background-color: #fff;
+  cursor: pointer;
 }
 .glowy-red-button:hover {
   background-color: #fff;
