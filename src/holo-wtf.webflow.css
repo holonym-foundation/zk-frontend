@@ -663,6 +663,7 @@ p {
 }
 .glowy-red-button:hover {
   background-color: #fff;
+  cursor: pointer;
 }
 
 @keyframes glowy-red-button {
