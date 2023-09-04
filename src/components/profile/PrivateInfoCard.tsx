@@ -238,6 +238,7 @@ export default function PrivateInfoCard({
       <VerificationStatusModal
         isVisible={statusModalIsVisible}
         setIsVisible={setStatusModalIsVisible}
+        consolidatedIdvSessionStatus={consolidatedIdvSessionStatus}
         govIdRetrievalEndpoints={govIdRetrievalEndpoints}
       />
 

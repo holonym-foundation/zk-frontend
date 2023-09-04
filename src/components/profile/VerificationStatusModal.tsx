@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../atoms/Modal";
-import useIdvSessionStatus from "../../hooks/useIdvSessionStatus";
 import { SessionStatusResponse } from "../../types";
 
 type GovIdRetrievalEndpoints = {
@@ -12,14 +11,14 @@ type GovIdRetrievalEndpoints = {
 
 type StatusOverviewProps = {
   govIdRetrievalEndpoints: GovIdRetrievalEndpoints;
-  idvSessionStatus?: Partial<SessionStatusResponse>;
+  consolidatedIdvSessionStatus?: Partial<SessionStatusResponse>;
   onfidoStatus?: string;
   handleViewReason: (provider: string, reason: any) => void;
 };
 
 function StatusesOverview({
   govIdRetrievalEndpoints,
-  idvSessionStatus,
+  consolidatedIdvSessionStatus,
   onfidoStatus,
   handleViewReason,
 }: StatusOverviewProps) {
@@ -55,7 +54,7 @@ function StatusesOverview({
           <p>Veriff</p>
         </div>
         <div style={{ width: "33.33%" }}>
-          <p>{idvSessionStatus?.veriff?.status ?? "n/a"}</p>
+          <p>{consolidatedIdvSessionStatus?.veriff?.status ?? "n/a"}</p>
         </div>
         <div style={{ width: "33.33%" }}>
           {govIdRetrievalEndpoints?.veriff ? (
@@ -72,8 +71,8 @@ function StatusesOverview({
             >
               Finish Verification
             </button>
-          ) : idvSessionStatus?.veriff?.status &&
-            idvSessionStatus?.veriff?.status === "declined" ? (
+          ) : consolidatedIdvSessionStatus?.veriff?.status &&
+            consolidatedIdvSessionStatus?.veriff?.status === "declined" ? (
             <button
               className="profile-navigate-to-verification-button"
               style={{
@@ -82,7 +81,7 @@ function StatusesOverview({
               onClick={() => {
                 handleViewReason(
                   "Veriff",
-                  idvSessionStatus?.veriff?.failureReason
+                  consolidatedIdvSessionStatus?.veriff?.failureReason
                 );
               }}
             >
@@ -96,8 +95,8 @@ function StatusesOverview({
               }}
               onClick={() => navigate("/issuance/idgov-veriff")}
               disabled={
-                !!idvSessionStatus?.veriff?.status &&
-                idvSessionStatus?.veriff?.status !== "approved"
+                !!consolidatedIdvSessionStatus?.veriff?.status &&
+                consolidatedIdvSessionStatus?.veriff?.status !== "approved"
               }
             >
               Verify
@@ -116,7 +115,7 @@ function StatusesOverview({
           <p>iDenfy</p>
         </div>
         <div style={{ width: "33.33%" }}>
-          <p>{idvSessionStatus?.idenfy?.status ?? "n/a"}</p>
+          <p>{consolidatedIdvSessionStatus?.idenfy?.status ?? "n/a"}</p>
         </div>
         <div style={{ width: "33.33%" }}>
           {govIdRetrievalEndpoints?.idenfy ? (
@@ -133,8 +132,8 @@ function StatusesOverview({
             >
               Finish Verification
             </button>
-          ) : idvSessionStatus?.idenfy?.status &&
-            idvSessionStatus?.idenfy?.status === "DENIED" ? (
+          ) : consolidatedIdvSessionStatus?.idenfy?.status &&
+            consolidatedIdvSessionStatus?.idenfy?.status === "DENIED" ? (
             <button
               className="profile-navigate-to-verification-button"
               style={{
@@ -143,7 +142,7 @@ function StatusesOverview({
               onClick={() => {
                 handleViewReason(
                   "iDenfy",
-                  idvSessionStatus?.idenfy?.failureReason ?? {}
+                  consolidatedIdvSessionStatus?.idenfy?.failureReason ?? {}
                 );
               }}
             >
@@ -157,8 +156,8 @@ function StatusesOverview({
               }}
               onClick={() => navigate("/issuance/idgov-idenfy")}
               disabled={
-                !!idvSessionStatus?.idenfy?.status &&
-                idvSessionStatus?.idenfy?.status !== "APPROVED"
+                !!consolidatedIdvSessionStatus?.idenfy?.status &&
+                consolidatedIdvSessionStatus?.idenfy?.status !== "APPROVED"
               }
             >
               Verify
@@ -194,7 +193,7 @@ function StatusesOverview({
             >
               Finish Verification
             </button>
-          ) : idvSessionStatus?.onfido?.status &&
+          ) : consolidatedIdvSessionStatus?.onfido?.status &&
             onfidoStatus === "declined" ? (
             <button
               className="profile-navigate-to-verification-button"
@@ -204,7 +203,7 @@ function StatusesOverview({
               onClick={() => {
                 handleViewReason(
                   "Onfido",
-                  idvSessionStatus?.onfido?.failureReason
+                  consolidatedIdvSessionStatus?.onfido?.failureReason
                 );
               }}
             >
@@ -218,7 +217,7 @@ function StatusesOverview({
               }}
               onClick={() => navigate("/issuance/idgov-onfido")}
               disabled={
-                !!idvSessionStatus?.onfido?.status &&
+                !!consolidatedIdvSessionStatus?.onfido?.status &&
                 onfidoStatus !== "complete"
               }
             >
@@ -296,10 +295,12 @@ function VerificationFailureReason({
 export default function VerificationStatusModal({
   isVisible,
   setIsVisible,
+  consolidatedIdvSessionStatus,
   govIdRetrievalEndpoints,
 }: {
   isVisible: boolean;
   setIsVisible: (isVisible: boolean) => void;
+  consolidatedIdvSessionStatus: Partial<SessionStatusResponse>;
   govIdRetrievalEndpoints: GovIdRetrievalEndpoints;
 }) {
   const [page, setPage] = useState("overview"); // 'overview' | 'reason'
@@ -308,15 +309,13 @@ export default function VerificationStatusModal({
     reason: "",
   });
 
-  const { data: idvSessionStatus } = useIdvSessionStatus();
-
   // Onfido is slightly different since it separates status from result. To display
   // the failure "status" as a sinle string, we need to check both status and result.
   const onfidoStatus =
-    idvSessionStatus?.onfido?.status === "complete" &&
-    idvSessionStatus?.onfido?.result === "consider"
+    consolidatedIdvSessionStatus?.onfido?.status === "complete" &&
+    consolidatedIdvSessionStatus?.onfido?.result === "consider"
       ? "declined"
-      : idvSessionStatus?.onfido?.status;
+      : consolidatedIdvSessionStatus?.onfido?.status;
 
   const handleViewReason = (provider: string, reason: any) => {
     setReasonProps({
@@ -340,7 +339,7 @@ export default function VerificationStatusModal({
           {page === "overview" && (
             <StatusesOverview
               govIdRetrievalEndpoints={govIdRetrievalEndpoints}
-              idvSessionStatus={idvSessionStatus}
+              consolidatedIdvSessionStatus={consolidatedIdvSessionStatus}
               onfidoStatus={onfidoStatus}
               handleViewReason={handleViewReason}
             />
