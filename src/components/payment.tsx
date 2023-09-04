@@ -4,6 +4,7 @@ import {
   useNetwork,
   usePrepareSendTransaction,
   useSendTransaction,
+  useWaitForTransaction,
 } from "wagmi";
 import { parseEther } from "viem";
 import { useQuery } from "@tanstack/react-query"
@@ -105,6 +106,9 @@ export const PayWithConnectedWallet = ({
   } = useQuery(
     ["govIDSBTCostDenominatedInToken", chain?.id],
     async () => {
+      if (process.env.NODE_ENV === "development") {
+        return "0.0000000000000000001"
+      }
       const price = await fetchPrice(currency)
       return PRICE_USD.div(BigNumber(price)).toString()
     },
@@ -128,13 +132,21 @@ export const PayWithConnectedWallet = ({
     sendTransaction,
   } = useSendTransaction(config);
 
+  const {
+    data: txReceipt,
+    isError: errorWaitingForTx,
+    isLoading: waitingForTx,
+  } = useWaitForTransaction({
+    hash: txResult?.hash,
+  })
+
   useEffect(() => {
-    if (!txIsSuccess) return;
+    if (!txIsSuccess && !txReceipt?.transactionHash) return;
     onPaymentSuccess({
       chainId: chain?.id,
-      txHash: txResult?.hash,
+      txHash: txReceipt?.transactionHash,
     })
-  }, [txIsSuccess])
+  }, [txIsSuccess, txReceipt?.transactionHash])
 
   return (
     <div style={{ textAlign: "center" }}>
@@ -168,17 +180,6 @@ export const PayWithConnectedWallet = ({
           onClick={(event) => {
             event.preventDefault();
             try {
-
-              // TODO: Remove this branch. This is only for testing.
-              if (process.env.NODE_ENV === 'development') {
-                console.log('GovIDPayment: calling onPaymentSuccess')
-                onPaymentSuccess({
-                  chainId: 10,
-                  txHash: '0x1234'
-                })
-                return
-              }
-
               if (!sendTransaction) throw new Error('sendTransaction is not defined');
               sendTransaction();
             } catch (err) {
@@ -188,7 +189,9 @@ export const PayWithConnectedWallet = ({
             }
           }}
         >
-          {preparingTx || txIsLoading ? 'Loading...' : 'Submit transaction'}
+          {preparingTx || txIsLoading ? 'Loading...' 
+          : waitingForTx ? 'Waiting for transaction...' 
+          : 'Submit transaction'}
         </button>
       </div>
     </div>
