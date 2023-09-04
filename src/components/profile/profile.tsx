@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import RoundedWindow from "../RoundedWindow";
+import SwitchToOptimism from '../atoms/SwitchToOptimism'
+import NetworkGate from "../../gate/NetworkGate";
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
 import {
@@ -12,6 +15,7 @@ import {
   SortedCreds,
   IssuedCredentialBase,
   IssuedCredentialMetadata,
+  ActiveChain,
 } from "../../types";
 
 type FormattedCreds = {
@@ -29,6 +33,19 @@ const credsFieldsToIgnore = [
   "secret",
   "signature",
 ];
+
+const NetworkGateFallback = () => {
+  return (
+    <RoundedWindow>
+      <SwitchToOptimism />
+    </RoundedWindow>
+  );
+}
+
+const networkGateFn = (data: ActiveChain) => {
+  const desiredChainId = process.env.NODE_ENV == "development" ? 420 : 10;
+  return data?.activeChain?.id === desiredChainId;
+};
 
 /**
  * Convert sortedCreds into object with shape { [credName]: { issuer: string, cred: string, completedAt: string } }
@@ -146,7 +163,7 @@ export default function Profile() {
   }, [sortedCreds, loadingCreds]);
 
   return (
-    <>
+    <NetworkGate gate={networkGateFn} fallback={<NetworkGateFallback />}>
       <div className="x-section wf-section">
         <div className="x-container dashboard w-container">
           <PublicInfoCard />
@@ -154,6 +171,6 @@ export default function Profile() {
           <PrivateInfoCard creds={formattedCreds} loading={loadingCreds} />
         </div>
       </div>
-    </>
+    </NetworkGate>
   );
 }
