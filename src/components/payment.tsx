@@ -198,6 +198,14 @@ export const PayWithConnectedWallet = ({
   )
 }
 
+const chainOptions = [
+  { chainId: 250, name: "Fantom" },
+  { chainId: 10, name: "Optimism" },
+]
+if (process.env.NODE_ENV === "development") {
+  chainOptions.push({ chainId: 420, name: "Optimism Goerli" })
+}
+
 export const PayWithDiffWallet = (props: { 
   currency: Currency
   onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void
@@ -227,9 +235,11 @@ export const PayWithDiffWallet = (props: {
       value={chainId}
       onChange={(event) => setChainId(Number(event.target.value))}
     >
-      <option value="">Select a chain</option>
-      <option value="250">Optimism</option>
-      <option value="10">Fantom</option>
+      {chainOptions.map((chainOption) => (
+        <option key={chainOption.chainId} value={chainOption.chainId}>
+          {chainOption.name}
+        </option>
+      ))}
     </select>
     <button
       style={{width: "100%"}} 
@@ -237,7 +247,10 @@ export const PayWithDiffWallet = (props: {
       onClick={(event) => {
         event.preventDefault();
         // TODO: If chainId or txHash is invalid, show error.
-        if (!chainId || ![10, 250].includes(chainId) || !txHash || txHash.length !== 66) {
+        if (
+          !chainId || !chainOptions.map((item) => item.chainId).includes(chainId) || 
+          !txHash || txHash.length !== 66
+        ) {
           console.error("Invalid chainId or txHash", { chainId, txHash })
           return;
         }
