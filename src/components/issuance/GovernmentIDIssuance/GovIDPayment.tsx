@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { tokenSymbolToCurrency } from "../../../constants";
 import {
   PaymentOptions, 

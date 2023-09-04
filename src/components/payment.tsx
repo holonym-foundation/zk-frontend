@@ -219,14 +219,15 @@ export const PayWithDiffWallet = (props: {
       value={txHash}
       onChange={(event) => setTxHash(event.target.value)}
     />
-    <input
-      type="number"
-      className="text-field"
-      placeholder="0x..."
-      style={{marginBottom: "10px", width: "100%"}}
+    <select
+      style={{ marginBottom: '10px', width: '100%', color: '#060612' }}
       value={chainId}
       onChange={(event) => setChainId(Number(event.target.value))}
-    />
+    >
+      <option value="">Select a chain</option>
+      <option value="250">Optimism</option>
+      <option value="10">Fantom</option>
+    </select>
     <button
       style={{width: "100%"}} 
       className="x-button secondary" 
