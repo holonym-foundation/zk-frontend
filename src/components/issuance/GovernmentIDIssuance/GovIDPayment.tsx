@@ -1,99 +1,38 @@
-import { useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { tokenSymbolToCurrency } from "../../../constants";
 import {
-  useNetwork,
-  usePrepareSendTransaction,
-  useSendTransaction,
-} from "wagmi";
-import { parseEther } from "viem";
-import { datadogLogs } from "@datadog/browser-logs";
-import { datadogRum } from "@datadog/browser-rum";
-import { sbtPaymentRecipients } from "../../../constants";
-import { chainIdToNativeCurrency, govIDSBTPrices } from "../../../constants/prices";
+  PaymentOptions, 
+  PaymentScreen as CryptoPaymentScreen
+} from "../../payment"
 
-const GovIDPayment = ({ onPaymentSuccess }: { onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void }) => {
-  const { chain } = useNetwork();
-  const tokenSymbol = useMemo(() => {
-    if (!chain?.id) return 'ETH';
-    return chainIdToNativeCurrency[
-      chain.id as keyof typeof chainIdToNativeCurrency
-    ]
-  }, [chain?.id])
-  const sbtCost = useMemo(() => {
-    if (!tokenSymbol) return parseEther("0").toString();
-    return govIDSBTPrices[tokenSymbol as keyof typeof govIDSBTPrices].toString()
-  }, [tokenSymbol])
-  const {
-    config,
-    error,
-    isLoading: preparingTx,
-    isSuccess: txIsPrepared,
-  } = usePrepareSendTransaction({
-    chainId: chain?.id,
-    to: sbtPaymentRecipients.idgov,
-    value: parseEther(sbtCost),
-  });
-  const {
-    data: txResult,
-    isLoading: txIsLoading,
-    isError: txIsError,
-    isSuccess: txIsSuccess,
-    sendTransaction,
-  } = useSendTransaction(config);
+const GovIDPayment = ({ 
+  onPaymentSuccess 
+}: { 
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void 
+}) => {
+  const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
+  const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
 
-  useEffect(() => {
-    if (!txIsSuccess) return;
-    onPaymentSuccess({
-      chainId: chain?.id,
-      txHash: txResult?.hash,
-    })
-  }, [txIsSuccess])
- 
   return (
-    <div style={{ textAlign: "center" }}>
-      <p>
-        The mint price for this SBT is <code>{sbtCost} {tokenSymbol}</code>.
-      </p>
-      <div
-        style={{
-          marginTop: "20px",
-          marginBottom: "20px",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <button
-          className="export-private-info-button"
-          style={{
-            lineHeight: "1",
-            fontSize: "16px",
+    <>
+      {selectedPage === "options" && (
+        <PaymentOptions
+          onSelectOption={(fiat, symbol) => {
+            setSelectedPage(fiat ? "fiat" : "crypto");
+            setSelectedToken(symbol);
           }}
-          disabled={!txIsPrepared}
-          onClick={() => {
-            try {
+        />
+      )}
 
-              // TODO: Remove this branch. This is only for testing.
-              if (process.env.NODE_ENV === 'development') {
-                console.log('GovIDPayment: calling onPaymentSuccess')
-                onPaymentSuccess({
-                  chainId: 10,
-                  txHash: '0x1234'
-                })
-                return
-              }
+      {selectedPage === "crypto" && selectedToken && (
+        <CryptoPaymentScreen
+          currency={tokenSymbolToCurrency[selectedToken]}
+          onPaymentSuccess={onPaymentSuccess}
+          onBack={() => setSelectedPage("options")}
+        />
+      )}
 
-              if (!sendTransaction) throw new Error('sendTransaction is not defined');
-              sendTransaction();
-            } catch (err) {
-              console.error(err);
-              datadogLogs.logger.error("GovIDPayment error", undefined, err as Error);
-              datadogRum.addError(err);
-            }
-          }}
-        >
-          {preparingTx || txIsLoading ? 'Loading...' : 'Submit transaction'}
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 

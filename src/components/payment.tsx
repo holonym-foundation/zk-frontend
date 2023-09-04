@@ -1,8 +1,20 @@
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  useNetwork,
+  usePrepareSendTransaction,
+  useSendTransaction,
+} from "wagmi";
+import { parseEther } from "viem";
+import { useQuery } from "@tanstack/react-query"
+import { datadogLogs } from "@datadog/browser-logs";
+import { datadogRum } from "@datadog/browser-rum";
 import RoundedWindow from "./RoundedWindow"
 import { Modal } from "./atoms/Modal";
-import { useEffect, useState } from "react";
-import { PRICE_USD, paymentRecieverAddress } from "../constants";
+import {
+  PRICE_USD,
+  paymentRecieverAddress,
+} from "../constants";
 import { useEffectOnce } from "usehooks-ts";
 import { BigNumber } from "bignumber.js";
 
@@ -20,28 +32,176 @@ const fetchPrice = async (c: Currency) => {
   }
   
 }
-export const PaymentScreen = (props: { currency: Currency }) => {   
-  const [diffWallet, setDiffWallet] = useState(true);
+export const PaymentScreen = (props: { 
+  currency: Currency, 
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void
+  onBack: () => void
+}) => {   
+  const [diffWallet, setDiffWallet] = useState(false);
+  const [showPayWConnected, setShowPayWConnected] = useState(false);
 
-
-  return <RoundedWindow>
+  return <>
       <Modal children={<PayWithDiffWallet {...props} />} visible={diffWallet} setVisible={setDiffWallet} />
+      <Modal children={<PayWithConnectedWallet {...props} />} visible={showPayWConnected} setVisible={setShowPayWConnected} />
       <div
         className="x-wrapper small-center"
         style={{ display: "flex", height: "95%", width: "80%", alignItems: "stretch", justifyContent: "stretch", flexDirection: "column", gap: "50px" }}
       >
         <h1>Payment Options</h1>
-        <a className="x-button secondary">Continue With This Wallet</a>
-        <a className="x-button secondary outline" onClick={()=>setDiffWallet(true)}>Pay From A Burner Wallet</a>
+        <a 
+          className="x-button secondary" 
+          onClick={(event) => {
+            event.preventDefault();
+            setShowPayWConnected(true)
+          }}
+        >
+          Continue With This Wallet
+        </a>
+        <a 
+          className="x-button secondary outline" 
+          onClick={(event) =>{
+            event.preventDefault();
+            setDiffWallet(true)
+          }}
+        >
+          Pay From A Burner Wallet
+        </a>
 
-  </div> 
+      <div
+        style={{
+          marginTop: "20px",
+          marginBottom: "20px",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <button 
+          className="export-private-info-button" 
+          onClick={(event) => {
+            event.preventDefault();
+            props.onBack();
+          }}
+        >
+          Back
+        </button>
+      </div>
+    </div> 
 
-  </RoundedWindow>
+  </>
 }
 
-export const PayWithDiffWallet = (props: { currency: Currency }) => { 
+export const PayWithConnectedWallet = ({
+  currency,
+  onPaymentSuccess 
+}: {
+  currency: Currency
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void 
+}) => {
+  const { chain } = useNetwork();
+  const {
+    data: costDenominatedInToken,
+    isLoading: costIsLoading,
+    isError: costIsError,
+  } = useQuery(
+    ["govIDSBTCostDenominatedInToken", chain?.id],
+    async () => {
+      const price = await fetchPrice(currency)
+      return PRICE_USD.div(BigNumber(price)).toString()
+    },
+  )
+  const {
+    config,
+    error,
+    isLoading: preparingTx,
+    isError: prepareTxIsError,
+    isSuccess: txIsPrepared,
+  } = usePrepareSendTransaction({
+    chainId: chain?.id,
+    to: paymentRecieverAddress,
+    value: costDenominatedInToken ? parseEther(costDenominatedInToken) : 0n,
+  });
+  const {
+    data: txResult,
+    isLoading: txIsLoading,
+    isError: txIsError,
+    isSuccess: txIsSuccess,
+    sendTransaction,
+  } = useSendTransaction(config);
+
+  useEffect(() => {
+    if (!txIsSuccess) return;
+    onPaymentSuccess({
+      chainId: chain?.id,
+      txHash: txResult?.hash,
+    })
+  }, [txIsSuccess])
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      {costIsLoading ? (
+        <p>Loading price...</p>
+      ) : costIsError ? (
+        <p>Failed to fetch price</p>
+      ) : (
+        <p>
+          The mint price for this SBT is <code>{costDenominatedInToken} {currency.symbol}</code>.
+        </p>
+      )}
+      {prepareTxIsError && (
+        <p style={{ color: 'red' }}>Failed to prepare transaction</p>
+      )}
+      <div
+        style={{
+          marginTop: "20px",
+          marginBottom: "20px",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <button
+          className="export-private-info-button"
+          style={{
+            lineHeight: "1",
+            fontSize: "16px",
+          }}
+          disabled={!txIsPrepared}
+          onClick={(event) => {
+            event.preventDefault();
+            try {
+
+              // TODO: Remove this branch. This is only for testing.
+              if (process.env.NODE_ENV === 'development') {
+                console.log('GovIDPayment: calling onPaymentSuccess')
+                onPaymentSuccess({
+                  chainId: 10,
+                  txHash: '0x1234'
+                })
+                return
+              }
+
+              if (!sendTransaction) throw new Error('sendTransaction is not defined');
+              sendTransaction();
+            } catch (err) {
+              console.error(err);
+              datadogLogs.logger.error("GovIDPayment error", undefined, err as Error);
+              datadogRum.addError(err);
+            }
+          }}
+        >
+          {preparingTx || txIsLoading ? 'Loading...' : 'Submit transaction'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export const PayWithDiffWallet = (props: { 
+  currency: Currency
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void
+}) => { 
   const [amountToPay, setAmountToPay] = useState<BigNumber>();
-  const navigate = useNavigate();
+  const [chainId, setChainId] = useState<number>();
+  const [txHash, setTxHash] = useState<string>("");
 
   useEffectOnce(() => {
     const f = async () => { return await fetchPrice(props.currency) }
@@ -51,14 +211,49 @@ export const PayWithDiffWallet = (props: { currency: Currency }) => {
     <h1>How To</h1>
     <br />
     <p>Please send {amountToPay ? amountToPay.toString() : ""} in {props.currency.symbol} to {paymentRecieverAddress}, then copy the transaction hash of the payment here:    </p>
-    <input type="text" className="text-field" placeholder="0x..." style={{marginBottom: "10px", width: "100%"}} />
-    <button style={{width: "100%"}} className="x-button secondary" onClick={()=>{} /*TODO*/} >Done</button>
+    <input
+      type="text"
+      className="text-field"
+      placeholder="0x..."
+      style={{marginBottom: "10px", width: "100%"}}
+      value={txHash}
+      onChange={(event) => setTxHash(event.target.value)}
+    />
+    <input
+      type="number"
+      className="text-field"
+      placeholder="0x..."
+      style={{marginBottom: "10px", width: "100%"}}
+      value={chainId}
+      onChange={(event) => setChainId(Number(event.target.value))}
+    />
+    <button
+      style={{width: "100%"}} 
+      className="x-button secondary" 
+      onClick={(event) => {
+        event.preventDefault();
+        // TODO: If chainId or txHash is invalid, show error.
+        if (!chainId || ![10, 250].includes(chainId) || !txHash || txHash.length !== 66) {
+          console.error("Invalid chainId or txHash", { chainId, txHash })
+          return;
+        }
+        props.onPaymentSuccess({
+          chainId: chainId,
+          txHash: txHash
+        })
+      }} 
+    >
+      Done
+    </button>
   </>
 }
 
-export const PaymentOptions = () => { 
-  const navigate = useNavigate();
-  return <RoundedWindow>
+export const PaymentOptions = ({ 
+  onSelectOption 
+}: { 
+  onSelectOption: (fiat: boolean, symbol: "ETH" | "FTM") => void
+}) => { 
+  return <>
       <div
         className="x-wrapper small-center"
         style={{ display: "flex", height: "95%", width: "80%", alignItems: "stretch", justifyContent: "stretch", flexDirection: "column", gap: "50px" }}
@@ -67,16 +262,16 @@ export const PaymentOptions = () => {
 
       <a className="glowy-green-button" style={{ width: "100%", fontSize: "20px" }} onClick={(event) => {
               event.preventDefault();
-              navigate("/pay/ftm");
+              onSelectOption(false, "FTM")
       }}>Pay In FTM</a>
       <a className="glowy-red-button" style={{ width: "100%", fontSize: "20px" }} onClick={(event) => {
               event.preventDefault();
-              navigate("/pay/opeth");
+              onSelectOption(false, "ETH")
       }}>Pay In OP ETH</a>
       <a className="x-button-blue greyed-out-button" style={{ width: "100%", fontSize: "20px" }}>Pay In Fiat (coming soon)</a>
 
   </div> 
-  </RoundedWindow>
+  </>
 }
 
 export const PaymentPrereqs = () => { 
