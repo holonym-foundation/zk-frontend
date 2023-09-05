@@ -1,17 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import QRCode from "react-qr-code";
-import classNames from "classnames";
 import { Oval } from "react-loader-spinner";
 import { useQueries, QueryFunctionContext } from "@tanstack/react-query";
 import { InfoButton } from "../info-button";
-import { Modal } from "../atoms/Modal";
 import ColoredHorizontalRule from "../atoms/ColoredHorizontalRule";
 import { serverAddress, idServerUrl } from "../../constants";
 import useIdvSessionStatus from "../../hooks/useIdvSessionStatus";
 import useIdServerSessions from "../../hooks/useIdServerSessions";
-import { useHoloAuthSig } from "../../context/HoloAuthSig";
-import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
 import VerificationStatusModal from "./VerificationStatusModal";
 import { SessionStatusResponse } from '../../types';
 
@@ -40,67 +35,6 @@ const medicalCredNames = [
   "NPI Number",
 ];
 
-const ExportModal = ({
-  authSigs,
-  visible,
-  setVisible,
-  blur = true,
-}: {
-  authSigs: string | null;
-  visible: boolean;
-  setVisible: (visible: boolean) => void;
-  blur?: boolean;
-}) => {
-  const [showCopied, setShowCopied] = useState(false);
-
-  useEffect(() => {
-    if (showCopied) {
-      const timer = setTimeout(() => {
-        setShowCopied(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showCopied]);
-
-  return (
-    <>
-      <Modal
-        visible={visible}
-        setVisible={setVisible}
-        blur={blur}
-        heavyBlur={true}
-        transparentBackground={true}
-      >
-        <div style={{ textAlign: "center" }}>
-          <h3>Export Your Holo</h3>
-          <p>Export your private info to the Holonym mobile app.</p>
-          <p>Copy to clipboard or scan QR code.</p>
-          <hr />
-          <h4>Copy to clipboard</h4>
-          <button
-            className="x-button secondary outline"
-            onClick={() => {
-              if (!authSigs) {
-                console.error("No authSigs to copy");
-                return;
-              }
-              navigator.clipboard.writeText(authSigs);
-              setShowCopied(true);
-            }}
-          >
-            {showCopied ? "\u2713 Copied" : "Copy"}
-          </button>
-          <hr />
-          <h4>Scan QR code</h4>
-          <div style={{ margin: "20px" }}>
-            <QRCode value={authSigs || ""} />
-          </div>
-        </div>
-      </Modal>
-    </>
-  );
-};
-
 const VerifyButton = ({
   onClick,
   text,
@@ -121,22 +55,7 @@ export default function PrivateInfoCard({
   loading: boolean;
 }) {
   const navigate = useNavigate();
-  const [exportModalVisible, setExportModalVisible] = useState(false);
   const [statusModalIsVisible, setStatusModalIsVisible] = useState(false);
-  const [authSigs, setAuthSigs] = useState<string | null>(null);
-  const { holoAuthSig } = useHoloAuthSig();
-  const { holoKeyGenSig } = useHoloKeyGenSig();
-
-  useEffect(() => {
-    if (!(holoAuthSig && holoKeyGenSig)) return;
-    const authSigsTemp = JSON.stringify({ holoAuthSig, holoKeyGenSig });
-    setAuthSigs(authSigsTemp);
-  }, [holoAuthSig, holoKeyGenSig]);
-
-  const exportButtonClasses = classNames({
-    "export-private-info-button": true,
-    disabled: !authSigs,
-  });
 
   const { data: idServerSessions } = useIdServerSessions();
   // const { data: idvSessionStatus } = useIdvSessionStatus();
@@ -229,12 +148,6 @@ export default function PrivateInfoCard({
 
   return (
     <>
-      <ExportModal
-        authSigs={authSigs}
-        visible={exportModalVisible}
-        setVisible={setExportModalVisible}
-      />
-
       <VerificationStatusModal
         isVisible={statusModalIsVisible}
         setIsVisible={setStatusModalIsVisible}
@@ -286,17 +199,6 @@ export default function PrivateInfoCard({
                     />
                   </div>
                 </div>
-              </div>
-              <div style={{ marginLeft: "auto" }}>
-                <button
-                  className={exportButtonClasses}
-                  style={{ padding: "20px" }}
-                  onClick={() =>
-                    authSigs ? setExportModalVisible(true) : null
-                  }
-                >
-                  Export
-                </button>
               </div>
             </div>
             <ColoredHorizontalRule />
