@@ -18,10 +18,10 @@ const opOrOpGoerli = process.env.NODE_ENV === 'development' ? 'optimism-goerli' 
 const sybilGovIdAddresses = contractAddresses.SybilResistanceV2[mainnetOrTestnet]
 const sybilGovIdAddress = sybilGovIdAddresses[opOrOpGoerli as keyof typeof sybilGovIdAddresses] as ZeroXString
 
-const isUSResidentAddresses = contractAddresses.SybilResistanceV2[mainnetOrTestnet]
+const isUSResidentAddresses = contractAddresses.IsUSResidentV2[mainnetOrTestnet]
 const isUSResidentAddress = isUSResidentAddresses[opOrOpGoerli as keyof typeof isUSResidentAddresses] as ZeroXString
 
-const sybilPhoneAddresses = contractAddresses.SybilResistanceV2[mainnetOrTestnet]
+const sybilPhoneAddresses = contractAddresses.SybilResistancePhone[mainnetOrTestnet]
 const sybilPhoneAddress = sybilPhoneAddresses[opOrOpGoerli as keyof typeof sybilPhoneAddresses] as ZeroXString
 
 type ProofMetadataItemForDisplay = ProofMetadataItem & {
