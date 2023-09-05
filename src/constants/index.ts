@@ -41,7 +41,10 @@ export const serverAddress = {
   "med": "0x198c8c83f3e3dfab87ce363bcc2e5587dcda7dfcf56d24fc0bfa5c82454812ba"
 }
 
-export const paymentRecieverAddress = "0xb1f50c6c34c72346b1229e5c80587d0d659556fd";
+// relayer
+// export const paymentRecieverAddress = "0xb1f50c6c34c72346b1229e5c80587d0d659556fd";
+// id-server
+export const paymentRecieverAddress = "0xdca2e9ae8423d7b0f94d7f9fc09e698a45f3c851";
 
 export const BOND_USD = BigNumber("2.47");
 export const MINT_USD = BigNumber("10.00");
