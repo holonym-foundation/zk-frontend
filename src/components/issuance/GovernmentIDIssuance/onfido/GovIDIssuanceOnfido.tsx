@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import StepIDVOnfido from "./StepIDVOnfido";
-import FinalStep from "../../FinalStep";
+import FinalStep from "../../FinalStep/FinalStep";
 import VerificationContainer from "../../IssuanceContainer";
 import StepSuccessWithAnalytics from "../StepSuccessWithAnalytics";
 import GovIDPayment from "../GovIDPayment";

@@ -2,7 +2,7 @@
  * Component for finalizing the verification flow for credentials from external issuers.
  */
 import { useState, useEffect } from "react";
-import FinalStep from "./FinalStep";
+import FinalStep from "./FinalStep/FinalStep";
 import StepSuccess from "./StepSuccess";
 import IssuanceContainer from "./IssuanceContainer";
 

@@ -6,7 +6,7 @@ import "../../react-phone-number-input.css";
 import PhoneNumberForm from "../atoms/PhoneNumberForm";
 import { sendCode } from "../../utils/phone";
 import { zkPhoneEndpoint } from "../../constants";
-import FinalStep from "./FinalStep";
+import FinalStep from "./FinalStep/FinalStep";
 import StepSuccess from "./StepSuccess";
 import IssuanceContainer from "./IssuanceContainer";
 import { datadogLogs } from "@datadog/browser-logs";

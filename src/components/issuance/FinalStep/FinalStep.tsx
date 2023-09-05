@@ -10,19 +10,20 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   encryptWithAES,
   setLocalUserCredentials,
-} from "../../utils/secrets";
+} from "../../../utils/secrets";
 import { ThreeDots } from "react-loader-spinner";
-import { Modal } from "../atoms/Modal";
-import TryDifferentIDVProvider from "../atoms/TryDifferentIDVProvider";
-import { useHoloKeyGenSig } from "../../context/HoloKeyGenSig";
-import { useCreds } from "../../context/Creds";
-import { useProofs } from "../../context/Proofs";
-import Relayer from "../../utils/relayer";
-import { onAddLeafProof } from "../../utils/proofs";
-import useRetrieveNewCredentials from "../../hooks/IssuanceFinalStep/useRetrieveNewCredentials";
-import useAddNewSecret from "../../hooks/IssuanceFinalStep/useAddNewSecret";
-import useMergeCreds from "../../hooks/IssuanceFinalStep/useMergeCreds";
-import { IssuedCredentialBase } from "../../types";
+import { Modal } from "../../atoms/Modal";
+import TryDifferentIDVProvider from "../../atoms/TryDifferentIDVProvider";
+import { useHoloKeyGenSig } from "../../../context/HoloKeyGenSig";
+import { useCreds } from "../../../context/Creds";
+import { useProofs } from "../../../context/Proofs";
+import Relayer from "../../../utils/relayer";
+import { onAddLeafProof } from "../../../utils/proofs";
+import useRetrieveNewCredentials from "../../../hooks/IssuanceFinalStep/useRetrieveNewCredentials";
+import useAddNewSecret from "../../../hooks/IssuanceFinalStep/useAddNewSecret";
+import useMergeCreds from "../../../hooks/IssuanceFinalStep/useMergeCreds";
+import ConfirmationModal from "./ConfirmationModal";
+import { IssuedCredentialBase } from "../../../types";
 
 // For test credentials, see id-server/src/main/utils/constants.js
 
@@ -237,60 +238,13 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
 
   return (
     <>
-      <Modal
-        // visible={confirmationModalVisible}
-        visible={confirmationStatus === "confirmationRequired"}
-        setVisible={() => {}}
-        blur={true}
-        heavyBlur={false}
-        transparentBackground={false}
-      >
-        <div style={{ textAlign: "center" }}>
-          <p>You already have credentials from this issuer.</p>
-          <p>Would you like to overwrite them?</p>
-          <div
-            className="confirmation-modal-buttons"
-            style={{
-              marginTop: "10px",
-              marginBottom: "10px",
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
-          >
-            <button
-              className="confirmation-modal-button-cancel"
-              onClick={onDenyOverwrite}
-            >
-              No
-            </button>
-            <button
-              className="confirmation-modal-button-confirm"
-              onClick={onConfirmOverwrite}
-            >
-              Yes
-            </button>
-          </div>
-          <p>You will not be able to undo this action.</p>
-          <p>You would be overwriting...</p>
-        </div>
-        {JSON.stringify(
-          credsThatWillBeOverwritten?.metadata?.rawCreds ??
-            credsThatWillBeOverwritten,
-          null,
-          2
-        )
-          ?.replaceAll("}", "")
-          ?.replaceAll("{", "")
-          ?.replaceAll('"', "")
-          ?.split(",")
-          ?.map((cred, index) => (
-            // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-            <p key={index}>
-              <code>{cred}</code>
-            </p>
-          ))}
-      </Modal>
-      {confirmationStatus === "denied" ? ( // declinedToStoreCreds ? (
+      <ConfirmationModal
+        confirmationStatus={confirmationStatus}
+        credsThatWillBeOverwritten={credsThatWillBeOverwritten}
+        onConfirmOverwrite={onConfirmOverwrite}
+        onDenyOverwrite={onDenyOverwrite}
+      />
+      {confirmationStatus === "denied" ? (
         <>
           <h3>Verification finalization aborted</h3>
           <p>

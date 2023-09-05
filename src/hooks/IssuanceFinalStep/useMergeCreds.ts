@@ -22,7 +22,9 @@ function useMergeCreds({
   loadingCreds?: boolean;
   newCreds?: IssuedCredentialBase;
 }) {
-  const [confirmationStatus, setConfirmationStatus] = useState("init"); // 'init' | 'confirmed' | 'denied' | 'confirmationRequired'
+  const [confirmationStatus, setConfirmationStatus] = useState<
+    'init' | 'confirmed' | 'denied' | 'confirmationRequired'
+  >("init");
   const [credsThatWillBeOverwritten, setCredsThatWillBeOverwritten] = useState<
     IssuedCredentialBase & Partial<{ metadata: IssuedCredentialMetadata }>
   >();

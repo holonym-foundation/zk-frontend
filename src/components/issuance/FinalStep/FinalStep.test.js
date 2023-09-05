@@ -13,9 +13,9 @@ import { randomBytes } from 'crypto'
 // import { renderHook, waitFor, act } from '@testing-library/react'
 import { renderHook, act } from '@testing-library/react-hooks'
 import { poseidon } from 'circomlibjs-old';
-import useRetrieveNewCredentials from "../../hooks/IssuanceFinalStep/useRetrieveNewCredentials"
-import useAddNewSecret from "../../hooks/IssuanceFinalStep/useAddNewSecret"
-import useMergeCreds from "../../hooks/IssuanceFinalStep/useMergeCreds"
+import useRetrieveNewCredentials from "../../../hooks/IssuanceFinalStep/useRetrieveNewCredentials"
+import useAddNewSecret from "../../../hooks/IssuanceFinalStep/useAddNewSecret"
+import useMergeCreds from "../../../hooks/IssuanceFinalStep/useMergeCreds"
 
 global.crypto = {
   getRandomValues: (typedArray) => {
