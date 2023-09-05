@@ -1,8 +1,7 @@
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
-import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
 import { TransactionReceipt } from "viem";
+import { useMutation } from "@tanstack/react-query";
 import { Success } from "../success";
 import { truncateAddress } from "../../utils/ui-helpers";
 import RoundedWindow from "../RoundedWindow";
@@ -10,7 +9,6 @@ import { useProofMetadata } from "../../context/ProofMetadata";
 import { defaultChainToProveOn } from "../../constants";
 import Relayer from "../../utils/relayer";
 import useGenericProofsState from "./useGenericProofsState";
-import useSubmitProof from "./useSubmitProof";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 
@@ -50,10 +48,6 @@ const LoadingProofsButton = (props: {
 
 const Proofs = () => {
   const navigate = useNavigate();
-  const { address } = useAccount();
-  const { data: balanceData } = useBalance({
-    address,
-  });
   const {
     params,
     proofs,
@@ -71,81 +65,45 @@ const Proofs = () => {
   } = useGenericProofsState();
   const { addProofMetadataItem } = useProofMetadata();
 
-  const balanceGTsbtFee = useMemo(() => {
-    try {
-      if (
-        !proofs[params.proofType! as keyof typeof proofs].contractName.includes(
-          "Sybil"
-        )
-      ) {
-        return true;
-      }
-
-      if (!balanceData?.formatted) return true;
-      return Number(balanceData.formatted) > 0.005;
-    } catch (err) {
-      console.error(err);
-    }
-  }, [balanceData]);
-
-  const {
-    data,
-    // error,
-    isError,
-    isIdle,
-    isLoading,
-    isSuccess,
-    reset,
-    write,
-    writeAsync,
-  } = useSubmitProof({
-    proof,
-    contractName: proofs[params.proofType! as keyof typeof proofs].contractName,
-    chain: defaultChainToProveOn,
-    onError: (error: any) => {
-      console.error("proofSubmissionError", error);
-      const message =
-        error?.shortMessage ??
-        error?.response?.data?.error?.reason ??
-        error?.data?.message ??
-        error?.message;
-      datadogLogs.logger.error("proofSubmissionError", message, error);
-      datadogRum.addError(error, { message: message });
-
-      // Ignore this error. The ABI does not get set on the first try but gets
-      // set nearly immediately after.
-      if ((message ?? '').includes('ABI encoding params/values length mismatch')) {
-        return;
-      }
-
-      setError({
-        type: SUBMIT_PROOF,
-        balance: balanceData?.formatted,
-        message,
-      });
-    },
-  });
-
-  const {
+  const { 
     data: txReceipt,
-    isError: waitForTxIsError,
-    isLoading: waitForTxIsLoading,
-  } = useWaitForTransaction({
-    hash: data?.hash,
-    onSuccess: async (txReceipt: TransactionReceipt) => {
-      console.log("txReceipt from submitProof:", txReceipt);
-      addProofMetadataItem(
-        { 
-          ...txReceipt, 
-          chainId: process.env.NODE_ENV === "development" ? 420 : 10,
-        },
-        proof!.inputs[1],
-        params.proofType!,
-        params.actionId
-      );
-      setProofSubmissionSuccess(true);
+    isLoading: submittingProof,
+    isError: submitProofError,
+    mutate: submitProof,
+  } = useMutation(
+    () => {
+      return Relayer.prove(
+        proof,
+        proofs[params.proofType! as keyof typeof proofs].contractName,
+        defaultChainToProveOn,
+      )
+    },
+    {
+      onSuccess: async (txReceipt: TransactionReceipt) => {
+        console.log("txReceipt from proof submission:", txReceipt);
+        addProofMetadataItem(
+          {
+            ...txReceipt, 
+            chainId: process.env.NODE_ENV === "development" ? 420 : 10,
+          },
+          proof!.inputs[1],
+          params.proofType!,
+          params.actionId
+        );
+        setProofSubmissionSuccess(true);
+      },
+      onError: (error: any) => {
+        console.error("proofSubmissionError", error);
+        datadogLogs.logger.error("proofSubmissionError", undefined, error);
+        datadogRum.addError(error);
+
+        setError({
+          type: SUBMIT_PROOF,
+          message: "An error occurred when submitting proof.",
+        });
+      }
     }
-  })
+  )
 
   if (proofSubmissionSuccess) {
     if (params.callback) window.location.href = `https://${params.callback}`;
@@ -217,84 +175,35 @@ const Proofs = () => {
         <div className="spacer-med" />
         <br />
         {!alreadyHasSBT && hasNecessaryCreds ? (
-          balanceGTsbtFee ? (
-            proof ? (
-              <button
-                className="x-button"
-                onClick={() => {
-                  try {
-                    if (write) {
-                      write();
-                    } else {
-                      console.error("Submit Proof error: `write` is undefined");
-                    }
-                    // @ts-ignore
-                    window.fathom.trackGoal("OLGDI8EP", 0);
-                  } catch (err) {
-                    console.log(
-                      "An error occurred when Submit Proof button was clicked:",
-                      err
-                    );
-                  }
-                }}
-              >
-                {isLoading || waitForTxIsLoading ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    Submitting
-                    <CustomOval />
-                  </div>
-                ) : (
-                  "Submit proof"
-                )}
-              </button>
-            ) : (
-              <LoadingProofsButton />
-            )
-          ) : (
-            <button className="x-button submit-proof-btn-disabled" disabled>
-              Submit proof
+          proof ? (
+            <button
+              className="x-button"
+              onClick={() => {
+                submitProof()
+                // @ts-ignore
+                window.fathom.trackGoal("OLGDI8EP", 0);
+              }}
+            >
+              {submittingProof ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  Submitting
+                  <CustomOval />
+                </div>
+              ) : (
+                "Submit proof"
+              )}
             </button>
+          ) : (
+            <LoadingProofsButton />
           )
         ) : (
           ""
-        )}
-
-        <br />
-
-        {!balanceGTsbtFee && (
-          <>
-            <h2>Insufficient funds</h2>
-            <p>
-              The mint price for this SBT is <code>0.005 ETH</code>.
-            </p>
-            <p>
-              To mint, you must have enough ETH to cover the cost of the SBT as
-              well as gas costs.
-            </p>
-            <br />
-            <a
-              className="x-button"
-              href="https://app.optimism.io/bridge/deposit"
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => {
-                try {
-                  // @ts-ignore
-                  window.fathom.log("2HX0QDQW", 0);
-                } catch (err) {
-                  console.error(err);
-                }
-              }}
-            >
-              Don&#39;t have ETH on Optimism? Click here to bridge
-            </a>
-          </>
         )}
       </div>
     </RoundedWindow>
