@@ -92,12 +92,12 @@ export function useRetrieveNewCredentials({
         "useRetrieveNewCredentials: Retrieval endpoint returned non-200 status code. Response text:",
         errMsg
       );
-      if (errMsg?.includes("User has already registered. UUID")) {
+      if (errMsg?.includes("User has already registered. User ID")) {
         errMsg =
           "It seems you have already tried to verify and create a Holo! " +
           "You can only verify once with an ID. If this is not the case then you may submit a ticket. " +
           "Please include this UUID in the support ticket: " +
-          errMsg.split("UUID: ")[1].replace('"}', "");
+          errMsg.split("User ID: ")[1].replace('"}', "");
       }
       // If resp.status is not 200, and if we could not recover from sessionStorage, then the server
       // must have returned an error, which we want to display to the user.
