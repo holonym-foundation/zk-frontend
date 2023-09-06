@@ -53,7 +53,7 @@ const StepIDVIdenfy = ({ url, scanRef }: { url?: string, scanRef?: string }) => 
         if (idenfyRetrievalEndpoint) {
           if (data?.idenfy?.status === "APPROVED") {
             navigate(
-              `/issuance/idgov-veriff/store?retrievalEndpoint=${idenfyRetrievalEndpoint}`
+              `/issuance/idgov-veriff/store?sid=${sid}&retrievalEndpoint=${idenfyRetrievalEndpoint}`
             );
           } else if (
             unsuccessfulIdenfyStatuses.includes(data?.idenfy?.status)
@@ -117,7 +117,7 @@ const StepIDVIdenfy = ({ url, scanRef }: { url?: string, scanRef?: string }) => 
                 }}
                 onClick={() => {
                   navigate(
-                    `/issuance/idgov-idenfy/store?retrievalEndpoint=${retrievalEndpointForReturningUser}`
+                    `/issuance/idgov-idenfy/store?sid=${sid}&retrievalEndpoint=${retrievalEndpointForReturningUser}`
                   );
                 }}
               >

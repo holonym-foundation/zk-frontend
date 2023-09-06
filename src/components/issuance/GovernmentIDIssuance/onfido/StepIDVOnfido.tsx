@@ -50,7 +50,7 @@ const StepIDV = ({ sdk_token }: { sdk_token?: string }) => {
             data?.onfido?.result === "clear"
           ) {
             navigate(
-              `/issuance/idgov-onfido/store?retrievalEndpoint=${onfidoRetrievalEndpoint}`
+              `/issuance/idgov-onfido/store?sid=${sid}&retrievalEndpoint=${onfidoRetrievalEndpoint}`
             );
           } else if (
             data?.onfido?.status === "complete" &&
@@ -125,7 +125,7 @@ const StepIDV = ({ sdk_token }: { sdk_token?: string }) => {
                 }}
                 onClick={() => {
                   navigate(
-                    `/issuance/idgov-onfido/store?retrievalEndpoint=${retrievalEndpointForReturningUser}`
+                    `/issuance/idgov-onfido/store?sid=${sid}&retrievalEndpoint=${retrievalEndpointForReturningUser}`
                   );
                 }}
               >
