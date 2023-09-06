@@ -19,7 +19,6 @@ const PayWithDiffWallet = (props: {
   chainId?: SupportedChainIdsForIDVPayment;
 }) => {
   const [amountToPay, setAmountToPay] = useState<BigNumber>();
-  const [chainId, setChainId] = useState<number>(chainOptions[0].chainId);
   const [txHash, setTxHash] = useState<string>("");
   const [showCopied, setShowCopied] = useState(false);
 
@@ -94,18 +93,17 @@ const PayWithDiffWallet = (props: {
         className="x-button secondary"
         onClick={(event) => {
           event.preventDefault();
-          // TODO: If chainId or txHash is invalid, show error.
           if (
-            !chainId ||
-            !chainOptions.map((item) => item.chainId).includes(chainId) ||
+            !props.chainId ||
+            !chainOptions.map((item) => item.chainId).includes(props.chainId) ||
             !txHash ||
             txHash.length !== 66
           ) {
-            console.error("Invalid chainId or txHash", { chainId, txHash });
+            console.error("Invalid chainId or txHash", { chainId: props.chainId, txHash });
             return;
           }
           props.onPaymentSuccess({
-            chainId: chainId,
+            chainId: props.chainId,
             txHash: txHash,
           });
         }}
