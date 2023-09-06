@@ -291,3 +291,5 @@ export type Currency = {
   coinGeckoName: string;
   symbol: string;
 };
+
+export type SupportedChainIdsForIDVPayment = 10 | 250 | 420

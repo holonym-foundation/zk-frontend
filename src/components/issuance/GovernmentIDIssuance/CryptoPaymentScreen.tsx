@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Modal } from "../../atoms/Modal";
-import { Currency } from "../../../types";
+import { Currency, SupportedChainIdsForIDVPayment } from "../../../types";
 import PayWithConnectedWallet from "./PayWithConnectedWallet";
 import PayWithDiffWallet from "./PayWithDiffWallet";
 
@@ -8,17 +8,21 @@ const CryptoPaymentScreen = (props: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
   onBack: () => void;
+  chainId?: SupportedChainIdsForIDVPayment;
 }) => {
   const [diffWallet, setDiffWallet] = useState(false);
   const [showPayWConnected, setShowPayWConnected] = useState(false);
 
   return (
     <>
-      <Modal
-        children={<PayWithDiffWallet {...props} />}
-        visible={diffWallet}
-        setVisible={setDiffWallet}
-      />
+      <Modal visible={diffWallet} setVisible={setDiffWallet} >
+        <PayWithDiffWallet
+          currency={props.currency}
+          chainId={props.chainId}
+          onPaymentSuccess={props.onPaymentSuccess}
+        />
+      </Modal>
+
       <Modal
         children={<PayWithConnectedWallet {...props} />}
         visible={showPayWConnected}

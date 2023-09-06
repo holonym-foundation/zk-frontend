@@ -1,7 +1,13 @@
+import { SupportedChainIdsForIDVPayment } from "../../../types";
+
 const PaymentOptions = ({
   onSelectOption,
 }: {
-  onSelectOption: (fiat: boolean, symbol: "ETH" | "FTM") => void;
+  onSelectOption: (
+    fiat: boolean, 
+    symbol: "ETH" | "FTM", 
+    chainId: SupportedChainIdsForIDVPayment
+  ) => void;
 }) => {
   return (
     <>
@@ -24,7 +30,7 @@ const PaymentOptions = ({
           style={{ width: "100%", fontSize: "20px" }}
           onClick={(event) => {
             event.preventDefault();
-            onSelectOption(false, "FTM");
+            onSelectOption(false, "FTM", 250);
           }}
         >
           Pay In FTM
@@ -34,7 +40,7 @@ const PaymentOptions = ({
           style={{ width: "100%", fontSize: "20px" }}
           onClick={(event) => {
             event.preventDefault();
-            onSelectOption(false, "ETH");
+            onSelectOption(false, "ETH", 10);
           }}
         >
           Pay In OP ETH

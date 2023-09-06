@@ -3,7 +3,7 @@ import { PRICE_USD, paymentRecieverAddress } from "../../../constants";
 import { fetchPrice } from "../../../utils/misc";
 import { useEffectOnce } from "usehooks-ts";
 import { BigNumber } from "bignumber.js";
-import { Currency } from "../../../types";
+import { Currency, SupportedChainIdsForIDVPayment } from "../../../types";
 
 const chainOptions = [
   { chainId: 250, name: "Fantom" },
@@ -16,6 +16,7 @@ if (process.env.NODE_ENV === "development") {
 const PayWithDiffWallet = (props: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
+  chainId?: SupportedChainIdsForIDVPayment;
 }) => {
   const [amountToPay, setAmountToPay] = useState<BigNumber>();
   const [chainId, setChainId] = useState<number>(chainOptions[0].chainId);
@@ -56,7 +57,7 @@ const PayWithDiffWallet = (props: {
                 alignItems: "center",
               }}
             >
-              <p style={{ marginBottom: "0px" }}>
+              <p style={{ marginBottom: "0px", marginRight: "10px" }}>
                 <code>{paymentRecieverAddress}</code>
               </p>
               <button
@@ -76,8 +77,7 @@ const PayWithDiffWallet = (props: {
           </div>
         </li>
         <li>
-          <p>Then copy the
-            transaction hash of the payment here:{" "}
+          <p>Then copy the transaction hash of the payment here:
           </p>
         </li>
       </ol>
@@ -89,17 +89,6 @@ const PayWithDiffWallet = (props: {
         value={txHash}
         onChange={(event) => setTxHash(event.target.value)}
       />
-      <select
-        style={{ marginBottom: "10px", width: "100%", color: "#060612" }}
-        value={chainId}
-        onChange={(event) => setChainId(Number(event.target.value))}
-      >
-        {chainOptions.map((chainOption) => (
-          <option key={chainOption.chainId} value={chainOption.chainId}>
-            {chainOption.name}
-          </option>
-        ))}
-      </select>
       <button
         style={{ width: "100%" }}
         className="x-button secondary"
