@@ -243,16 +243,19 @@ export type IdenfySessionCreationResponse = {
 
 export type SessionStatusResponse = {
   veriff: {
+    sid: string;
     sessionId: string;
     status: string;
     failureReason: string;
   };
   idenfy: {
+    sid: string;
     scanRef: string;
     status: string;
     failureReason: any;
   };
   onfido: {
+    sid: string;
     check_id: string;
     status: string;
     result: string;
