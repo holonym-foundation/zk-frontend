@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PRICE_USD, paymentRecieverAddress } from "../../../constants";
 import { fetchPrice } from "../../../utils/misc";
 import { useEffectOnce } from "usehooks-ts";
@@ -20,6 +20,7 @@ const PayWithDiffWallet = (props: {
   const [amountToPay, setAmountToPay] = useState<BigNumber>();
   const [chainId, setChainId] = useState<number>(chainOptions[0].chainId);
   const [txHash, setTxHash] = useState<string>("");
+  const [showCopied, setShowCopied] = useState(false);
 
   useEffectOnce(() => {
     const f = async () => {
@@ -27,15 +28,59 @@ const PayWithDiffWallet = (props: {
     };
     f().then((price) => setAmountToPay(PRICE_USD.div(BigNumber(price))));
   });
+
+  useEffect(() => {
+    if (showCopied) {
+      const timer = setTimeout(() => {
+        setShowCopied(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showCopied]);
+
   return (
     <>
       <h1>How To</h1>
       <br />
-      <p>
-        Please send {amountToPay ? amountToPay.toString() : ""} in{" "}
-        {props.currency.symbol} to {paymentRecieverAddress}, then copy the
-        transaction hash of the payment here:{" "}
-      </p>
+      <ol style={{ fontSize: "14px", paddingLeft: "20px" }}>
+        <li>
+          <div>
+            <p>
+              Please send {amountToPay ? amountToPay.toString() : ""} in{" "}
+              {props.currency.symbol} to
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <p style={{ marginBottom: "0px" }}>
+                <code>{paymentRecieverAddress}</code>
+              </p>
+              <button
+                className="x-button secondary outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(paymentRecieverAddress);
+                  setShowCopied(true);
+                }}
+                style={{
+                  fontSize: "12px",
+                  padding: "5px",
+                }}
+              >
+                {showCopied ? "\u2713 Copied" : "Copy Address"}
+              </button>
+            </div>
+          </div>
+        </li>
+        <li>
+          <p>Then copy the
+            transaction hash of the payment here:{" "}
+          </p>
+        </li>
+      </ol>
       <input
         type="text"
         className="text-field"
