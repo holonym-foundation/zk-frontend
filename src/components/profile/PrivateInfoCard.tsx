@@ -113,24 +113,42 @@ export default function PrivateInfoCard({
   const govIdRetrievalEndpoints = useMemo(() => {
     if (!consolidatedIdvSessionStatus) return {};
     const endpoints: {
-      veriff?: string;
-      idenfy?: string;
-      onfido?: string;
+      veriff?: {
+        sid: string;
+        retrievalEndpoint: string;
+      };
+      idenfy?: {
+        sid: string;
+        retrievalEndpoint: string;
+      };
+      onfido?: {
+        sid: string;
+        retrievalEndpoint: string;
+      };
     } = {};
     if (consolidatedIdvSessionStatus?.veriff?.status === "approved") {
       const retrievalEndpoint = `${idServerUrl}/veriff/credentials?sessionId=${consolidatedIdvSessionStatus?.veriff?.sessionId}`;
-      endpoints.veriff = encodeURIComponent(window.btoa(retrievalEndpoint));
+      endpoints.veriff = {
+        sid: consolidatedIdvSessionStatus?.veriff?.sid,
+        retrievalEndpoint: encodeURIComponent(window.btoa(retrievalEndpoint))
+      }
     }
     if (consolidatedIdvSessionStatus?.idenfy?.status === "APPROVED") {
       const retrievalEndpoint = `${idServerUrl}/idenfy/credentials?scanRef=${consolidatedIdvSessionStatus?.idenfy?.scanRef}`;
-      endpoints.idenfy = encodeURIComponent(window.btoa(retrievalEndpoint));
+      endpoints.idenfy = {
+        sid: consolidatedIdvSessionStatus?.idenfy?.sid,
+        retrievalEndpoint: encodeURIComponent(window.btoa(retrievalEndpoint))
+      }
     }
     if (
       consolidatedIdvSessionStatus?.onfido?.status === "complete" &&
       consolidatedIdvSessionStatus?.onfido?.result === "clear"
     ) {
       const retrievalEndpoint = `${idServerUrl}/onfido/credentials?check_id=${consolidatedIdvSessionStatus?.onfido?.check_id}`;
-      endpoints.onfido = encodeURIComponent(window.btoa(retrievalEndpoint));
+      endpoints.onfido = {
+        sid: consolidatedIdvSessionStatus?.onfido?.sid,
+        retrievalEndpoint: encodeURIComponent(window.btoa(retrievalEndpoint))
+      }
     }
     return endpoints;
   }, [idvSessionStatuses]);
@@ -253,7 +271,7 @@ export default function PrivateInfoCard({
                         </div>
                       </>
                     ))
-                ) : govIdRetrievalEndpoint ? (
+                ) : govIdRetrievalEndpoint?.retrievalEndpoint ? (
                   <>
                     <div className="private-info-attribute-name">
                       Government ID
@@ -261,7 +279,9 @@ export default function PrivateInfoCard({
                     <VerifyButton
                       onClick={() =>
                         navigate(
-                          `/issuance/idgov-veriff/store?retrievalEndpoint=${govIdRetrievalEndpoint}`
+                          `/issuance/idgov-veriff/store?sid=${
+                            govIdRetrievalEndpoint?.retrievalEndpoint
+                          }&retrievalEndpoint=${govIdRetrievalEndpoint?.retrievalEndpoint}`
                         )
                       }
                       text="Your Government ID credentials are ready - Click here to complete issuance"

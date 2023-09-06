@@ -4,9 +4,18 @@ import { Modal } from "../atoms/Modal";
 import { SessionStatusResponse } from "../../types";
 
 type GovIdRetrievalEndpoints = {
-  veriff?: string;
-  idenfy?: string;
-  onfido?: string;
+  veriff?: {
+    sid: string;
+    retrievalEndpoint: string;
+  };
+  idenfy?: {
+    sid: string;
+    retrievalEndpoint: string;
+  };
+  onfido?: {
+    sid: string;
+    retrievalEndpoint: string;
+  };
 };
 
 type StatusOverviewProps = {
@@ -57,7 +66,7 @@ function StatusesOverview({
           <p>{consolidatedIdvSessionStatus?.veriff?.status ?? "n/a"}</p>
         </div>
         <div style={{ width: "33.33%" }}>
-          {govIdRetrievalEndpoints?.veriff ? (
+          {govIdRetrievalEndpoints?.veriff?.retrievalEndpoint ? (
             <button
               className="profile-navigate-to-verification-button"
               style={{
@@ -65,7 +74,9 @@ function StatusesOverview({
               }}
               onClick={() =>
                 navigate(
-                  `/issuance/idgov-veriff/store?retrievalEndpoint=${govIdRetrievalEndpoints?.veriff}`
+                  `/issuance/idgov-veriff/store?sid=${
+                    govIdRetrievalEndpoints?.veriff?.retrievalEndpoint
+                  }&retrievalEndpoint=${govIdRetrievalEndpoints?.veriff?.retrievalEndpoint}`
                 )
               }
             >
@@ -118,7 +129,7 @@ function StatusesOverview({
           <p>{consolidatedIdvSessionStatus?.idenfy?.status ?? "n/a"}</p>
         </div>
         <div style={{ width: "33.33%" }}>
-          {govIdRetrievalEndpoints?.idenfy ? (
+          {govIdRetrievalEndpoints?.idenfy?.retrievalEndpoint ? (
             <button
               className="profile-navigate-to-verification-button"
               style={{
@@ -126,7 +137,9 @@ function StatusesOverview({
               }}
               onClick={() =>
                 navigate(
-                  `/issuance/idgov-idenfy/store?retrievalEndpoint=${govIdRetrievalEndpoints?.idenfy}`
+                  `/issuance/idgov-idenfy/store?sid=${
+                    govIdRetrievalEndpoints?.idenfy?.sid
+                  }&retrievalEndpoint=${govIdRetrievalEndpoints?.idenfy?.retrievalEndpoint}`
                 )
               }
             >
@@ -179,7 +192,7 @@ function StatusesOverview({
           <p>{onfidoStatus ?? "n/a"}</p>
         </div>
         <div style={{ width: "33.33%" }}>
-          {govIdRetrievalEndpoints?.onfido ? (
+          {govIdRetrievalEndpoints?.onfido?.retrievalEndpoint ? (
             <button
               className="profile-navigate-to-verification-button"
               style={{
@@ -187,7 +200,9 @@ function StatusesOverview({
               }}
               onClick={() =>
                 navigate(
-                  `/issuance/idgov-onfido/store?retrievalEndpoint=${govIdRetrievalEndpoints?.onfido}`
+                  `/issuance/idgov-onfido/store?sid=${
+                    govIdRetrievalEndpoints?.onfido?.sid
+                  }&retrievalEndpoint=${govIdRetrievalEndpoints?.onfido?.retrievalEndpoint}`
                 )
               }
             >
