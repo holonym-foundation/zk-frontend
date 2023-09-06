@@ -23,6 +23,7 @@ import useRetrieveNewCredentials from "../../../hooks/IssuanceFinalStep/useRetri
 import useAddNewSecret from "../../../hooks/IssuanceFinalStep/useAddNewSecret";
 import useMergeCreds from "../../../hooks/IssuanceFinalStep/useMergeCreds";
 import ConfirmationModal from "./ConfirmationModal";
+import RefundIDV from "./RefundIDV";
 import { IssuedCredentialBase } from "../../../types";
 
 // For test credentials, see id-server/src/main/utils/constants.js
@@ -35,11 +36,12 @@ export function useStoreCredentialsState({
   setCredsForAddLeaf: (creds: IssuedCredentialBase) => void;
 }) {
   const [error, setError] = useState<string>();
+  const [retrieveCredsError, setRetrieveCredsError] = useState<string>();
   const [status, setStatus] = useState("loading"); // 'loading' | 'success'
   const { sortedCreds, loadingCreds } = useCreds();
   const { holoKeyGenSigDigest } = useHoloKeyGenSig();
   const { newCreds } = useRetrieveNewCredentials({
-    setError,
+    setError: setRetrieveCredsError,
     retrievalEndpoint: window.atob(searchParams.get("retrievalEndpoint") ?? ""),
   });
   const { newCredsWithNewSecret } = useAddNewSecret({
@@ -85,6 +87,7 @@ export function useStoreCredentialsState({
   ]);
 
   return {
+    retrieveCredsError,
     error,
     status,
     confirmationStatus,
@@ -213,6 +216,7 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
   } = useAddLeafState({ onSuccess });
   const {
     error: storeCredsError,
+    retrieveCredsError,
     status: storeCredsStatus,
     confirmationStatus,
     credsThatWillBeOverwritten,
@@ -220,8 +224,8 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
     onDenyOverwrite,
   } = useStoreCredentialsState({ searchParams, setCredsForAddLeaf });
   const error = useMemo(
-    () => addLeafError ?? storeCredsError,
-    [addLeafError, storeCredsError]
+    () => addLeafError ?? storeCredsError ?? retrieveCredsError,
+    [addLeafError, storeCredsError, retrieveCredsError]
   );
   // TODO: Display these messages in a nice progress bar. Maybe in the big progress bar?
   const loadingMessage = useMemo(() => {
@@ -263,7 +267,9 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
       ) : error ? (
         <>
           <p style={{ color: "#f00", fontSize: "1.1rem" }}>{error}</p>
-          {error && (
+          {/* If the error is a retrieveCredsError, then we want to display "open a ticket" as an
+              option next to "get a refund" */}
+          {error && !retrieveCredsError && (
             <p>
               Please open a ticket in the{" "}
               <a
@@ -310,11 +316,7 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
         </>
       )}
 
-      {storeCredsError &&
-        storeCredsError?.includes("Verification failed") &&
-        (window?.location?.pathname ?? "").includes("issuance/idgov") && (
-          <TryDifferentIDVProvider />
-        )}
+      <RefundIDV retrieveCredsError={retrieveCredsError} />
     </>
   );
 };
