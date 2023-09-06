@@ -21,6 +21,7 @@ const PayWithDiffWallet = (props: {
   const [amountToPay, setAmountToPay] = useState<BigNumber>();
   const [txHash, setTxHash] = useState<string>("");
   const [showCopied, setShowCopied] = useState(false);
+  const [error, setError] = useState<string>();
 
   useEffectOnce(() => {
     const f = async () => {
@@ -93,13 +94,9 @@ const PayWithDiffWallet = (props: {
         className="x-button secondary"
         onClick={(event) => {
           event.preventDefault();
-          if (
-            !props.chainId ||
-            !chainOptions.map((item) => item.chainId).includes(props.chainId) ||
-            !txHash ||
-            txHash.length !== 66
-          ) {
-            console.error("Invalid chainId or txHash", { chainId: props.chainId, txHash });
+          if (!txHash || txHash.length !== 66) {
+            console.error("Invalid txHash", { txHash });
+            setError("Invalid transaction hash");
             return;
           }
           props.onPaymentSuccess({
@@ -110,6 +107,13 @@ const PayWithDiffWallet = (props: {
       >
         Done
       </button>
+      {error && (
+        <div style={{ textAlign: "center", marginTop: "20px", marginBottom: "0px" }}>
+          <p style={{ color: "red", fontSize: "14px", marginBottom: "0px" }}>
+            {error}
+          </p>
+        </div>
+      )}
     </>
   );
 };
