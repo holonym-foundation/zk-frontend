@@ -43,14 +43,14 @@ const SwitchChains = () => {
               <div
                 className="nav-wallet-text nav-link w-nav-link"
                 onClick={() => {
-                  if (switchToOptimism) {
-                    switchToOptimism();
+                  if (switchToFantom) {
+                    switchToFantom();
                   } else {
-                    console.error("switchToOptimism is undefined");
+                    console.error("switchToFantom is undefined");
                   }
                 }}
               >
-                Switch to Optimism
+                Switch to Fantom
               </div>
             </div>
 
@@ -63,14 +63,14 @@ const SwitchChains = () => {
               <div
                 className="nav-wallet-text nav-link w-nav-link"
                 onClick={() => {
-                  if (switchToFantom) {
-                    switchToFantom();
+                  if (switchToOptimism) {
+                    switchToOptimism();
                   } else {
-                    console.error("switchToFantom is undefined");
+                    console.error("switchToOptimism is undefined");
                   }
                 }}
               >
-                Switch to Fantom
+                Switch to Optimism
               </div>
             </div>
           </div>
