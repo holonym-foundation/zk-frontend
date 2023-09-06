@@ -211,7 +211,7 @@ export const PayWithDiffWallet = (props: {
   onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void
 }) => { 
   const [amountToPay, setAmountToPay] = useState<BigNumber>();
-  const [chainId, setChainId] = useState<number>();
+  const [chainId, setChainId] = useState<number>(chainOptions[0].chainId);
   const [txHash, setTxHash] = useState<string>("");
 
   useEffectOnce(() => {
