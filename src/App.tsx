@@ -15,7 +15,6 @@ import { Layout } from "./Layout";
 import { AppRoutes } from "./AppRoutes";
 import useScriptWithURL from "./hooks/useScriptWithURL";
 import { init } from "./utils/datadog";
-import { PaymentScreen } from "./components/payment";
 
 // Analytics. They shouldn't tracking anything sensitive and shouldn't be used to perform any individual analysis / targeting, primarly just for aggregate statistics to understand our users
 // and understanding why errors might be happening.
@@ -92,7 +91,6 @@ function App() {
         <Suspense fallback={<LoadingElement />}>
           <Layout>
             <AppRoutes />
-            {/* <PaymentScreen currency={{ name: "Fantom", coinGeckoName: "fantom", symbol: "FTM" }} /> */}
           </Layout>
         </Suspense>
       </RootProvider>

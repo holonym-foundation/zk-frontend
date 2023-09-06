@@ -1,6 +1,6 @@
 import { SiweMessage } from "siwe";
 import { ethers } from "ethers";
-import { IdServerSessionsResponse } from '../types'
+import { IdServerSessionsResponse, Currency } from '../types'
 
 export function createSiweMessage(
   address: string,
@@ -101,3 +101,14 @@ export function getSessionPath(idServerSessions?: IdServerSessionsResponse) {
     }
   }
 }
+
+export const fetchPrice = async (c: Currency) => {
+  const priceData = await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${c.coinGeckoName}&vs_currencies=USD`
+  );
+  if (priceData.status !== 200) {
+    throw new Error("Failed to fetch price");
+  } else {
+    return (await priceData.json())[c.coinGeckoName].usd;
+  }
+};

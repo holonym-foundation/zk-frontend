@@ -15,7 +15,7 @@ import MedicalCredentialsIssuance from './components/issuance/MedicalCredentials
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
 import OnChainProofs from "./components/prove/OnChainProofs";
-import { PaymentPrereqs } from "./components/payment";
+import PaymentPrereqs from "./components/issuance/GovernmentIDIssuance/PaymentPrereqs";
 
 // const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 

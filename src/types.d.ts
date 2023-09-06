@@ -285,3 +285,9 @@ export type IPAndCountry = {
   ip: string;
   country: string;
 };
+
+export type Currency = {
+  name: string;
+  coinGeckoName: string;
+  symbol: string;
+};

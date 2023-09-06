@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { tokenSymbolToCurrency } from "../../../constants";
-import {
-  PaymentOptions, 
-  PaymentScreen as CryptoPaymentScreen
-} from "../../payment"
+import CryptoPaymentScreen from "./CryptoPaymentScreen";
+import PaymentOptions from "./PaymentOptions";
 
 const GovIDPayment = ({ 
   onPaymentSuccess 
