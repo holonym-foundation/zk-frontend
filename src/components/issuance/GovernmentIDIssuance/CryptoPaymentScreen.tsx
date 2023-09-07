@@ -60,7 +60,7 @@ const CryptoPaymentScreen = (props: {
             setDiffWallet(true);
           }}
         >
-          Pay From A Burner Wallet
+          Pay From A Burner Wallet (for Privacy Power Users)
         </a>
 
         <div
