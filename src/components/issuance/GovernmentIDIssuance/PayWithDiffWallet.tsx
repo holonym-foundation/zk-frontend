@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { PRICE_USD, paymentRecieverAddress } from "../../../constants";
+import {
+  PRICE_USD,
+  PAYMENT_MARGIN_OF_ERROR_AS_PERCENT,
+  paymentRecieverAddress
+} from "../../../constants";
 import { fetchPrice } from "../../../utils/misc";
 import { useEffectOnce } from "usehooks-ts";
 import { BigNumber } from "bignumber.js";
@@ -24,10 +28,13 @@ const PayWithDiffWallet = (props: {
   const [error, setError] = useState<string>();
 
   useEffectOnce(() => {
-    const f = async () => {
-      return await fetchPrice(props.currency);
-    };
-    f().then((price) => setAmountToPay(PRICE_USD.div(BigNumber(price))));
+    fetchPrice(props.currency).then(
+      (price) => setAmountToPay(
+        PRICE_USD.div(BigNumber(price)).multipliedBy(
+          PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
+        )
+      )
+    );
   });
 
   useEffect(() => {

@@ -10,7 +10,11 @@ import { useQuery } from "@tanstack/react-query";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 import { BigNumber } from "bignumber.js";
-import { PRICE_USD, paymentRecieverAddress } from "../../../constants";
+import {
+  PRICE_USD,
+  PAYMENT_MARGIN_OF_ERROR_AS_PERCENT,
+  paymentRecieverAddress
+} from "../../../constants";
 import { fetchPrice } from "../../../utils/misc";
 import { Currency } from "../../../types";
 
@@ -31,7 +35,9 @@ const PayWithConnectedWallet = ({
       return "0.0000000000000000001";
     }
     const price = await fetchPrice(currency);
-    return PRICE_USD.div(BigNumber(price)).toString();
+    return PRICE_USD.div(BigNumber(price)).multipliedBy(
+      PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
+    ).toString();
   });
   const {
     config,
