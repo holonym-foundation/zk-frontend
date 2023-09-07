@@ -3,14 +3,6 @@ import { paymentRecieverAddress } from "../../../constants";
 import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import { Currency, SupportedChainIdsForIDVPayment } from "../../../types";
 
-const chainOptions = [
-  { chainId: 250, name: "Fantom" },
-  { chainId: 10, name: "Optimism" },
-];
-if (process.env.NODE_ENV === "development") {
-  chainOptions.push({ chainId: 420, name: "Optimism Goerli" });
-}
-
 const PayWithDiffWallet = (props: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
