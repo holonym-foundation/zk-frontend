@@ -68,7 +68,7 @@ const PayWithConnectedWallet = ({
   });
 
   useEffect(() => {
-    if (!txIsSuccess && !txReceipt?.transactionHash) return;
+    if (!txIsSuccess || !txReceipt?.transactionHash) return;
     onPaymentSuccess({
       chainId: chainId,
       txHash: txReceipt?.transactionHash,
