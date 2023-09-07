@@ -37,9 +37,10 @@ const PayWithConnectedWallet = ({
     isLoading: costIsLoading,
     isError: costIsError,
   } = useFetchIDVCryptoPrice(currency);
+
   const {
     config,
-    error,
+    error: prepareTxError,
     isLoading: preparingTx,
     isError: prepareTxIsError,
     isSuccess: txIsPrepared,
@@ -48,8 +49,10 @@ const PayWithConnectedWallet = ({
     to: paymentRecieverAddress,
     value: costDenominatedInToken ? parseEther(costDenominatedInToken.toString()) : 0n,
   });
+
   const {
     data: txResult,
+    error: txError,
     isLoading: txIsLoading,
     isError: txIsError,
     isSuccess: txIsSuccess,
@@ -91,9 +94,21 @@ const PayWithConnectedWallet = ({
             .
           </p>
         )}
-        {prepareTxIsError && (
-          <p style={{ color: "red" }}>Failed to prepare transaction</p>
+
+        {prepareTxIsError && (prepareTxError as any)?.details && (
+          <p style={{ color: "red" }}>Failed to prepare transaction: {(prepareTxError as any)?.details}</p>
         )}
+        {prepareTxIsError && !(prepareTxError as any)?.details && (
+          <p style={{ color: "red" }}>Failed to prepare transaction.</p>
+        )}
+
+        {txIsError && (txError as any)?.details && (
+          <p style={{ color: "red" }}>Failed to send transaction: {(txError as any)?.details}</p>
+        )}
+        {txIsError && !(txError as any)?.details && (
+          <p style={{ color: "red" }}>Failed to send transaction.</p>
+        )}
+
         <div
           style={{
             marginTop: "20px",
@@ -108,7 +123,7 @@ const PayWithConnectedWallet = ({
               lineHeight: "1",
               fontSize: "16px",
             }}
-            disabled={!txIsPrepared}
+            disabled={!txIsPrepared || txIsLoading}
             onClick={(event) => {
               event.preventDefault();
               try {
