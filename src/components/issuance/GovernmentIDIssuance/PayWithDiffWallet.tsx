@@ -84,7 +84,7 @@ const PayWithDiffWallet = (props: {
           </div>
         </li>
         <li>
-          <p>Then copy the transaction hash of the payment here:
+          <p style={{ marginTop: "10px" }}>Then copy the transaction hash of the payment here:
           </p>
         </li>
       </ol>
