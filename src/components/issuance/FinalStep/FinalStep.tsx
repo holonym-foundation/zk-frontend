@@ -23,7 +23,7 @@ import useRetrieveNewCredentials from "../../../hooks/IssuanceFinalStep/useRetri
 import useAddNewSecret from "../../../hooks/IssuanceFinalStep/useAddNewSecret";
 import useMergeCreds from "../../../hooks/IssuanceFinalStep/useMergeCreds";
 import ConfirmationModal from "./ConfirmationModal";
-import RefundIDV from "./RefundIDV";
+import VerificationErrorDisplay from "./VerificationErrorDisplay";
 import { IssuedCredentialBase } from "../../../types";
 
 // For test credentials, see id-server/src/main/utils/constants.js
@@ -240,6 +240,8 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
       return "Backing up encrypted credentials";
   }, [storeCredsStatus, addLeafStatus]);
 
+  const isGovIDIssuance = (window?.location?.pathname ?? "").includes("issuance/idgov")
+
   return (
     <>
       <ConfirmationModal
@@ -316,7 +318,22 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
         </>
       )}
 
-      <RefundIDV retrieveCredsError={retrieveCredsError} />
+      {retrieveCredsError && isGovIDIssuance && <VerificationErrorDisplay />}
+
+      {retrieveCredsError && !isGovIDIssuance && (
+        <p>
+          Please open a ticket in the{" "}
+          <a
+            href="https://discord.gg/2CFwcPW3Bh"
+            target="_blank"
+            rel="noreferrer"
+            className="in-text-link"
+          >
+            #support-tickets
+          </a>{" "}
+          channel in the Holonym Discord with a description of the error.
+        </p>
+      )}
     </>
   );
 };
