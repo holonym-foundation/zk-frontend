@@ -40,7 +40,7 @@ const PaymentOptions = ({
           style={{ width: "100%", fontSize: "20px" }}
           onClick={(event) => {
             event.preventDefault();
-            onSelectOption(false, "ETH", 10);
+            onSelectOption(false, "ETH", process.env.NODE_ENV === "development" ? 420 : 10);
           }}
         >
           Pay In OP ETH

@@ -23,11 +23,14 @@ const CryptoPaymentScreen = (props: {
         />
       </Modal>
 
-      <Modal
-        children={<PayWithConnectedWallet {...props} />}
-        visible={showPayWConnected}
-        setVisible={setShowPayWConnected}
-      />
+      <Modal visible={showPayWConnected} setVisible={setShowPayWConnected}>
+        <PayWithConnectedWallet 
+          currency={props.currency}
+          chainId={props.chainId}
+          onPaymentSuccess={props.onPaymentSuccess}
+        />
+      </Modal>
+
       <div
         className="x-wrapper small-center"
         style={{
