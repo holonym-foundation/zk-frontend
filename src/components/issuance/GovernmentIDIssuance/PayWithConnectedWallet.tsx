@@ -5,20 +5,16 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { parseEther } from "viem";
-import { useQuery } from "@tanstack/react-query";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
-import { BigNumber } from "bignumber.js";
 import NetworkGate from "../../../gate/NetworkGate";
 import SwitchToFantom from "../../atoms/SwitchToFantom";
 import SwitchToOptimism from "../../atoms/SwitchToOptimism";
 import Loading from "../../atoms/Loading";
 import {
-  PRICE_USD,
-  PAYMENT_MARGIN_OF_ERROR_AS_PERCENT,
   paymentRecieverAddress
 } from "../../../constants";
-import { fetchPrice } from "../../../utils/misc";
+import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import { Currency, SupportedChainIdsForIDVPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
@@ -40,15 +36,7 @@ const PayWithConnectedWallet = ({
     data: costDenominatedInToken,
     isLoading: costIsLoading,
     isError: costIsError,
-  } = useQuery(["govIDSBTCostDenominatedInToken", chainId], async () => {
-    if (process.env.NODE_ENV === "development") {
-      return "0.0000000000000000001";
-    }
-    const price = await fetchPrice(currency);
-    return PRICE_USD.div(BigNumber(price)).multipliedBy(
-      PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
-    ).toString();
-  });
+  } = useFetchIDVCryptoPrice(currency);
   const {
     config,
     error,
@@ -58,7 +46,7 @@ const PayWithConnectedWallet = ({
   } = usePrepareSendTransaction({
     chainId: chainId,
     to: paymentRecieverAddress,
-    value: costDenominatedInToken ? parseEther(costDenominatedInToken) : 0n,
+    value: costDenominatedInToken ? parseEther(costDenominatedInToken.toString()) : 0n,
   });
   const {
     data: txResult,
@@ -98,7 +86,7 @@ const PayWithConnectedWallet = ({
           <p>
             The mint price for this SBT is{" "}
             <code>
-              {costDenominatedInToken} {currency.symbol}
+              {costDenominatedInToken.toString()} {currency.symbol}
             </code>
             .
           </p>

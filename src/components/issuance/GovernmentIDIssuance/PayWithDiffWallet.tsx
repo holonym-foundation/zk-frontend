@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  PRICE_USD,
-  PAYMENT_MARGIN_OF_ERROR_AS_PERCENT,
-  paymentRecieverAddress
-} from "../../../constants";
-import { fetchPrice } from "../../../utils/misc";
-import { useEffectOnce } from "usehooks-ts";
-import { BigNumber } from "bignumber.js";
+import { paymentRecieverAddress } from "../../../constants";
+import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import { Currency, SupportedChainIdsForIDVPayment } from "../../../types";
 
 const chainOptions = [
@@ -22,20 +16,16 @@ const PayWithDiffWallet = (props: {
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
   chainId?: SupportedChainIdsForIDVPayment;
 }) => {
-  const [amountToPay, setAmountToPay] = useState<BigNumber>();
   const [txHash, setTxHash] = useState<string>("");
   const [showCopied, setShowCopied] = useState(false);
   const [error, setError] = useState<string>();
 
-  useEffectOnce(() => {
-    fetchPrice(props.currency).then(
-      (price) => setAmountToPay(
-        PRICE_USD.div(BigNumber(price)).multipliedBy(
-          PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
-        )
-      )
-    );
-  });
+  const {
+    data: costDenominatedInToken,
+    isLoading: costIsLoading,
+    isError: costIsError,
+    isSuccess: costIsSuccess,
+  } = useFetchIDVCryptoPrice(props.currency);
 
   useEffect(() => {
     if (showCopied) {
@@ -53,10 +43,15 @@ const PayWithDiffWallet = (props: {
       <ol style={{ fontSize: "14px", paddingLeft: "20px" }}>
         <li>
           <div>
-            <p>
-              Please send {amountToPay ? amountToPay.toString() : ""} in{" "}
-              {props.currency.symbol} to
-            </p>
+            {costIsSuccess && costDenominatedInToken && (
+              <p>
+                Please send {costDenominatedInToken ? costDenominatedInToken.toString() : ""} in{" "}
+                {props.currency.symbol} to
+              </p>
+            )}
+            {costIsLoading && <p>Loading price...</p>}
+            {costIsError && <p style={{ color: "red" }}>Error loading price</p>}
+
             <div
               style={{
                 display: "flex",
