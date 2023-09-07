@@ -6,6 +6,7 @@ import idImg from "../../img/id.png";
 // import stethoscopeImg from "../../img/stethoscope-emoji.png";
 import moneyImg from "../../img/money.png";
 import questionImg from "../../img/question.png";
+import { PRICE_USD } from "../../constants";
 
 const opts = [
   {
@@ -23,7 +24,7 @@ const opts = [
         your data or doxx you
       </>
     ),
-    price: ".005",
+    price: PRICE_USD.toString(),
     disabled: false,
   },
   {
@@ -117,7 +118,8 @@ const IssuanceOption = (props: {
         <p>{props.description}</p>
         {props.price ? (
           <p style={{ color: props.disabled ? "grey" : "greenyellow" }}>
-            <b>NFT:</b> {props.price} ETH
+            {/* <b>NFT:</b> {props.price} ETH */}
+            <b>Price:</b> {props.price} USD
           </p>
         ) : null}
       </div>
