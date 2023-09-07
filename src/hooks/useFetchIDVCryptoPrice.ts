@@ -24,7 +24,7 @@ const useFetchIDVCryptoPrice = (currency: Currency, options = {}) => {
     ...options,
     queryKey: [queryKeyBase, currency.symbol],
     queryFn: () => queryFn(currency),
-    refetchInterval: 5000,
+    refetchInterval: 20000,
   });
 };
 
