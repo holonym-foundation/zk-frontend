@@ -15,7 +15,12 @@ const CryptoPaymentScreen = (props: {
 
   return (
     <>
-      <Modal visible={diffWallet} setVisible={setDiffWallet} >
+      <Modal 
+        visible={diffWallet}
+        setVisible={setDiffWallet}
+        blur={true}
+        heavyBlur={true}
+      >
         <PayWithDiffWallet
           currency={props.currency}
           chainId={props.chainId}
@@ -23,7 +28,12 @@ const CryptoPaymentScreen = (props: {
         />
       </Modal>
 
-      <Modal visible={showPayWConnected} setVisible={setShowPayWConnected}>
+      <Modal
+        visible={showPayWConnected}
+        setVisible={setShowPayWConnected}
+        blur={true}
+        heavyBlur={true}
+      >
         <PayWithConnectedWallet 
           currency={props.currency}
           chainId={props.chainId}
