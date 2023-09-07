@@ -38,14 +38,20 @@ const PayWithDiffWallet = (props: {
 
   return (
     <>
-      <h1>How To</h1>
+      <h1>Mint your Holo with Privacy using a Burner Wallet</h1>
       <br />
       <ol style={{ fontSize: "14px", paddingLeft: "20px" }}>
+        <li>
+          <p>Use your wallet of choice and select your burner account.</p>
+        </li>
+        <li>
+          <p>Make sure your account is funded, from a CEX preferrably to avoid doxxing an existing wallet.</p>
+        </li>
         <li>
           <div>
             {costIsSuccess && costDenominatedInToken && (
               <p>
-                Please send {costDenominatedInToken ? costDenominatedInToken.toString() : ""} in{" "}
+                Send {costDenominatedInToken ? costDenominatedInToken.decimalPlaces(10).toString() : ""} in{" "}
                 {props.currency.symbol} to
               </p>
             )}
@@ -79,7 +85,8 @@ const PayWithDiffWallet = (props: {
           </div>
         </li>
         <li>
-          <p style={{ marginTop: "10px" }}>Then copy the transaction hash of the payment here:
+          <p style={{ marginTop: "10px" }}>
+            Wait for the transaction to complete. Then copy and paste the transaction hash here:
           </p>
         </li>
       </ol>
