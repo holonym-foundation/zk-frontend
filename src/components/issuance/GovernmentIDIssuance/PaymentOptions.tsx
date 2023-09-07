@@ -73,7 +73,7 @@ const PaymentOptions = ({
         >
           Pay In OP ETH ({
             priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH.decimalPlaces(4).toString()} ETH`
-          } ETH)
+          })
         </a>
         <a
           className="x-button-blue greyed-out-button"
