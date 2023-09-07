@@ -100,7 +100,7 @@ const VerificationErrorDisplay = () => {
             }}
             disabled={refundBtnsDisabled}
           >
-            {refundBtnsDisabled ? 'Requesting refund...' : 'Request refund'}
+            {refundIsLoading ? 'Requesting refund...' : refundTxReceipt ? 'Refund successful' : 'Request refund'}
           </button>
         </>
       )}
