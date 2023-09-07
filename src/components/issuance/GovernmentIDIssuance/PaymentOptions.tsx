@@ -1,4 +1,18 @@
 import { SupportedChainIdsForIDVPayment } from "../../../types";
+import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
+
+const currencyOptions = {
+  fantom: {
+    symbol: "FTM",
+    name: "Fantom",
+    coinGeckoName: "fantom",
+  },
+  optimism: {
+    symbol: "ETH",
+    name: "Ethereum",
+    coinGeckoName: "ethereum",
+  },
+}
 
 const PaymentOptions = ({
   onSelectOption,
@@ -9,6 +23,18 @@ const PaymentOptions = ({
     chainId: SupportedChainIdsForIDVPayment
   ) => void;
 }) => {
+  const {
+    data: priceInFTM,
+    isLoading: priceInFTMIsLoading,
+    isError: priceInFTMIsError,
+  } = useFetchIDVCryptoPrice(currencyOptions.fantom);
+
+  const {
+    data: priceInETH,
+    isLoading: priceInETHIsLoading,
+    isError: priceInETHIsError,
+  } = useFetchIDVCryptoPrice(currencyOptions.optimism);
+
   return (
     <>
       <div
@@ -33,7 +59,9 @@ const PaymentOptions = ({
             onSelectOption(false, "FTM", 250);
           }}
         >
-          Pay In FTM
+          Pay In FTM ({
+            priceInFTMIsLoading ? "loading..." : priceInFTMIsError ? "error" : `${priceInFTM.decimalPlaces(4).toString()} FTM`
+          })
         </a>
         <a
           className="glowy-red-button"
@@ -43,7 +71,9 @@ const PaymentOptions = ({
             onSelectOption(false, "ETH", process.env.NODE_ENV === "development" ? 420 : 10);
           }}
         >
-          Pay In OP ETH
+          Pay In OP ETH ({
+            priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH.decimalPlaces(4).toString()} ETH`
+          } ETH)
         </a>
         <a
           className="x-button-blue greyed-out-button"
