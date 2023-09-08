@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ethers } from "ethers";
 import RoundedWindow from "../RoundedWindow";
 import SwitchToOptimism from '../atoms/SwitchToOptimism'
 import NetworkGate from "../../gate/NetworkGate";
+import RefundCard from "./RefundCard";
 import PrivateInfoCard from "./PrivateInfoCard";
 import PublicInfoCard from "./PublicInfoCard";
 import {
@@ -11,10 +12,9 @@ import {
   tokenIdToMedSpecialty,
 } from "../../constants";
 import { useCreds } from "../../context/Creds";
+import useIdServerSessions from "../../hooks/useIdServerSessions";
 import {
   SortedCreds,
-  IssuedCredentialBase,
-  IssuedCredentialMetadata,
   ActiveChain,
 } from "../../types";
 
@@ -162,10 +162,33 @@ export default function Profile() {
     setFormattedCreds(formattedCreds);
   }, [sortedCreds, loadingCreds]);
 
+  const {
+    data: idServerSessions,
+    isLoading,
+    isError,
+    refetch: refetchIdServerSessions,
+  } = useIdServerSessions();
+
+  const failedSessions = useMemo(() => {
+    if (!idServerSessions) return [];
+    return idServerSessions.filter(
+      (session) => session.status === "VERIFICATION_FAILED"
+    )
+  }, [idServerSessions]);
+
   return (
     <NetworkGate gate={networkGateFn} fallback={<NetworkGateFallback />}>
       <div className="x-section wf-section">
         <div className="x-container dashboard w-container">
+          {failedSessions.length > 0 && (
+            <>
+              <RefundCard 
+                failedSessions={failedSessions}
+                refetchSessions={refetchIdServerSessions}
+              />
+              <div className="spacer-large" />
+            </>
+          )}
           <PublicInfoCard />
           <div className="spacer-large" />
           <PrivateInfoCard creds={formattedCreds} loading={loadingCreds} />
