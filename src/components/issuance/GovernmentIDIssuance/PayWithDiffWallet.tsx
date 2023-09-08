@@ -3,6 +3,8 @@ import { paymentRecieverAddress } from "../../../constants";
 import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import { Currency, SupportedChainIdsForIDVPayment } from "../../../types";
 
+const opChainIds = [10, 420];
+
 const PayWithDiffWallet = (props: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
@@ -44,7 +46,7 @@ const PayWithDiffWallet = (props: {
             {costIsSuccess && costDenominatedInToken && (
               <p>
                 Send {costDenominatedInToken ? costDenominatedInToken.decimalPlaces(10).toString() : ""} in{" "}
-                {props.currency.symbol} to
+                {props.currency.symbol} {props.chainId && opChainIds.includes(props.chainId) && "(on Optimism)"} to
               </p>
             )}
             {costIsLoading && <p>Loading price...</p>}
