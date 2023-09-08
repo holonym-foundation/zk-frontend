@@ -37,10 +37,7 @@ const VerificationErrorDisplay = () => {
         <p style={{ margin: "10px" }}>OR</p>
         <li>
           <button
-            onClick={() => {
-              console.log('clicked')
-              setToInputIsVisible(true)
-            }}
+            onClick={() => setToInputIsVisible(true)}
             className="in-text-link"
             style={{
               background: "none",
