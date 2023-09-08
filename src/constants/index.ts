@@ -79,12 +79,10 @@ export const zokratesFieldPrime = "218882428718392752222464057452572750885483644
 export const tokenSymbolToCurrency = {
   ETH: {
     name: "Ethereum",
-    coinGeckoName: "ethereum",
     symbol: "ETH",
   },
   FTM: {
     name: "Fantom",
-    coinGeckoName: "fantom",
     symbol: "FTM",
   },
 }

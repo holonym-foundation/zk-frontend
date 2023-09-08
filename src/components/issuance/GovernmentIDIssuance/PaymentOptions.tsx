@@ -5,12 +5,10 @@ const currencyOptions = {
   fantom: {
     symbol: "FTM",
     name: "Fantom",
-    coinGeckoName: "fantom",
   },
   optimism: {
     symbol: "ETH",
     name: "Ethereum",
-    coinGeckoName: "ethereum",
   },
 }
 
