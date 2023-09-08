@@ -104,7 +104,7 @@ function StatusesOverview({
               style={{
                 fontSize: "14px",
               }}
-              onClick={() => navigate("/issuance/idgov-veriff")}
+              onClick={() => navigate("/issuance/idgov?provider=veriff")}
               disabled={
                 !!consolidatedIdvSessionStatus?.veriff?.status &&
                 consolidatedIdvSessionStatus?.veriff?.status !== "approved"
@@ -167,7 +167,7 @@ function StatusesOverview({
               style={{
                 fontSize: "14px",
               }}
-              onClick={() => navigate("/issuance/idgov-idenfy")}
+              onClick={() => navigate("/issuance/idgov?provider=idenfy")}
               disabled={
                 !!consolidatedIdvSessionStatus?.idenfy?.status &&
                 consolidatedIdvSessionStatus?.idenfy?.status !== "APPROVED"
@@ -230,7 +230,7 @@ function StatusesOverview({
               style={{
                 fontSize: "14px",
               }}
-              onClick={() => navigate("/issuance/idgov-onfido")}
+              onClick={() => navigate("/issuance/idgov?provider=onfido")}
               disabled={
                 !!consolidatedIdvSessionStatus?.onfido?.status &&
                 onfidoStatus !== "complete"
