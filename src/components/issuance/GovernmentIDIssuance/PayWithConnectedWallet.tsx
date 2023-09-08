@@ -123,7 +123,7 @@ const PayWithConnectedWallet = ({
               lineHeight: "1",
               fontSize: "16px",
             }}
-            disabled={!txIsPrepared || txIsLoading}
+            disabled={!txIsPrepared || txIsLoading || waitingForTx}
             onClick={(event) => {
               event.preventDefault();
               try {

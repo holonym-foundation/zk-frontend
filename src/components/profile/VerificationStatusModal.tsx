@@ -75,7 +75,7 @@ function StatusesOverview({
               onClick={() =>
                 navigate(
                   `/issuance/idgov-veriff/store?sid=${
-                    govIdRetrievalEndpoints?.veriff?.retrievalEndpoint
+                    govIdRetrievalEndpoints?.veriff?.sid
                   }&retrievalEndpoint=${govIdRetrievalEndpoints?.veriff?.retrievalEndpoint}`
                 )
               }
