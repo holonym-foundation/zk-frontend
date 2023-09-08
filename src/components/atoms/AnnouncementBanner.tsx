@@ -29,14 +29,13 @@ function Banner() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '23px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <p style={{ margin: 0, fontSize: "1.5rem", fontFamily: "Clover Semibold" }}>
-            Experiencing High Demand
+            Thanks for Trying Holonym!
           </p>
           <p>
             {/* <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
               Your privacy is preserved by zero knowledge proofs and threshold encryption.
             <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span> */}
-            To cover skyrocketing identity verification costs of the infux of users, we have to start charging. If we were building in Web2, where users are the product, this would be tough.
-            But web3 gives the ability to tokenize. Now with every proof you also .005 ETH to recieve a soulbound NFT of your zero-knowledge identity proof on Optimism. 
+            Holonym is a privacy-preserving on-chain identity verification service. It allows you to verify attributes about yourself without anyone, including Holonym Foundation, knowing who you are on-chain. For tips on how to achieve optimal privacy on Holonym, see <a href="https://docs.holonym.id/introduction/private-credentials" target="_blank" rel="noreferrer">our docs</a>.
             <br/>
             {/* View{" "}
             <a className="in-text-link" href="https://docs.holonym.id/introduction/private-credentials" target="_blank" rel="noreferrer">
