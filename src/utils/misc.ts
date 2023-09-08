@@ -102,7 +102,7 @@ export function getSessionPath(idServerSessions?: IdServerSessionsResponse) {
   }
 }
 
-export const fetchMintBondPrice = async (c: Currency): Promise<number> => {
+export const fetchCryptoPrice = async (c: Currency): Promise<number> => {
   const priceData = await fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=${c.coinGeckoName}&vs_currencies=USD`
   );

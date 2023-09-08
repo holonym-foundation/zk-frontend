@@ -4,11 +4,11 @@ import {
   PRICE_USD,
   PAYMENT_MARGIN_OF_ERROR_AS_PERCENT,
 } from "../constants";
-import { fetchMintBondPrice } from "../utils/misc";
+import { fetchCryptoPrice } from "../utils/misc";
 import { Currency } from "../types";
 
 const queryFn = async (currency: Currency) => {
-  const price = await fetchMintBondPrice(currency);
+  const price = await fetchCryptoPrice(currency);
   return PRICE_USD.div(BigNumber(price)).multipliedBy(
     PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
   )
