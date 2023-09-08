@@ -267,9 +267,10 @@ export type IdServerSession = {
   _id: string;
   sigDigest: string;
   idvProvider: string;
-  status: 'NEEDS_PAYMENT' | 'IN_PROGRESS' | 'ISSUED' | 'VERIFICATION_FAILED';
+  status: 'NEEDS_PAYMENT' | 'IN_PROGRESS' | 'ISSUED' | 'VERIFICATION_FAILED' | 'REFUNDED';
   txHash?: string;
   chainId?: number;
+  refundTxHash?: string;
   sessionId?: string;
   veriffUrl?: string;
   scanRef?: string;
