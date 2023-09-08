@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useMutation } from '@tanstack/react-query'
-import { MINT_USD, idServerUrl } from "../../../constants";
+import { MINT_USD } from "../../../constants";
+import useRequestRefund from "../../../hooks/useRequestRefund";
 
 const VerificationErrorDisplay = () => {
   const [searchParams] = useSearchParams();
@@ -14,25 +14,7 @@ const VerificationErrorDisplay = () => {
     isError: refundIsError,
     error: refundError,
     mutate: requestRefund
-  } = useMutation(
-    async ({ refundTo }: { refundTo: string }) => {
-      if (!refundTo || refundTo.length !== 42) {
-        throw new Error(`Invalid address (${refundTo})`);
-      }
-
-      const sid = searchParams.get('sid')
-      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session/refund`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ to: refundTo })
-      })
-      const data = await resp.json()
-      if (resp.status !== 200) throw new Error(`${data.error}`)
-      return data
-    }
-  )
+  } = useRequestRefund()
 
   const refundBtnsDisabled = refundIsLoading || refundTxReceipt
   const errMsg = (refundError as Error)?.message ?? ''
@@ -96,7 +78,7 @@ const VerificationErrorDisplay = () => {
             className="x-button secondary"
             onClick={(event) => {
               event.preventDefault();
-              requestRefund({ refundTo })
+              requestRefund({ refundTo, sid: searchParams.get("sid") })
             }}
             disabled={refundBtnsDisabled}
           >
