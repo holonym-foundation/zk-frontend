@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { datadogLogs } from "@datadog/browser-logs";
+import { datadogRum } from "@datadog/browser-rum";
 import { init as initOnfido, SdkHandle } from "onfido-sdk-ui";
 import { idServerUrl } from "../constants";
 
@@ -70,6 +72,12 @@ const useOnfidoIDV = ({ enabled, sdk_token }: { enabled: boolean, sdk_token?: st
         },
         onError: (error) => {
           console.log("onfido: error", error);
+          datadogLogs.logger.error(
+            "Onfido SDK error",
+            undefined,
+            (error as unknown) as Error
+          );
+          datadogRum.addError(error);
         },
         onUserExit: (userExitCode) => {
           console.log("onfido: user exited", userExitCode);
