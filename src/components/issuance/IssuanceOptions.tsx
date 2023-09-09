@@ -10,14 +10,13 @@ import { PRICE_USD } from "../../constants";
 
 const opts = [
   {
-    name: "Government ID",
+    name: "Sybil Pass: Government ID",
     url: "/issuance/idgov-prereqs",
     image: idImg,
     description: (
       <>
         <b>
-          🤖 Get the <span style={{ color: "greenyellow" }}>NFT </span> for a
-          higher Gitcoin sybil-resistance score 🤖
+          🤖 Get the <span style={{ color: "greenyellow" }}>zkNFT </span> to boost your Gitcoin passport 🤖
         </b>
         <br />
         Verifies your government ID in a ZK-compatible way. It does not store
@@ -28,12 +27,12 @@ const opts = [
     disabled: false,
   },
   {
-    name: "Phone Number",
+    name: "Sybil Pass: Phone Number",
     url: "/issuance/", // "/issuance/phone",
     image: phoneImg,
     description:
       "Verifies a real phone number, blocking burners. Helps show you're not a bot. Under maintanence.",
-    price: ".005",
+    price: "3.50",
     disabled: true,
   },
   // {
@@ -134,8 +133,8 @@ const IssuanceOptions = () => {
         className="x-wrapper small-center"
         style={{ height: "95%", width: "80%" }}
       >
-        <h1>Choose your private credentials</h1>
-        <h5 className="h5">to add to your Holo.</h5>
+        <h1>Mint your Passes, Anon</h1>
+        <h5 className="h5">Passes are private NFTs that let you access on-chain actions such as grant donation, airdrops, and more!</h5>
         {/* <h4>Warning: these become more private as time passes. For extra privacy, feel free to wait a bit</h4>
                     <InfoButton
                         type="proofMenu"
@@ -153,7 +152,7 @@ const IssuanceOptions = () => {
             <IssuanceOption {...opt} />
           ))}
         </div>
-        {/* TODO: add buttons for future credential types such as accredited investor status */}
+        {/* TODO: add buttons for future credential types such as accredited investor pass */}
         {/* <button disabled onClick={()=>navigate("/")} className="x-button secondary">More proofs coming soon</button> */}
       </div>
       <div 
