@@ -26,7 +26,7 @@ const VerificationErrorDisplay = () => {
       <ul style={{ fontSize: "small", fontFamily: "Montserrat, sans-serif", }}>
         <li>
           <a
-            href="https://discord.gg/2CFwcPW3Bh"
+            href="https://discord.gg/Sqb6egVwuH"
             target="_blank"
             rel="noreferrer"
             className="in-text-link"

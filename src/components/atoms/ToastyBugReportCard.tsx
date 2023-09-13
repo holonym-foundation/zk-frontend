@@ -16,7 +16,7 @@ export default function ToastyBugReportCard() {
         <div className={cardClasses}>
           <p style={{ fontSize: "1.5rem", fontFamily: "Clover Regular" }}>Experiencing bugs?</p>
           <p>Open a ticket in the{" "}
-            <a href="https://discord.gg/2CFwcPW3Bh" target="_blank" rel="noreferrer" className="in-text-link">
+            <a href="https://discord.gg/Sqb6egVwuH" target="_blank" rel="noreferrer" className="in-text-link">
               #support-tickets
             </a>{" "}
             channel in the Holonym Discord with a description of the bug.
