@@ -30,7 +30,7 @@ export async function sha1String(data: string) {
     .join("");
 }
 
-export async function getIDVProvider(ip: string, country: string) {
+export async function getIDVProvider(ip?: string, country?: string) {
   if (!ip) return "veriff";
 
   const defaultOptions = ["veriff", "onfido"];

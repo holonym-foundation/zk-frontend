@@ -1,8 +1,9 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { IPAndCountry } from "../types";
 
 const useSniffedIPAndCountry = () => {
-  return useQuery({
+  return useQuery<IPAndCountry>({
     queryKey: ["ipAndCountry"],
     queryFn: async () => {
       const resp = await fetch(

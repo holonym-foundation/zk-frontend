@@ -4,7 +4,7 @@ import { getIDVProvider } from "../utils/misc";
 import { IPAndCountry } from "../types";
 
 const usePreferredIDVProvider = (
-  ipAndCountry: IPAndCountry,
+  ipAndCountry: IPAndCountry | undefined,
   {
     enabled,
   }: {
