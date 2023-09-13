@@ -17,7 +17,7 @@ const PaymentOptions = ({
 }: {
   onSelectOption: (
     fiat: boolean, 
-    symbol: "ETH" | "FTM", 
+    symbol: "ETH" | "FTM" | "FIAT", 
     chainId: SupportedChainIdsForIDVPayment
   ) => void;
 }) => {
@@ -74,8 +74,12 @@ const PaymentOptions = ({
           })
         </a>
         <a
-          className="x-button-blue greyed-out-button"
+          className="x-button-blue"
           style={{ width: "100%", fontSize: "20px" }}
+          onClick={(event) => {
+            event.preventDefault();
+            onSelectOption(true, "FIAT", 0);
+          }} 
         >
           Pay In Fiat (coming soon)
         </a>
