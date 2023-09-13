@@ -85,6 +85,10 @@ export const tokenSymbolToCurrency = {
     name: "Fantom",
     symbol: "FTM",
   },
+  FIAT: {
+    name: "PayPal",
+    symbol: "FIAT",
+  }
 }
 
 export const stateAbbreviations = {
