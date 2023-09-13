@@ -16,6 +16,7 @@ import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
 import OnChainProofs from "./components/prove/OnChainProofs";
 import PaymentPrereqs from "./components/issuance/GovernmentIDIssuance/PaymentPrereqs";
+import IranInfoPage from "./components/IranInfoPage";
 
 // const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 
@@ -36,6 +37,8 @@ export function AppRoutes() {
       <Route path={"/issuance/idgov-onfido"} element={<GovIDIssuanceOnfido />} />
       <Route path={"/issuance/idgov-onfido/:store"} element={<GovIDIssuanceOnfido />} />
       
+      <Route path={"/iran-info"} element={<IranInfoPage />} />
+
       <Route path={"/issuance/phone"} element={<PhoneNumberIssuance />} />
       <Route path={"/issuance/phone/:store"} element={<PhoneNumberIssuance />} />
       <Route path={"/issuance/med"} element={<MedicalCredentialsIssuance />} />

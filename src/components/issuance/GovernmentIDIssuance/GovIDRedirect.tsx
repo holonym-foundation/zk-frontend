@@ -45,6 +45,12 @@ const GovIDRedirect = () => {
       if (loadingCreds || ipAndCountryIsLoading || preferredProviderIsLoading || idServerSessionsIsLoading)
         return;
 
+      // If user is from Iran, redirect them to the info page about Iran.
+      if (ipAndCountry?.country === "Iran") {
+        navigate("/iran-info");
+        return;
+      }
+
       // User already has gov id creds. Send them to the confirm reverify page.
       if (sortedCreds?.[serverAddress["idgov-v2"]]) {
         let url = `/issuance/idgov-confirm-reverify`;
