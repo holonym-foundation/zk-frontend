@@ -23,11 +23,12 @@ const PaymentPrereqs = () => {
         <div className="checklist">
           <ol>
             <li>
-              zkNFT minting {" "}
+              {/* zkNFT minting {" "}
               <code style={{ color: "var(--holo-light-blue)" }}>($10)</code>{" "}
               and Issuer Risk {" "}
               <code style={{ color: "var(--holo-light-blue)" }}>($2.47)</code> fees:
-              Crypto or Fiat accepted.
+              Crypto or Fiat accepted. */}
+              OP ETH or FTM ready to pay the zkNFT minting and Issuer Risk fees
             </li>
             <li>Government ID on-hand</li>
           </ol>
