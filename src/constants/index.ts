@@ -47,7 +47,7 @@ export const serverAddress = {
 export const paymentRecieverAddress = "0xdca2e9ae8423d7b0f94d7f9fc09e698a45f3c851";
 
 export const BOND_USD = BigNumber("2.47");
-export const MINT_USD = BigNumber("10.00");
+export const MINT_USD = BigNumber("5.53");
 export const PRICE_USD = BOND_USD.plus(MINT_USD);
 export const PAYMENT_MARGIN_OF_ERROR_AS_PERCENT = BigNumber("0.02");
 // Necessary now that any site can redirect a user to Holonym and store user credentials. A user's
