@@ -375,3 +375,10 @@ export const tokenIdToMedSpecialty = {
   "21": "Thoracic Surgery",
   "22": "Urology",
 };
+
+export const unsupportedCountries = [
+  "North Korea",
+  "Iran",
+  "Syria",
+  "Cuba",
+]

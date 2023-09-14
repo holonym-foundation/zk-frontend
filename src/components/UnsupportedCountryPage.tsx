@@ -1,6 +1,6 @@
 import RoundedWindow from "./RoundedWindow";
 
-const IranInfoPage = () => {
+const UnsupportedCountryPage = () => {
   return (
     <RoundedWindow>
       <div className="spacer-medium" />
@@ -18,4 +18,4 @@ const IranInfoPage = () => {
   );
 };
 
-export default IranInfoPage;
+export default UnsupportedCountryPage;

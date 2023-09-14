@@ -5,7 +5,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreds } from "../../../context/Creds";
-import { serverAddress } from "../../../constants";
+import { serverAddress, unsupportedCountries } from "../../../constants";
 import { getSessionPath } from '../../../utils/misc';
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
@@ -45,9 +45,8 @@ const GovIDRedirect = () => {
       if (loadingCreds || ipAndCountryIsLoading || preferredProviderIsLoading || idServerSessionsIsLoading)
         return;
 
-      // If user is from Iran, redirect them to the info page about Iran.
-      if (ipAndCountry?.country === "Iran") {
-        navigate("/iran-info");
+      if (unsupportedCountries.includes(ipAndCountry?.country as string)) {
+        navigate("/unsupported-country");
         return;
       }
 
