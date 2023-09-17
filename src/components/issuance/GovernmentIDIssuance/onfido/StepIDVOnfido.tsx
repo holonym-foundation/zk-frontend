@@ -45,21 +45,27 @@ const StepIDV = ({ sdk_token }: { sdk_token?: string }) => {
       let hasSuccessfulSession = false;
       if (data?.onfido?.status) {
         if (onfidoRetrievalEndpoint) {
-          if (
-            data?.onfido?.status === "complete" &&
-            data?.onfido?.result === "clear"
-          ) {
+          if (data?.onfido?.status === "complete") {
             navigate(
               `/issuance/idgov-onfido/store?sid=${sid}&retrievalEndpoint=${onfidoRetrievalEndpoint}`
             );
-          } else if (
-            data?.onfido?.status === "complete" &&
-            data?.onfido?.result === "consider"
-          ) {
-            setVerificationError(
-              `Result of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.result}'. Expected 'clear'.`
-            );
-          } else if (
+          }
+          // if (
+          //   data?.onfido?.status === "complete" &&
+          //   data?.onfido?.result === "clear"
+          // ) {
+          //   navigate(
+          //     `/issuance/idgov-onfido/store?sid=${sid}&retrievalEndpoint=${onfidoRetrievalEndpoint}`
+          //   );
+          // } else if (
+          //   data?.onfido?.status === "complete" &&
+          //   data?.onfido?.result === "consider"
+          // ) {
+          //   setVerificationError(
+          //     `Result of Onfido check ${data?.onfido?.check_id} is '${data?.onfido?.result}'. Expected 'clear'.`
+          //   );
+          // } 
+          else if (
             unsuccessfulOnfidoStatuses.includes(data?.onfido?.status)
           ) {
             setVerificationError(
