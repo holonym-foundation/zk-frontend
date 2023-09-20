@@ -31,45 +31,49 @@ export async function sha1String(data: string) {
 }
 
 export async function getIDVProvider(ip?: string, country?: string) {
-  if (!ip) return "veriff";
+  // Default to idenfy for now.
+  return "idenfy";
 
-  const defaultOptions = ["veriff", "onfido"];
-  const allOptions = ["veriff", "idenfy", "onfido"];
-  const onfidoIdenfy = ["onfido", "idenfy"];
+  // TODO: Uncomment this once we no longer want to use just idenfy.
+  // if (!ip) return "veriff";
 
-  const exceptions = {
-    Japan: {
-      options: onfidoIdenfy,
-    },
-    China: {
-      options: onfidoIdenfy,
-    },
-    "Hong Kong": {
-      options: onfidoIdenfy,
-    },
-    Iran: {
-      options: allOptions,
-    },
-    Russia: {
-      options: allOptions,
-    },
-    Bangladesh: {
-      options: allOptions,
-    },
-    Nigeria: {
-      options: allOptions,
-    },
-    "South Korea": {
-      options: allOptions,
-    },
-  };
+  // const defaultOptions = ["veriff", "onfido"];
+  // const allOptions = ["veriff", "idenfy", "onfido"];
+  // const onfidoIdenfy = ["onfido", "idenfy"];
 
-  const options =
-    exceptions[country as keyof typeof exceptions]?.options ?? defaultOptions;
-  const ipcoin = ethers.BigNumber.from("0x" + (await sha1String(ip)))
-    .mod(options.length)
-    .toNumber();
-  return options[ipcoin];
+  // const exceptions = {
+  //   Japan: {
+  //     options: onfidoIdenfy,
+  //   },
+  //   China: {
+  //     options: onfidoIdenfy,
+  //   },
+  //   "Hong Kong": {
+  //     options: onfidoIdenfy,
+  //   },
+  //   Iran: {
+  //     options: allOptions,
+  //   },
+  //   Russia: {
+  //     options: allOptions,
+  //   },
+  //   Bangladesh: {
+  //     options: allOptions,
+  //   },
+  //   Nigeria: {
+  //     options: allOptions,
+  //   },
+  //   "South Korea": {
+  //     options: allOptions,
+  //   },
+  // };
+
+  // const options =
+  //   exceptions[country as keyof typeof exceptions]?.options ?? defaultOptions;
+  // const ipcoin = ethers.BigNumber.from("0x" + (await sha1String(ip)))
+  //   .mod(options.length)
+  //   .toNumber();
+  // return options[ipcoin];
 }
 
 /**
