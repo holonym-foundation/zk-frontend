@@ -10,6 +10,13 @@ const SwitchChains = () => {
   });
 
   const { 
+    error: errorEthereum,
+    switchNetwork: switchToEthereum
+  } = useSwitchNetwork({
+    chainId: 1,
+  });
+
+  const { 
     error: errorFantom,
     switchNetwork: switchToFantom
   } = useSwitchNetwork({
@@ -26,7 +33,7 @@ const SwitchChains = () => {
             alignItems: "center",
           }}
         >
-          <h1>Please Switch to Fantom or Optimism</h1>
+          <h1>Please Switch to Fantom, Ethereum, or Optimism</h1>
           <div
             style={{
               width: "100",
@@ -51,6 +58,26 @@ const SwitchChains = () => {
                 }}
               >
                 Switch to Fantom
+              </div>
+            </div>
+
+            <div className="spacer-medium" />
+
+            <div
+              className="nav-wallet"
+              style={{ backgroundColor: "var(--dark-card-background)" }}
+            >
+              <div
+                className="nav-wallet-text nav-link w-nav-link"
+                onClick={() => {
+                  if (switchToEthereum) {
+                    switchToEthereum();
+                  } else {
+                    console.error("switchToEthereum is undefined");
+                  }
+                }}
+              >
+                Switch to Ethereum
               </div>
             </div>
 
@@ -133,6 +160,13 @@ const SwitchChains = () => {
                 </div>
               </div>
             </>
+          )}
+
+         {errorEthereum && (
+            <p style={{ color: "red" }}>
+              An error occurred trying to switch chains. Please make sure you
+              have Ethereum added to your wallet.
+            </p>
           )}
         </div>
       </div>

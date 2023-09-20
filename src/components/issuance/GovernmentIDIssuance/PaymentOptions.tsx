@@ -61,6 +61,20 @@ const PaymentOptions = ({
             priceInFTMIsLoading ? "loading..." : priceInFTMIsError ? "error" : `${priceInFTM.decimalPlaces(4).toString()} FTM`
           })
         </a>
+
+        <a
+          className="glowy-grey-button"
+          style={{ width: "100%", fontSize: "20px" }}
+          onClick={(event) => {
+            event.preventDefault();
+            onSelectOption(false, "ETH", 1);
+          }}
+        >
+          Pay In ETH (on Ethereum mainnet) ({
+            priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH.decimalPlaces(4).toString()} ETH`
+          })
+        </a>
+
         <a
           className="glowy-red-button"
           style={{ width: "100%", fontSize: "20px" }}
@@ -69,7 +83,7 @@ const PaymentOptions = ({
             onSelectOption(false, "ETH", process.env.NODE_ENV === "development" ? 420 : 10);
           }}
         >
-          Pay In OP ETH ({
+          Pay In ETH (on Optimism) ({
             priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH.decimalPlaces(4).toString()} ETH`
           })
         </a>

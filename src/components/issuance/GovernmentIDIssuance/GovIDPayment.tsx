@@ -7,7 +7,7 @@ import { SupportedChainIdsForIDVPayment } from "../../../types";
 const GovIDPayment = ({ 
   onPaymentSuccess 
 }: { 
-  onPaymentSuccess: (data: { chainId?: number, txHash?: string}) => void 
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string }) => void 
 }) => {
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
   const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();

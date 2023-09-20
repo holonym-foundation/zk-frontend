@@ -8,6 +8,7 @@ import { parseEther } from "viem";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 import NetworkGate from "../../../gate/NetworkGate";
+import SwitchToEthereum from "../../atoms/SwitchToEthereum";
 import SwitchToFantom from "../../atoms/SwitchToFantom";
 import SwitchToOptimism from "../../atoms/SwitchToOptimism";
 import Loading from "../../atoms/Loading";
@@ -18,6 +19,7 @@ import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import { Currency, SupportedChainIdsForIDVPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
+  1: <SwitchToEthereum />,
   250: <SwitchToFantom />,
   10: <SwitchToOptimism />,
   420: <SwitchToOptimism />,

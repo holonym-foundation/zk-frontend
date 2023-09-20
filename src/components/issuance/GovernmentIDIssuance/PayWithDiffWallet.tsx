@@ -4,6 +4,7 @@ import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import { Currency, SupportedChainIdsForIDVPayment } from "../../../types";
 
 const opChainIds = [10, 420];
+const ethChainIds = [1];
 
 const PayWithDiffWallet = (props: {
   currency: Currency;
@@ -46,7 +47,8 @@ const PayWithDiffWallet = (props: {
             {costIsSuccess && costDenominatedInToken && (
               <p>
                 Send {costDenominatedInToken ? costDenominatedInToken.decimalPlaces(10).toString() : ""} in{" "}
-                {props.currency.symbol} {props.chainId && opChainIds.includes(props.chainId) && "(on Optimism)"} to
+                {props.currency.symbol} {props.chainId && opChainIds.includes(props.chainId) && "(on Optimism)"}
+                {props.chainId && ethChainIds.includes(props.chainId) && "(on Ethereum mainnet)"} to
               </p>
             )}
             {costIsLoading && <p>Loading price...</p>}
