@@ -10,7 +10,7 @@ import GovIDRedirect from "./components/issuance/GovernmentIDIssuance/GovIDRedir
 import GovIDIssuanceVeriff from "./components/issuance/GovernmentIDIssuance/veriff/GovIDIssuanceVeriff";
 import GovIDIssuanceIdenfy from "./components/issuance/GovernmentIDIssuance/idenfy/GovIDIssuanceIdenfy";
 import GovIDIssuanceOnfido from "./components/issuance/GovernmentIDIssuance/onfido/GovIDIssuanceOnfido";
-import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance';
+import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance/PhoneNumberIssuance';
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';

@@ -3,18 +3,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import { parsePhoneNumber } from "react-phone-number-input";
 // import "react-phone-number-input/style.css";
 import "../../react-phone-number-input.css";
-import PhoneNumberForm from "../atoms/PhoneNumberForm";
-import { sendCode } from "../../utils/phone";
-import { zkPhoneEndpoint } from "../../constants";
-import FinalStep from "./FinalStep/FinalStep";
-import StepSuccess from "./StepSuccess";
-import IssuanceContainer from "./IssuanceContainer";
+import PhoneNumberForm from "../../atoms/PhoneNumberForm";
+import { sendCode } from "../../../utils/phone";
+import { zkPhoneEndpoint } from "../../../constants";
+import FinalStep from "../FinalStep/FinalStep";
+import StepSuccess from "../StepSuccess";
+import IssuanceContainer from "../IssuanceContainer";
+import usePhoneNumberIssuanceState from "../../../hooks/usePhoneNumberIssuanceState";
 import { datadogLogs } from "@datadog/browser-logs";
 
 // Add to this when a new issuer is added
 // const allowedCredTypes = ["idgov", "phone"];
-
-const steps = ["Phone#", "Verify", "Finalize"];
 
 const StepSuccessWithAnalytics = () => {
   useEffect(() => {
@@ -28,37 +27,6 @@ const StepSuccessWithAnalytics = () => {
   }, []);
   return <StepSuccess />;
 };
-
-function useVerifyPhoneNumberState() {
-  const { store } = useParams();
-  const [success, setSuccess] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState<string>();
-  const [code, setCode] = useState("");
-  const [currentIdx, setCurrentIdx] = useState(0);
-
-  const currentStep = useMemo(() => {
-    if (!phoneNumber && !store) return "Phone#";
-    if (phoneNumber && !store) return "Verify";
-    else return "Finalize";
-  }, [phoneNumber, store]);
-
-  useEffect(() => {
-    setCurrentIdx(steps.indexOf(currentStep));
-  }, [currentStep]);
-
-  return {
-    success,
-    setSuccess,
-    currentIdx,
-    setCurrentIdx,
-    steps,
-    currentStep,
-    phoneNumber,
-    setPhoneNumber,
-    code,
-    setCode,
-  };
-}
 
 const VerifyPhoneNumber = () => {
   useEffect(() => {
@@ -82,7 +50,7 @@ const VerifyPhoneNumber = () => {
     setPhoneNumber,
     code,
     setCode,
-  } = useVerifyPhoneNumberState();
+  } = usePhoneNumberIssuanceState();
 
   useEffect(() => {
     if (success && window.localStorage.getItem("register-credentialType")) {
