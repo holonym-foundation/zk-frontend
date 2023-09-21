@@ -332,10 +332,11 @@ export default function PrivateInfoCard({
                     <div className="private-info-attribute-name">
                       Phone Number
                     </div>
-                    <VerifyButton
+                    {/* <VerifyButton
                       onClick={() => navigate("/issuance/phone")}
                       text="Verify Phone Number"
-                    />
+                    /> */}
+                    <div>n/a</div>
                   </>
                 )}
 
