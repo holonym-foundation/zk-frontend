@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { getSessionPath } from '../../../utils/misc';
+import { getIDVSessionPath } from '../../../utils/misc';
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
@@ -48,7 +48,7 @@ const ConfirmReverify = () => {
             }}
             disabled={preferredProviderIsLoading}
             onClick={() => {
-              const path = getSessionPath(idServerSessions);
+              const path = getIDVSessionPath(idServerSessions);
               if (path) {
                 navigate(path)
                 return;

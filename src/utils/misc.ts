@@ -1,7 +1,7 @@
 import { SiweMessage } from "siwe";
 import { ethers } from "ethers";
 import { idServerUrl } from "../constants";
-import { IdServerSessionsResponse, Currency } from '../types'
+import { IdServerSessionsResponse, PhoneServerSessionsResponse, Currency } from '../types'
 
 export function createSiweMessage(
   address: string,
@@ -79,7 +79,7 @@ export async function getIDVProvider(ip?: string, country?: string) {
 /**
  * Returns path to an IDV session or undefined, given idvServerSessions.
  */
-export function getSessionPath(idServerSessions?: IdServerSessionsResponse) {
+export function getIDVSessionPath(idServerSessions?: IdServerSessionsResponse) {
   // TODO: Each of the following if statements assumes the first item in the
   // array will always be the correct one to use. It's possible, though unlikely,
   // for cases to arise where this assumption doesn't hold. We should rewrite
@@ -103,6 +103,32 @@ export function getSessionPath(idServerSessions?: IdServerSessionsResponse) {
     if (needsPaymentSessions.length > 0) {
       const provider = needsPaymentSessions[0].idvProvider;
       return `/issuance/idgov-${provider}?sid=${needsPaymentSessions[0]._id}`
+    }
+  }
+}
+
+export function getPhoneSessionPath(phoneServerSessions?: PhoneServerSessionsResponse) {
+  // TODO: Each of the following if statements assumes the first item in the
+  // array will always be the correct one to use. It's possible, though unlikely,
+  // for cases to arise where this assumption doesn't hold. We should rewrite
+  // this to handle all possible cases.
+  if (Array.isArray(phoneServerSessions) && phoneServerSessions.length > 0) {
+    // If user has already paid for a session but hasn't completed verification,
+    // direct them to the page where they can start verification.
+    const inProgressSessions = phoneServerSessions.filter(
+      (session) => session.status.S === "IN_PROGRESS" && session?.numAttempts?.N < 3
+    );
+    if (inProgressSessions.length > 0) {
+      return `/issuance/phone?sid=${inProgressSessions[0].id.S}`
+    }
+
+    // If the user has already initiated a session but hasn't paid for it,
+    // direct them to the page where they can pay for the session.
+    const needsPaymentSessions = phoneServerSessions.filter(
+      (session) => session.status.S === "NEEDS_PAYMENT"
+    );
+    if (needsPaymentSessions.length > 0) {
+      return `/issuance/phone?sid=${inProgressSessions[0].id.S}`
     }
   }
 }

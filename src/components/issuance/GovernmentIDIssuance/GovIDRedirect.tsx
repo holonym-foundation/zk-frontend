@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreds } from "../../../context/Creds";
 import { serverAddress, unsupportedCountries } from "../../../constants";
-import { getSessionPath } from '../../../utils/misc';
+import { getIDVSessionPath } from '../../../utils/misc';
 import VerificationContainer from "../IssuanceContainer";
 import useSniffedIPAndCountry from '../../../hooks/useSniffedIPAndCountry'
 import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
@@ -64,7 +64,7 @@ const GovIDRedirect = () => {
       // one. Otherwise, redirect them to the issuance page for the preferred
       // provider.
 
-      const path = getSessionPath(idServerSessions);
+      const path = getIDVSessionPath(idServerSessions);
       if (path) {
         navigate(path)
         return;
