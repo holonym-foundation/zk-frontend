@@ -28,7 +28,7 @@ const PaymentPrereqs = () => {
               and Issuer Risk {" "}
               <code style={{ color: "var(--holo-light-blue)" }}>($2.47)</code> fees:
               Crypto or Fiat accepted. */}
-              OP ETH or FTM ready to pay the zkNFT minting and Issuer Risk fees
+              ETH (on mainnet or Optimism) or FTM ready to pay the zkNFT minting and Issuer Risk fees
             </li>
             <li>Government ID on-hand</li>
           </ol>
