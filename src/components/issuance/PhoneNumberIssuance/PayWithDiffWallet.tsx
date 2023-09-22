@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { paymentRecieverAddressPhone } from "../../../constants";
+import { paymentRecieverAddress } from "../../../constants";
 import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
 import { Currency, SupportedChainIdsForPayment } from "../../../types";
 
@@ -62,12 +62,12 @@ const PayWithDiffWallet = (props: {
               }}
             >
               <p style={{ marginBottom: "0px", marginRight: "10px" }}>
-                <code>{paymentRecieverAddressPhone}</code>
+                <code>{paymentRecieverAddress}</code>
               </p>
               <button
                 className="x-button secondary outline"
                 onClick={() => {
-                  navigator.clipboard.writeText(paymentRecieverAddressPhone);
+                  navigator.clipboard.writeText(paymentRecieverAddress);
                   setShowCopied(true);
                 }}
                 style={{

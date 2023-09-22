@@ -13,7 +13,7 @@ import SwitchToFantom from "../../atoms/SwitchToFantom";
 import SwitchToOptimism from "../../atoms/SwitchToOptimism";
 import Loading from "../../atoms/Loading";
 import {
-  paymentRecieverAddressPhone
+  paymentRecieverAddress
 } from "../../../constants";
 import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
 import { Currency, SupportedChainIdsForPayment, ActiveChain } from "../../../types";
@@ -48,7 +48,7 @@ const PayWithConnectedWallet = ({
     isSuccess: txIsPrepared,
   } = usePrepareSendTransaction({
     chainId: chainId,
-    to: paymentRecieverAddressPhone,
+    to: paymentRecieverAddress,
     value: costDenominatedInToken ? parseEther(costDenominatedInToken.toString()) : 0n,
   });
 
