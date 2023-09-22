@@ -1,26 +1,31 @@
 import { useState, useEffect } from "react";
-import { paymentRecieverAddress } from "../../../constants";
-import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
-import { Currency, SupportedChainIdsForPayment } from "../../../types";
+import { BigNumber } from "bignumber.js";
+import { paymentRecieverAddress } from "../../constants";
+import { Currency, SupportedChainIdsForPayment } from "../../types";
 
 const opChainIds = [10, 420];
 const ethChainIds = [1];
 
-const PayWithDiffWallet = (props: {
+const PayWithDiffWallet = ({
+  currency,
+  onPaymentSuccess,
+  chainId,
+  costDenominatedInToken,
+  costIsLoading,
+  costIsError,
+  costIsSuccess,
+}: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
   chainId?: SupportedChainIdsForPayment;
+  costDenominatedInToken: BigNumber | undefined;
+  costIsLoading: boolean;
+  costIsError: boolean;
+  costIsSuccess: boolean;
 }) => {
   const [txHash, setTxHash] = useState<string>("");
   const [showCopied, setShowCopied] = useState(false);
   const [error, setError] = useState<string>();
-
-  const {
-    data: costDenominatedInToken,
-    isLoading: costIsLoading,
-    isError: costIsError,
-    isSuccess: costIsSuccess,
-  } = useFetchIDVCryptoPrice(props.currency);
 
   useEffect(() => {
     if (showCopied) {
@@ -47,8 +52,8 @@ const PayWithDiffWallet = (props: {
             {costIsSuccess && costDenominatedInToken && (
               <p>
                 Send {costDenominatedInToken ? costDenominatedInToken.decimalPlaces(10).toString() : ""} in{" "}
-                {props.currency.symbol} {props.chainId && opChainIds.includes(props.chainId) && "(on Optimism)"}
-                {props.chainId && ethChainIds.includes(props.chainId) && "(on Ethereum mainnet)"} to
+                {currency.symbol} {chainId && opChainIds.includes(chainId) && "(on Optimism)"}
+                {chainId && ethChainIds.includes(chainId) && "(on Ethereum mainnet)"} to
               </p>
             )}
             {costIsLoading && <p>Loading price...</p>}
@@ -104,8 +109,8 @@ const PayWithDiffWallet = (props: {
             setError("Invalid transaction hash");
             return;
           }
-          props.onPaymentSuccess({
-            chainId: props.chainId,
+          onPaymentSuccess({
+            chainId: chainId,
             txHash: txHash,
           });
         }}

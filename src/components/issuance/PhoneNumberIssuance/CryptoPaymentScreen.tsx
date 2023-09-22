@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Modal } from "../../atoms/Modal";
 import { Currency, SupportedChainIdsForPayment } from "../../../types";
+import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
 import PayWithConnectedWallet from "./PayWithConnectedWallet";
-import PayWithDiffWallet from "./PayWithDiffWallet";
+import PayWithDiffWallet from "../../atoms/PayWithDiffWallet";
 
 const CryptoPaymentScreen = (props: {
   currency: Currency;
@@ -12,6 +13,13 @@ const CryptoPaymentScreen = (props: {
 }) => {
   const [diffWallet, setDiffWallet] = useState(false);
   const [showPayWConnected, setShowPayWConnected] = useState(false);
+
+  const {
+    data: costDenominatedInToken,
+    isLoading: costIsLoading,
+    isError: costIsError,
+    isSuccess: costIsSuccess,
+  } = useFetchPhoneVerificationCryptoPrice(props.currency);
 
   return (
     <>
@@ -25,6 +33,10 @@ const CryptoPaymentScreen = (props: {
           currency={props.currency}
           chainId={props.chainId}
           onPaymentSuccess={props.onPaymentSuccess}
+          costDenominatedInToken={costDenominatedInToken}
+          costIsLoading={costIsLoading}
+          costIsError={costIsError}
+          costIsSuccess={costIsSuccess}
         />
       </Modal>
 
