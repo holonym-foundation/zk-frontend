@@ -28,12 +28,12 @@ const opts = [
   },
   {
     name: "Sybil Pass: Phone Number",
-    url: "/issuance/", // "/issuance/phone",
+    url: "/issuance/phone-prereqs",
     image: phoneImg,
     description:
       "Verifies a real phone number, blocking burners. Helps show you're not a bot. Under maintanence.",
     price: "3.50",
-    disabled: true,
+    disabled: false,
   },
   // {
   //     name: "Medical Credentials",

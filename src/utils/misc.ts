@@ -116,19 +116,19 @@ export function getPhoneSessionPath(phoneServerSessions?: PhoneServerSessionsRes
     // If user has already paid for a session but hasn't completed verification,
     // direct them to the page where they can start verification.
     const inProgressSessions = phoneServerSessions.filter(
-      (session) => session.status.S === "IN_PROGRESS" && session?.numAttempts?.N < 3
+      (session) => session.sessionStatus.S === "IN_PROGRESS" && session?.numAttempts?.N < 3
     );
     if (inProgressSessions.length > 0) {
-      return `/issuance/phone?sid=${inProgressSessions[0].id.S}`
+      return `/issuance/phone-verify?sid=${inProgressSessions[0].id.S}`
     }
 
     // If the user has already initiated a session but hasn't paid for it,
     // direct them to the page where they can pay for the session.
     const needsPaymentSessions = phoneServerSessions.filter(
-      (session) => session.status.S === "NEEDS_PAYMENT"
+      (session) => session.sessionStatus.S === "NEEDS_PAYMENT"
     );
     if (needsPaymentSessions.length > 0) {
-      return `/issuance/phone?sid=${inProgressSessions[0].id.S}`
+      return `/issuance/phone-verify?sid=${needsPaymentSessions[0].id.S}`
     }
   }
 }

@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { parsePhoneNumber } from "react-phone-number-input";
 // import "react-phone-number-input/style.css";
-import "../../react-phone-number-input.css";
+import "../../../react-phone-number-input.css";
 import PhoneNumberForm from "../../atoms/PhoneNumberForm";
 import { sendCode } from "../../../utils/phone";
 import { zkPhoneEndpoint } from "../../../constants";
@@ -10,6 +10,7 @@ import FinalStep from "../FinalStep/FinalStep";
 import StepSuccess from "../StepSuccess";
 import IssuanceContainer from "../IssuanceContainer";
 import usePhoneNumberIssuanceState from "../../../hooks/usePhoneNumberIssuanceState";
+import PhonePayment from "./PhonePayment";
 import { datadogLogs } from "@datadog/browser-logs";
 
 // Add to this when a new issuer is added
@@ -40,6 +41,9 @@ const VerifyPhoneNumber = () => {
   }, []);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
+
   const {
     success,
     setSuccess,
@@ -50,6 +54,10 @@ const VerifyPhoneNumber = () => {
     setPhoneNumber,
     code,
     setCode,
+    paymentResponse,
+    paymentSubmissionIsLoading,
+    paymentSubmissionIsError,
+    submitPhonePayment,
   } = usePhoneNumberIssuanceState();
 
   useEffect(() => {
@@ -75,13 +83,13 @@ const VerifyPhoneNumber = () => {
     setCode(newCode);
     if (newCode.length === 6) {
       const country = parsePhoneNumber(phoneNumber!)?.country;
-      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v3/${phoneNumber}/${newCode}/${country}`;
+      const retrievalEndpoint = `${zkPhoneEndpoint}/getCredentials/v4/${phoneNumber}/${newCode}/${country}/${sid}`;
       const encodedRetrievalEndpoint = encodeURIComponent(
         window.btoa(retrievalEndpoint)
       );
       datadogLogs.logger.info("EnterPhoneCode", {});
       navigate(
-        `/issuance/phone/store?retrievalEndpoint=${encodedRetrievalEndpoint}`
+        `/issuance/phone-verify/store?retrievalEndpoint=${encodedRetrievalEndpoint}`
       );
     }
   };
@@ -90,6 +98,12 @@ const VerifyPhoneNumber = () => {
     <IssuanceContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccessWithAnalytics />
+      ) : currentStep === "Pay" && !paymentSubmissionIsLoading ? (
+        <PhonePayment onPaymentSuccess={submitPhonePayment} />
+      ) : currentStep === "Pay" && paymentSubmissionIsLoading ? (
+        <div>
+          <p>Loading...</p>
+        </div>
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (

@@ -282,6 +282,32 @@ export type IdServerSession = {
 
 export type IdServerSessionsResponse = Array<IdServerSession>;
 
+export type PhoneServerSession = {
+  id: {
+    S: string;
+  }
+  sigDigest: {
+    S: string;
+  }
+  sessionStatus: {
+    S: 'NEEDS_PAYMENT' | 'IN_PROGRESS' | 'ISSUED' | 'VERIFICATION_FAILED' | 'REFUNDED';
+  }
+  txHash?: {
+    S: string;
+  }
+  chainId?: {
+    N: number;
+  }
+  refundTxHash?: {
+    S: string;
+  }
+  numAttempts: {
+    N: number;
+  }
+}
+
+export type PhoneServerSessionsResponse = Array<PhoneServerSession>
+
 export type IPAndCountry = {
   ip: string;
   country: string;
@@ -293,3 +319,5 @@ export type Currency = {
 };
 
 export type SupportedChainIdsForIDVPayment = 1 | 10 | 250 | 420
+
+export type SupportedChainIdsForPhonePayment = 1 | 10 | 250 | 420

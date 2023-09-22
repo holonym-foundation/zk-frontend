@@ -11,6 +11,8 @@ import GovIDIssuanceVeriff from "./components/issuance/GovernmentIDIssuance/veri
 import GovIDIssuanceIdenfy from "./components/issuance/GovernmentIDIssuance/idenfy/GovIDIssuanceIdenfy";
 import GovIDIssuanceOnfido from "./components/issuance/GovernmentIDIssuance/onfido/GovIDIssuanceOnfido";
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance/PhoneNumberIssuance';
+import PhoneNumberRedirect from "./components/issuance/PhoneNumberIssuance/PhoneNumberRedirect";
+import PhonePaymentPrereqs from "./components/issuance/PhoneNumberIssuance/PaymentPrereqs";
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
@@ -39,8 +41,11 @@ export function AppRoutes() {
       
       <Route path={"/unsupported-country"} element={<UnsupportedCountryPage />} />
 
-      <Route path={"/issuance/phone"} element={<PhoneNumberIssuance />} />
-      <Route path={"/issuance/phone/:store"} element={<PhoneNumberIssuance />} />
+      <Route path={"/issuance/phone-prereqs"} element={<PhonePaymentPrereqs />} />
+      <Route path={"/issuance/phone"} element={<PhoneNumberRedirect />} />
+      <Route path={"/issuance/phone-verify"} element={<PhoneNumberIssuance />} />
+      <Route path={"/issuance/phone-verify/:store"} element={<PhoneNumberIssuance />} />
+      
       <Route path={"/issuance/med"} element={<MedicalCredentialsIssuance />} />
       <Route path={"/issuance/med/:store"} element={<MedicalCredentialsIssuance />} />
       <Route path={"/issuance/external/:store"} element={<ExternalIssuance />} />
