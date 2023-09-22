@@ -12,12 +12,12 @@ import GovIDIssuanceIdenfy from "./components/issuance/GovernmentIDIssuance/iden
 import GovIDIssuanceOnfido from "./components/issuance/GovernmentIDIssuance/onfido/GovIDIssuanceOnfido";
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance/PhoneNumberIssuance';
 import PhoneNumberRedirect from "./components/issuance/PhoneNumberIssuance/PhoneNumberRedirect";
-import PhonePaymentPrereqs from "./components/issuance/PhoneNumberIssuance/PaymentPrereqs";
+import PhonePaymentPrereqs from "./components/issuance/PhoneNumberIssuance/PhonePaymentPrereqs";
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
 import OnChainProofs from "./components/prove/OnChainProofs";
-import PaymentPrereqs from "./components/issuance/GovernmentIDIssuance/PaymentPrereqs";
+import GovIDPaymentPrereqs from "./components/issuance/GovernmentIDIssuance/GovIDPaymentPrereqs";
 import UnsupportedCountryPage from "./components/UnsupportedCountryPage";
 
 // const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
@@ -29,7 +29,7 @@ export function AppRoutes() {
       <Route path={"/"} element={<Landing />} />
       <Route path={"/issuance"} element={<IssuanceOptions />} />
 
-      <Route path={"/issuance/idgov-prereqs"} element={<PaymentPrereqs />} />
+      <Route path={"/issuance/idgov-prereqs"} element={<GovIDPaymentPrereqs />} />
       <Route path={"/issuance/idgov"} element={<GovIDRedirect />} />
       <Route path={"/issuance/idgov-confirm-reverify"} element={<ConfirmReverify />} />
       <Route path={"/issuance/idgov-veriff"} element={<GovIDIssuanceVeriff />} />

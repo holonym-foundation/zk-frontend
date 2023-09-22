@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import RoundedWindow from "../../RoundedWindow";
 
-const PaymentPrereqs = () => {
+const PhonePaymentPrereqs = () => {
   const navigate = useNavigate();
 
   return (
@@ -58,4 +58,4 @@ const PaymentPrereqs = () => {
   );
 };
 
-export default PaymentPrereqs;
+export default PhonePaymentPrereqs;
