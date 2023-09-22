@@ -26,7 +26,7 @@ function usePhoneNumberIssuanceState() {
     if (!phoneNumber && !store) return "Phone#";
     if (phoneNumber && !store) return "Verify";
     else return "Finalize";
-  }, [phoneNumber, store]);
+  }, [phoneNumber, store, phoneServerSessions]);
 
   useEffect(() => {
     setCurrentIdx(steps.indexOf(currentStep));

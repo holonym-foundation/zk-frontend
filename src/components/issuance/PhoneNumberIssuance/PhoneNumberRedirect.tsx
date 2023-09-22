@@ -58,7 +58,6 @@ const PhoneNumberRedirect = () => {
 
       createSessionAsync()
         .then((session: { id: string }) => {
-          console.log('session:', session)
           navigate(`/issuance/phone-verify?sid=${session.id}`);    
         })
         .catch((err) => {
