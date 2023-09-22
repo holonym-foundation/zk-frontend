@@ -135,7 +135,7 @@ const PayWithConnectedWallet = ({
               } catch (err) {
                 console.error(err);
                 datadogLogs.logger.error(
-                  "GovIDPayment error",
+                  "PhonePayment error",
                   undefined,
                   err as Error
                 );
