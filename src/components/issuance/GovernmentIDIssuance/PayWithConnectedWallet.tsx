@@ -16,7 +16,7 @@ import {
   paymentRecieverAddress
 } from "../../../constants";
 import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
-import { Currency, SupportedChainIdsForIDVPayment, ActiveChain } from "../../../types";
+import { Currency, SupportedChainIdsForPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
   1: <SwitchToEthereum />,
@@ -31,7 +31,7 @@ const PayWithConnectedWallet = ({
   onPaymentSuccess,
 }: {
   currency: Currency;
-  chainId?: SupportedChainIdsForIDVPayment;
+  chainId?: SupportedChainIdsForPayment;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
 }) => {
   const {

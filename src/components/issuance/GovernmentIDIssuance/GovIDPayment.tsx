@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { tokenSymbolToCurrency } from "../../../constants";
+import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
+import PaymentOptions from "../../atoms/PaymentOptions";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
-import PaymentOptions from "./PaymentOptions";
-import { SupportedChainIdsForIDVPayment } from "../../../types";
+import { SupportedChainIdsForPayment } from "../../../types";
+
+const currencyOptions = {
+  fantom: {
+    symbol: "FTM",
+    name: "Fantom",
+  },
+  optimism: {
+    symbol: "ETH",
+    name: "Ethereum",
+  },
+}
 
 const GovIDPayment = ({ 
   onPaymentSuccess 
@@ -11,7 +23,20 @@ const GovIDPayment = ({
 }) => {
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
   const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
-  const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForIDVPayment>();
+  const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
+
+  const {
+    data: priceInFTM,
+    isLoading: priceInFTMIsLoading,
+    isError: priceInFTMIsError,
+  } = useFetchIDVCryptoPrice(currencyOptions.fantom);
+
+  const {
+    data: priceInETH,
+    isLoading: priceInETHIsLoading,
+    isError: priceInETHIsError,
+  } = useFetchIDVCryptoPrice(currencyOptions.optimism);
+
 
   return (
     <>
@@ -22,6 +47,12 @@ const GovIDPayment = ({
             setSelectedToken(symbol);
             setSelectedChainId(chainId);
           }}
+          priceInFTM={priceInFTM}
+          priceInFTMIsLoading={priceInFTMIsLoading}
+          priceInFTMIsError={priceInFTMIsError}
+          priceInETH={priceInETH}
+          priceInETHIsLoading={priceInETHIsLoading}
+          priceInETHIsError={priceInETHIsError}
         />
       )}
 

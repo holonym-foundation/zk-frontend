@@ -1,38 +1,27 @@
-import { SupportedChainIdsForPhonePayment } from "../../../types";
-import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
-
-const currencyOptions = {
-  fantom: {
-    symbol: "FTM",
-    name: "Fantom",
-  },
-  optimism: {
-    symbol: "ETH",
-    name: "Ethereum",
-  },
-}
+import { BigNumber } from "bignumber.js";
+import { SupportedChainIdsForPayment } from "../../types";
 
 const PaymentOptions = ({
   onSelectOption,
+  priceInFTM,
+  priceInFTMIsLoading,
+  priceInFTMIsError,
+  priceInETH,
+  priceInETHIsLoading,
+  priceInETHIsError,
 }: {
   onSelectOption: (
     fiat: boolean, 
     symbol: "ETH" | "FTM", 
-    chainId: SupportedChainIdsForPhonePayment
+    chainId: SupportedChainIdsForPayment
   ) => void;
+  priceInFTM?: BigNumber;
+  priceInFTMIsLoading?: boolean;
+  priceInFTMIsError?: boolean;
+  priceInETH?: BigNumber;
+  priceInETHIsLoading?: boolean;
+  priceInETHIsError?: boolean;
 }) => {
-  const {
-    data: priceInFTM,
-    isLoading: priceInFTMIsLoading,
-    isError: priceInFTMIsError,
-  } = useFetchPhoneVerificationCryptoPrice(currencyOptions.fantom);
-
-  const {
-    data: priceInETH,
-    isLoading: priceInETHIsLoading,
-    isError: priceInETHIsError,
-  } = useFetchPhoneVerificationCryptoPrice(currencyOptions.optimism);
-
   return (
     <>
       <div
@@ -58,7 +47,7 @@ const PaymentOptions = ({
           }}
         >
           Pay In FTM ({
-            priceInFTMIsLoading ? "loading..." : priceInFTMIsError ? "error" : `${priceInFTM.decimalPlaces(4).toString()} FTM`
+            priceInFTMIsLoading ? "loading..." : priceInFTMIsError ? "error" : `${priceInFTM && priceInFTM.decimalPlaces(4).toString()} FTM`
           })
         </a>
 
@@ -71,7 +60,7 @@ const PaymentOptions = ({
           }}
         >
           Pay In ETH (on Ethereum mainnet) ({
-            priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH.decimalPlaces(4).toString()} ETH`
+            priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH && priceInETH.decimalPlaces(4).toString()} ETH`
           })
         </a>
 
@@ -84,7 +73,7 @@ const PaymentOptions = ({
           }}
         >
           Pay In ETH (on Optimism) ({
-            priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH.decimalPlaces(4).toString()} ETH`
+            priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH && priceInETH.decimalPlaces(4).toString()} ETH`
           })
         </a>
         <a

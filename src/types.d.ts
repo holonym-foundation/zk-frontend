@@ -318,6 +318,4 @@ export type Currency = {
   symbol: string;
 };
 
-export type SupportedChainIdsForIDVPayment = 1 | 10 | 250 | 420
-
-export type SupportedChainIdsForPhonePayment = 1 | 10 | 250 | 420
+export type SupportedChainIdsForPayment = 1 | 10 | 250 | 420

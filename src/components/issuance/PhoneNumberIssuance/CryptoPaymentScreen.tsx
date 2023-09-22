@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Modal } from "../../atoms/Modal";
-import { Currency, SupportedChainIdsForPhonePayment } from "../../../types";
+import { Currency, SupportedChainIdsForPayment } from "../../../types";
 import PayWithConnectedWallet from "./PayWithConnectedWallet";
 import PayWithDiffWallet from "./PayWithDiffWallet";
 
@@ -8,7 +8,7 @@ const CryptoPaymentScreen = (props: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
   onBack: () => void;
-  chainId?: SupportedChainIdsForPhonePayment;
+  chainId?: SupportedChainIdsForPayment;
 }) => {
   const [diffWallet, setDiffWallet] = useState(false);
   const [showPayWConnected, setShowPayWConnected] = useState(false);

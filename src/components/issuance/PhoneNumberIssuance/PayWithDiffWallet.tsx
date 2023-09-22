@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { paymentRecieverAddressPhone } from "../../../constants";
 import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
-import { Currency, SupportedChainIdsForPhonePayment } from "../../../types";
+import { Currency, SupportedChainIdsForPayment } from "../../../types";
 
 const opChainIds = [10, 420];
 const ethChainIds = [1];
@@ -9,7 +9,7 @@ const ethChainIds = [1];
 const PayWithDiffWallet = (props: {
   currency: Currency;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
-  chainId?: SupportedChainIdsForPhonePayment;
+  chainId?: SupportedChainIdsForPayment;
 }) => {
   const [txHash, setTxHash] = useState<string>("");
   const [showCopied, setShowCopied] = useState(false);

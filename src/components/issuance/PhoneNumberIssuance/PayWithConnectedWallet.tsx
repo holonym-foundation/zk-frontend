@@ -16,7 +16,7 @@ import {
   paymentRecieverAddressPhone
 } from "../../../constants";
 import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
-import { Currency, SupportedChainIdsForPhonePayment, ActiveChain } from "../../../types";
+import { Currency, SupportedChainIdsForPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
   1: <SwitchToEthereum />,
@@ -31,7 +31,7 @@ const PayWithConnectedWallet = ({
   onPaymentSuccess,
 }: {
   currency: Currency;
-  chainId?: SupportedChainIdsForPhonePayment;
+  chainId?: SupportedChainIdsForPayment;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
 }) => {
   const {
