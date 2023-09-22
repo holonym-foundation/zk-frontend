@@ -13,8 +13,6 @@ import usePreferredIDVProvider from '../../../hooks/usePreferredIDVProvider'
 import useIdServerSessions from '../../../hooks/useIdServerSessions'
 import useCreateIdServerSession from '../../../hooks/useCreateIdServerSession'
 
-const steps = ["Pay", "Verify", "Finalize"];
-
 const GovIDRedirect = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -90,7 +88,7 @@ const GovIDRedirect = () => {
   );
 
   return (
-    <VerificationContainer steps={steps} currentIdx={0}>
+    <VerificationContainer steps={[]} currentIdx={0}>
       <div style={{ textAlign: "center" }}>
         <p>Loading...</p>
       </div>

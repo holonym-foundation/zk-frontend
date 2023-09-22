@@ -12,8 +12,6 @@ import useSniffedIPAndCountry from "../../../hooks/useSniffedIPAndCountry";
 import usePhoneServerSessions from '../../../hooks/usePhoneServerSessions'
 import useCreatePhoneServerSession from '../../../hooks/useCreatePhoneServerSession'
 
-const steps = ["Pay", "Phone#", "Verify", "Finalize"];
-
 const PhoneNumberRedirect = () => {
   const navigate = useNavigate();
   const { sortedCreds, loadingCreds } = useCreds();
@@ -74,7 +72,7 @@ const PhoneNumberRedirect = () => {
   );
 
   return (
-    <VerificationContainer steps={steps} currentIdx={0}>
+    <VerificationContainer steps={[]} currentIdx={0}>
       <div style={{ textAlign: "center" }}>
         <p>Loading...</p>
       </div>
