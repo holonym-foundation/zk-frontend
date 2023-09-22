@@ -44,8 +44,8 @@ const PhoneConfirmReverify = () => {
               }
 
               createSessionAsync()
-                .then((data: { session: { id: string }}) => {
-                  navigate(`/issuance/phone-verify?sid=${data.session.id}`);    
+                .then((session: { id: string }) => {
+                  navigate(`/issuance/phone-verify?sid=${session.id}`);    
                 })
                 .catch((err) => {
                   console.error('Error creating session:', err)
