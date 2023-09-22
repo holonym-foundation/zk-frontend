@@ -41,7 +41,7 @@ const PhoneNumberRedirect = () => {
       }
 
       // User already has phone creds. Send them to the confirm reverify page.
-      if (sortedCreds?.[serverAddress["idgov-v2"]]) {
+      if (sortedCreds?.[serverAddress["phone-v2"]]) {
         navigate(`/issuance/phone-confirm-reverify`);
         return;
       }

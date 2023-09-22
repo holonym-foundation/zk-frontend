@@ -13,6 +13,7 @@ import GovIDIssuanceOnfido from "./components/issuance/GovernmentIDIssuance/onfi
 import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance/PhoneNumberIssuance';
 import PhoneNumberRedirect from "./components/issuance/PhoneNumberIssuance/PhoneNumberRedirect";
 import PhonePaymentPrereqs from "./components/issuance/PhoneNumberIssuance/PhonePaymentPrereqs";
+import PhoneConfirmReverify from "./components/issuance/PhoneNumberIssuance/PhoneConfirmReverify";
 import MedicalCredentialsIssuance from './components/issuance/MedicalCredentialsIssuance';
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
@@ -43,6 +44,7 @@ export function AppRoutes() {
 
       <Route path={"/issuance/phone-prereqs"} element={<PhonePaymentPrereqs />} />
       <Route path={"/issuance/phone"} element={<PhoneNumberRedirect />} />
+      <Route path={"/issuance/phone-confirm-reverify"} element={<PhoneConfirmReverify />} />
       <Route path={"/issuance/phone-verify"} element={<PhoneNumberIssuance />} />
       <Route path={"/issuance/phone-verify/:store"} element={<PhoneNumberIssuance />} />
       
