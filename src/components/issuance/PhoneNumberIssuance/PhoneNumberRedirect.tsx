@@ -57,9 +57,9 @@ const PhoneNumberRedirect = () => {
       }
 
       createSessionAsync()
-        .then((data: { session: { id: { S: string } }}) => {
+        .then((data: { session: { id: string }}) => {
           console.log('session:', data)
-          navigate(`/issuance/phone-verify?sid=${data.session.id.S}`);    
+          navigate(`/issuance/phone-verify?sid=${data.session.id}`);    
         })
         .catch((err) => {
           console.error('Error creating session:', err)
