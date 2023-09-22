@@ -73,9 +73,9 @@ const VerifyPhoneNumber = () => {
   }, [success, navigate]);
 
   useEffect(() => {
-    if (!phoneNumber) return;
+    if (!phoneNumber || !sid) return;
     datadogLogs.logger.info("SendPhoneCode", {});
-    sendCode(phoneNumber);
+    sendCode(phoneNumber, sid);
   }, [phoneNumber]);
 
   const onChange = (event: any) => {
