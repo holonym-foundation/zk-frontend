@@ -6,7 +6,7 @@ import { idServerUrl } from "../../../../constants";
 import { datadogLogs } from "@datadog/browser-logs";
 import { SessionStatusResponse } from "../../../../types";
 
-const StepIDV = ({ sdk_token }: { sdk_token?: string }) => {
+const StepIDV = () => {
   useEffect(() => {
     try {
       datadogLogs.logger.info("StartGovID", {});
@@ -30,7 +30,6 @@ const StepIDV = ({ sdk_token }: { sdk_token?: string }) => {
   ] = useState("");
   const { encodedRetrievalEndpoint: onfidoRetrievalEndpoint } = useOnfidoIDV({
     enabled: returningUserHasSuccessfulSession === "no",
-    sdk_token
   });
 
   const [verificationError, setVerificationError] = useState("");

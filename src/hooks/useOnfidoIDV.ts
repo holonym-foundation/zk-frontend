@@ -1,16 +1,31 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { datadogLogs } from "@datadog/browser-logs";
 import { datadogRum } from "@datadog/browser-rum";
 import { init as initOnfido, SdkHandle } from "onfido-sdk-ui";
 import { idServerUrl } from "../constants";
 
-const useOnfidoIDV = ({ enabled, sdk_token }: { enabled: boolean, sdk_token?: string }) => {
+const useOnfidoIDV = ({ enabled }: { enabled: boolean }) => {
   const [searchParams] = useSearchParams();
   const sid = searchParams.get("sid");
   const queryClient = useQueryClient();
   const [encodedRetrievalEndpoint, setEncodedRetrievalEndpoint] = useState("");
+
+  const { 
+    data: sdkTokenData,
+    mutateAsync: refreshSdkTokenAsync 
+  } = useMutation(
+    async () => {
+      const response = await fetch(
+        `${idServerUrl}/sessions/${sid}/idv-session/onfido/token`,
+        {
+          method: "POST",
+        }
+      );
+      return response.json();
+    },
+  );
 
   const { data: check, refetch: refetchCheck } = useQuery({
     queryKey: ["onfidoCheck"],
@@ -46,8 +61,10 @@ const useOnfidoIDV = ({ enabled, sdk_token }: { enabled: boolean, sdk_token?: st
       // NOTE: Must call `await onfidoOut.safeTearDown()` when done, if you want to
       // re-initialize the SDK.
 
+      const sdkTokenData = await refreshSdkTokenAsync();
+
       onfido = initOnfido({
-        token: sdk_token,
+        token: sdkTokenData.sdk_token,
         containerId: "onfido-mount",
         // containerEl: <div id="root" />, // ALTERNATIVE to `containerId`
         useModal: true,
@@ -91,7 +108,7 @@ const useOnfidoIDV = ({ enabled, sdk_token }: { enabled: boolean, sdk_token?: st
       return onfido;
     },
     staleTime: Infinity,
-    enabled: enabled && !!sdk_token,
+    enabled: enabled && !!refreshSdkTokenAsync,
   });
 
   return {

@@ -52,9 +52,7 @@ const GovernmentIDIssuance = () => {
           <p>Loading...</p>
         </div>
       ) : currentStep === "Verify" ? (
-        <StepIDVOnfido 
-          sdk_token={idvSessionMetadata?.sdk_token ?? idServerSessions?.[0].onfido_sdk_token} 
-        />
+        <StepIDVOnfido />
       ) : (
         // currentStep === "Finalize" ? (
         <FinalStep onSuccess={() => setSuccess(true)} />
