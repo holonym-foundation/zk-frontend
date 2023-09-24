@@ -58,8 +58,11 @@ const StepIDVIdenfy = ({ url, scanRef }: { url?: string, scanRef?: string }) => 
           } else if (
             unsuccessfulIdenfyStatuses.includes(data?.idenfy?.status)
           ) {
-            setVerificationError(
-              `Status of iDenfy session ${data?.idenfy?.scanRef} is '${data?.idenfy?.status}'. Expected 'APPROVED'.`
+            // setVerificationError(
+            //   `Status of iDenfy session ${data?.idenfy?.scanRef} is '${data?.idenfy?.status}'. Expected 'APPROVED'.`
+            // );
+            navigate(
+              `/issuance/idgov-veriff/store?sid=${sid}&retrievalEndpoint=${idenfyRetrievalEndpoint}`
             );
           } else {
             console.log(
