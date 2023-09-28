@@ -23,7 +23,7 @@ const opts = [
         your data or doxx you
       </>
     ),
-    price: PRICE_USD.toString(),
+    // price: PRICE_USD.toString(),
     disabled: false,
   },
   {
@@ -32,7 +32,7 @@ const opts = [
     image: phoneImg,
     description:
       "Verifies a real phone number, blocking burners. Helps show you're not a bot. Under maintanence.",
-    price: "3.50",
+    // price: "3.50",
     disabled: false,
   },
   // {
