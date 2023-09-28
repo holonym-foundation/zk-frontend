@@ -108,7 +108,7 @@ const VerifyPhoneNumber = () => {
         <PhoneNumberForm onSubmit={setPhoneNumber} />
       ) : currentStep === "Verify" ? (
         <>
-          <h2 style={{ marginBottom: "25px" }}>Enter the code texted to you</h2>
+          <h2 style={{ marginBottom: "25px" }}>Enter the code sent to you via SMS, WhatsApp, or Viber</h2>
           <input value={code} onChange={onChange} className="text-field" />
         </>
       ) : (
