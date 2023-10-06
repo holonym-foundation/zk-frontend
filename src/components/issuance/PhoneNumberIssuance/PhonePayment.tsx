@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { tokenSymbolToCurrency } from "../../../constants";
+import { tokenSymbolToCurrency, PHONE_PRICE_USD } from "../../../constants";
 import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
 import PaymentOptions from "../../atoms/PaymentOptions";
@@ -52,6 +52,8 @@ const PhonePayment = ({
           priceInETH={priceInETH}
           priceInETHIsLoading={priceInETHIsLoading}
           priceInETHIsError={priceInETHIsError}
+          fiatPrice={PHONE_PRICE_USD}
+          disableFiat={true}
         />
       )}
 

@@ -35,12 +35,13 @@ function useGovernmentIDIssuanceState() {
     isError: idvSessionMetadataIsError,
     mutate: createIdvSession
   } = useMutation(
-    async (data: { chainId?: number, txHash?: string }) => {
+    async (data: { chainId?: number, txHash?: string, orderId?: string }) => {
       if (!sid) throw new Error("No session ID");
-      if (!data?.chainId) throw new Error("No chain ID");
-      if (!data?.txHash) throw new Error("No transaction hash");
+      // if (!data?.orderId && !data?.chainId) throw new Error("No chain ID");
+      // if (!data?.orderId && !data?.txHash) throw new Error("No transaction hash");
+      // if (!data?.orderId) throw new Error("No orderId");
 
-      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session`, {
+      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session/v2`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,6 +50,7 @@ function useGovernmentIDIssuanceState() {
           id: sid,
           chainId: data.chainId,
           txHash: data.txHash,
+          orderId: data.orderId,
         }),
       })
       return resp.json()

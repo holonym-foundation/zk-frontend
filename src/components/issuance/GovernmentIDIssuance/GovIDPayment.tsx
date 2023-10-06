@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { tokenSymbolToCurrency } from "../../../constants";
+import { tokenSymbolToCurrency, PRICE_USD } from "../../../constants";
 import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import PaymentOptions from "../../atoms/PaymentOptions";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
+import PayWithPayPal from "../../atoms/PayWithPayPal";
 import { SupportedChainIdsForPayment } from "../../../types";
 
 const currencyOptions = {
@@ -19,7 +20,7 @@ const currencyOptions = {
 const GovIDPayment = ({ 
   onPaymentSuccess 
 }: { 
-  onPaymentSuccess: (data: { chainId?: number, txHash?: string }) => void 
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string, orderId?: string }) => void 
 }) => {
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
   const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
@@ -53,6 +54,7 @@ const GovIDPayment = ({
           priceInETH={priceInETH}
           priceInETHIsLoading={priceInETHIsLoading}
           priceInETHIsError={priceInETHIsError}
+          fiatPrice={PRICE_USD}
         />
       )}
 
@@ -62,6 +64,12 @@ const GovIDPayment = ({
           chainId={selectedChainId}
           onPaymentSuccess={onPaymentSuccess}
           onBack={() => setSelectedPage("options")}
+        />
+      )}
+
+      {selectedPage === "fiat" && (
+        <PayWithPayPal 
+          onPaymentSuccess={onPaymentSuccess}
         />
       )}
 

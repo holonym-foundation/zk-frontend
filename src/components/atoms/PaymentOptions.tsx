@@ -9,11 +9,13 @@ const PaymentOptions = ({
   priceInETH,
   priceInETHIsLoading,
   priceInETHIsError,
+  fiatPrice,
+  disableFiat,
 }: {
   onSelectOption: (
     fiat: boolean, 
-    symbol: "ETH" | "FTM", 
-    chainId: SupportedChainIdsForPayment
+    symbol?: "ETH" | "FTM", 
+    chainId?: SupportedChainIdsForPayment
   ) => void;
   priceInFTM?: BigNumber;
   priceInFTMIsLoading?: boolean;
@@ -21,6 +23,8 @@ const PaymentOptions = ({
   priceInETH?: BigNumber;
   priceInETHIsLoading?: boolean;
   priceInETHIsError?: boolean;
+  fiatPrice: BigNumber;
+  disableFiat?: boolean;
 }) => {
   return (
     <>
@@ -76,12 +80,34 @@ const PaymentOptions = ({
             priceInETHIsLoading ? "loading..." : priceInETHIsError ? "error" : `${priceInETH && priceInETH.decimalPlaces(4).toString()} ETH`
           })
         </a>
-        <a
-          className="x-button-blue greyed-out-button"
-          style={{ width: "100%", fontSize: "20px" }}
-        >
-          Pay In Fiat (coming soon)
-        </a>
+        
+        {!disableFiat && (
+          <a
+            className="x-button-blue"
+            style={{ width: "100%", fontSize: "20px" }}
+            onClick={(event) => {
+              event.preventDefault();
+              onSelectOption(true);
+            }}
+          >
+            Pay In Fiat ({
+              fiatPrice && `${fiatPrice && fiatPrice.decimalPlaces(4).toString()} USD`
+            })
+          </a>
+        )}
+
+        {disableFiat && (
+          <a
+            className="x-button-blue greyed-out-button"
+            style={{ width: "100%", fontSize: "20px" }}
+            onClick={(event) => {
+              event.preventDefault();
+              // onSelectOption(true);
+            }}
+          >
+            Pay In Fiat (coming soon)
+          </a>
+        )}
       </div>
     </>
   );
