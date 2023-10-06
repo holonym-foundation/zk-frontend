@@ -38,32 +38,37 @@ export default function RefundCard({
         heavyBlur={true}
       >
         <div style={{ width: "90%" }}>
-          <label
-            htmlFor="refund-to"
-            style={{ marginTop: "10px", marginBottom: "10px" }}
-          >
-            <h1>Enter your wallet address</h1>
-          </label>
-          <input
-            type="text"
-            id="refund-to"
-            className="text-field"
-            placeholder="0x..."
-            style={{ marginBottom: "10px", width: "100%" }}
-            value={refundTo}
-            onChange={(event) => setRefundTo(event.target.value)}
-          />
-          <button
-            style={{ marginBottom: "10px", width: "100%" }}
-            className="x-button secondary"
-            onClick={(event) => {
-              event.preventDefault();
-              requestRefund({ refundTo, sid: failedSessions?.[0]?._id ?? null })
-            }}
-            disabled={refundIsLoading}
-          >
-            {refundIsLoading ? 'Requesting refund...' : refundTxReceipt ? 'Refund successful' : 'Request refund'}
-          </button>
+          {/* Only show "enter wallet address" form if user is getting on-chain refund */}
+          {!failedSessions?.[0]?.payPal && (
+            <>
+              <label
+                htmlFor="refund-to"
+                style={{ marginTop: "10px", marginBottom: "10px" }}
+              >
+                <h1>Enter your wallet address</h1>
+              </label>
+              <input
+                type="text"
+                id="refund-to"
+                className="text-field"
+                placeholder="0x..."
+                style={{ marginBottom: "10px", width: "100%" }}
+                value={refundTo}
+                onChange={(event) => setRefundTo(event.target.value)}
+              />
+              <button
+                style={{ marginBottom: "10px", width: "100%" }}
+                className="x-button secondary"
+                onClick={(event) => {
+                  event.preventDefault();
+                  requestRefund({ refundTo, sid: failedSessions?.[0]?._id ?? null })
+                }}
+                disabled={refundIsLoading}
+              >
+                {refundIsLoading ? 'Requesting refund...' : refundTxReceipt ? 'Refund successful' : 'Request refund'}
+              </button>
+            </>
+          )}
 
           {refundIsLoading && (
             <p>Refund in progress...</p>
@@ -122,7 +127,13 @@ export default function RefundCard({
         >
           <button
             className="x-button secondary"
-            onClick={() => setModalIsVisible(true)}
+            onClick={() => {
+              setModalIsVisible(true)
+              if (failedSessions?.[0].payPal) {
+                requestRefund({ sid: failedSessions?.[0]?._id ?? null })
+                return
+              }
+            }}
           >
             Claim Refund
           </button>

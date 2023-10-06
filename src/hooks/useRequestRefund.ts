@@ -3,15 +3,15 @@ import { idServerUrl } from "../constants";
 
 function useRequestRefund() {
   return useMutation(
-    async ({ refundTo, sid }: { refundTo: string, sid: string | null }) => {
-      if (!refundTo || refundTo.length !== 42) {
+    async ({ refundTo, sid }: { refundTo?: string, sid: string | null }) => {
+      if (refundTo && (refundTo ?? '').length !== 42) {
         throw new Error(`Invalid address (${refundTo})`);
       }
       if (!sid) {
         throw new Error(`Invalid session ID (${sid})`);
       }
   
-      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session/refund`, {
+      const resp = await fetch(`${idServerUrl}/sessions/${sid}/idv-session/refund/v2`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
