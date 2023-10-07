@@ -28,12 +28,14 @@ const payPalOptions = {
 };
 
 const PayWithPayPalGuts = ({
-  onPaymentSuccess,
+  createOrder,
+  onApprove,
 }: {
-  onPaymentSuccess: (data: { chainId?: number; txHash?: string, orderId?: string }) => void;
+  createOrder: (data: CreateOrderData, actions: CreateOrderActions) => Promise<string>;
+  onApprove: (data: OnApproveData, actions: OnApproveActions) => Promise<void>;
 }) => {
-  const [searchParams] = useSearchParams();
-  const sid = searchParams.get("sid");
+  // const [searchParams] = useSearchParams();
+  // const sid = searchParams.get("sid");
 
   const [{
     isPending: payPalProviderIsPending,
@@ -43,17 +45,17 @@ const PayWithPayPalGuts = ({
 
   const [error, setError] = useState<string>();
 
-  const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
-    const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
-      method: "POST",
-    })
-    const respData = await resp.json()
-    return respData.id
-  }, [sid])
+  // const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
+  //   const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
+  //     method: "POST",
+  //   })
+  //   const respData = await resp.json()
+  //   return respData.id
+  // }, [sid])
 
-  const onApprove = useCallback(async (data: OnApproveData, actions: OnApproveActions) => {
-    onPaymentSuccess({ orderId: data.orderID })
-  }, [sid])
+  // const onApprove = useCallback(async (data: OnApproveData, actions: OnApproveActions) => {
+  //   onPaymentSuccess({ orderId: data.orderID })
+  // }, [sid])
 
   return (
     <>
@@ -104,9 +106,11 @@ const PayWithPayPalGuts = ({
 };
 
 const PayWithPayPal = ({
-  onPaymentSuccess,
+  createOrder,
+  onApprove,
 }: {
-  onPaymentSuccess: (data: { chainId?: number; txHash?: string, orderId?: string }) => void;
+  createOrder: (data: CreateOrderData, actions: CreateOrderActions) => Promise<string>;
+  onApprove: (data: OnApproveData, actions: OnApproveActions) => Promise<void>;
 }) => {
   return (
     <>
@@ -115,7 +119,8 @@ const PayWithPayPal = ({
 
       <PayPalScriptProvider options={payPalOptions}>
         <PayWithPayPalGuts
-          onPaymentSuccess={onPaymentSuccess}
+          createOrder={createOrder}
+          onApprove={onApprove}
         />
       </PayPalScriptProvider>
     </>

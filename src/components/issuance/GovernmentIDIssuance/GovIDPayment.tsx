@@ -1,5 +1,12 @@
-import { useState } from "react";
-import { tokenSymbolToCurrency, PRICE_USD } from "../../../constants";
+import { useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  OnApproveData,
+  OnApproveActions,
+  CreateOrderData,
+  CreateOrderActions
+} from "@paypal/paypal-js"
+import { tokenSymbolToCurrency, PRICE_USD, idServerUrl } from "../../../constants";
 import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import PaymentOptions from "../../atoms/PaymentOptions";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
@@ -22,6 +29,9 @@ const GovIDPayment = ({
 }: { 
   onPaymentSuccess: (data: { chainId?: number, txHash?: string, orderId?: string }) => void 
 }) => {
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
+
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
   const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
@@ -38,6 +48,17 @@ const GovIDPayment = ({
     isError: priceInETHIsError,
   } = useFetchIDVCryptoPrice(currencyOptions.optimism);
 
+  const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
+    const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
+      method: "POST",
+    })
+    const respData = await resp.json()
+    return respData.id
+  }, [sid])
+
+  const onApprove = useCallback(async (data: OnApproveData, actions: OnApproveActions) => {
+    onPaymentSuccess({ orderId: data.orderID })
+  }, [sid])
 
   return (
     <>
@@ -69,7 +90,8 @@ const GovIDPayment = ({
 
       {selectedPage === "fiat" && (
         <PayWithPayPal 
-          onPaymentSuccess={onPaymentSuccess}
+          createOrder={createOrder}
+          onApprove={onApprove}
         />
       )}
 
