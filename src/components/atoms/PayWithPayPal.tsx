@@ -51,7 +51,7 @@ const PayWithPayPalGuts = ({
 
       <div
         className="x-wrapper small-center"
-        style={{ height: "95%", width: "80%" }}
+        // style={{ height: "95%", width: "80%" }}
       >
         {payPalProviderIsPending && <p>Loading PayPal...</p>}
         {payPalProviderIsRejected && <p style={{ color: "red" }}>Failed to load PayPal</p>}
