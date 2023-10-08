@@ -91,6 +91,11 @@ export const tokenSymbolToCurrency = {
   },
 }
 
+export const payPalClientID = 
+  process.env.NODE_ENV == "production" 
+  ? "AdfW4N43CyPEOd4tfNyAydV60U_GVzYE5kTGdkakzsDrS9JBBt03uUi2J7K11KN01qIXnbP3DfbbZ2gI" 
+  : "Afploqa3KTb4u4UW5txyMvlIR1UuknqasouKx70kysR6zB3kAdv1oFtqlOxvcAVl7UVwkGMINaOYHgU6"
+
 export const stateAbbreviations = {
   ALABAMA: "AL",
   ALASKA: "AK",

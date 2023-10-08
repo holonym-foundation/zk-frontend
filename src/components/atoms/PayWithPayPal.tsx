@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
 import { 
   PayPalScriptProvider, 
   PayPalButtons, 
@@ -12,12 +11,7 @@ import {
   CreateOrderData,
   CreateOrderActions
 } from "@paypal/paypal-js"
-import { BigNumber } from "bignumber.js";
-import { idServerUrl } from "../../constants";
-import { Currency, SupportedChainIdsForPayment } from "../../types";
-
-// TODO: Create prod client ID
-const payPalClientID = process.env.NODE_ENV == "production" ? "" : "Afploqa3KTb4u4UW5txyMvlIR1UuknqasouKx70kysR6zB3kAdv1oFtqlOxvcAVl7UVwkGMINaOYHgU6"
+import { payPalClientID } from "../../constants";
 
 const payPalOptions = {
   clientId: payPalClientID,
@@ -34,9 +28,6 @@ const PayWithPayPalGuts = ({
   createOrder: (data: CreateOrderData, actions: CreateOrderActions) => Promise<string>;
   onApprove: (data: OnApproveData, actions: OnApproveActions) => Promise<void>;
 }) => {
-  // const [searchParams] = useSearchParams();
-  // const sid = searchParams.get("sid");
-
   const [{
     isPending: payPalProviderIsPending,
     isResolved: payPalProviderIsResolved,
@@ -44,18 +35,6 @@ const PayWithPayPalGuts = ({
   }] = usePayPalScriptReducer();
 
   const [error, setError] = useState<string>();
-
-  // const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
-  //   const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
-  //     method: "POST",
-  //   })
-  //   const respData = await resp.json()
-  //   return respData.id
-  // }, [sid])
-
-  // const onApprove = useCallback(async (data: OnApproveData, actions: OnApproveActions) => {
-  //   onPaymentSuccess({ orderId: data.orderID })
-  // }, [sid])
 
   return (
     <>
