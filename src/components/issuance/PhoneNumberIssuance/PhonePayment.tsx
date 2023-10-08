@@ -1,8 +1,16 @@
-import { useState } from "react";
-import { tokenSymbolToCurrency } from "../../../constants";
+import { useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  OnApproveData,
+  OnApproveActions,
+  CreateOrderData,
+  CreateOrderActions
+} from "@paypal/paypal-js"
+import { tokenSymbolToCurrency, PHONE_PRICE_USD, zkPhoneEndpoint } from "../../../constants";
 import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
 import PaymentOptions from "../../atoms/PaymentOptions";
+import PayWithPayPal from "../../atoms/PayWithPayPal";
 import { SupportedChainIdsForPayment } from "../../../types";
 
 const currencyOptions = {
@@ -19,8 +27,11 @@ const currencyOptions = {
 const PhonePayment = ({ 
   onPaymentSuccess 
 }: { 
-  onPaymentSuccess: (data: { chainId?: number, txHash?: string }) => void 
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string, orderId?: string }) => void 
 }) => {
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
+
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
   const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
@@ -36,7 +47,19 @@ const PhonePayment = ({
     isLoading: priceInETHIsLoading,
     isError: priceInETHIsError,
   } = useFetchPhoneVerificationCryptoPrice(currencyOptions.optimism);
-  
+
+  const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
+    const resp = await fetch(`${zkPhoneEndpoint}/sessions/${sid}/paypal-order`, {
+      method: "POST",
+    })
+    const respData = await resp.json()
+    return respData.id
+  }, [sid])
+
+  const onApprove = useCallback(async (data: OnApproveData, actions: OnApproveActions) => {
+    onPaymentSuccess({ orderId: data.orderID })
+  }, [sid])
+
   return (
     <>
       {selectedPage === "options" && (
@@ -52,6 +75,7 @@ const PhonePayment = ({
           priceInETH={priceInETH}
           priceInETHIsLoading={priceInETHIsLoading}
           priceInETHIsError={priceInETHIsError}
+          fiatPrice={PHONE_PRICE_USD}
         />
       )}
 
@@ -64,6 +88,12 @@ const PhonePayment = ({
         />
       )}
 
+      {selectedPage === "fiat" && (
+        <PayWithPayPal 
+          createOrder={createOrder}
+          onApprove={onApprove}
+        />
+      )}
     </>
   );
 };

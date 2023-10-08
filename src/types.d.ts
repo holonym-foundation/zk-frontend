@@ -268,6 +268,14 @@ export type IdServerSession = {
   sigDigest: string;
   idvProvider: string;
   status: 'NEEDS_PAYMENT' | 'IN_PROGRESS' | 'ISSUED' | 'VERIFICATION_FAILED' | 'REFUNDED';
+  payPal?: {
+    orders: [
+      {
+        id: string;
+        createdAt: Date;
+      }
+    ]
+  };
   txHash?: string;
   chainId?: number;
   refundTxHash?: string;
@@ -303,6 +311,9 @@ export type PhoneServerSession = {
   }
   numAttempts: {
     N: number;
+  }
+  payPal?: {
+    S: string;
   }
 }
 

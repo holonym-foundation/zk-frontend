@@ -3,8 +3,8 @@ import { zkPhoneEndpoint } from "../constants";
 
 function useRequestPhoneRefund() {
   return useMutation(
-    async ({ refundTo, id }: { refundTo: string, id: string | null }) => {
-      if (!refundTo || refundTo.length !== 42) {
+    async ({ refundTo, id }: { refundTo?: string, id: string | null }) => {
+      if (refundTo && refundTo.length !== 42) {
         throw new Error(`Invalid address (${refundTo})`);
       }
       if (!id) {

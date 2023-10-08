@@ -1,8 +1,16 @@
-import { useState } from "react";
-import { tokenSymbolToCurrency } from "../../../constants";
+import { useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  OnApproveData,
+  OnApproveActions,
+  CreateOrderData,
+  CreateOrderActions
+} from "@paypal/paypal-js"
+import { tokenSymbolToCurrency, PRICE_USD, idServerUrl } from "../../../constants";
 import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
 import PaymentOptions from "../../atoms/PaymentOptions";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
+import PayWithPayPal from "../../atoms/PayWithPayPal";
 import { SupportedChainIdsForPayment } from "../../../types";
 
 const currencyOptions = {
@@ -19,8 +27,11 @@ const currencyOptions = {
 const GovIDPayment = ({ 
   onPaymentSuccess 
 }: { 
-  onPaymentSuccess: (data: { chainId?: number, txHash?: string }) => void 
+  onPaymentSuccess: (data: { chainId?: number, txHash?: string, orderId?: string }) => void 
 }) => {
+  const [searchParams] = useSearchParams();
+  const sid = searchParams.get("sid");
+
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
   const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
@@ -37,6 +48,17 @@ const GovIDPayment = ({
     isError: priceInETHIsError,
   } = useFetchIDVCryptoPrice(currencyOptions.optimism);
 
+  const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
+    const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
+      method: "POST",
+    })
+    const respData = await resp.json()
+    return respData.id
+  }, [sid])
+
+  const onApprove = useCallback(async (data: OnApproveData, actions: OnApproveActions) => {
+    onPaymentSuccess({ orderId: data.orderID })
+  }, [sid])
 
   return (
     <>
@@ -53,6 +75,7 @@ const GovIDPayment = ({
           priceInETH={priceInETH}
           priceInETHIsLoading={priceInETHIsLoading}
           priceInETHIsError={priceInETHIsError}
+          fiatPrice={PRICE_USD}
         />
       )}
 
@@ -62,6 +85,13 @@ const GovIDPayment = ({
           chainId={selectedChainId}
           onPaymentSuccess={onPaymentSuccess}
           onBack={() => setSelectedPage("options")}
+        />
+      )}
+
+      {selectedPage === "fiat" && (
+        <PayWithPayPal 
+          createOrder={createOrder}
+          onApprove={onApprove}
         />
       )}
 

@@ -7,6 +7,7 @@ import { IdServerSession, PhoneServerSession } from "../../types";
 function RefundModal({
   visible,
   setVisible,
+  usedPayPal,
   onSubmit,
   refundResponse,
   refundIsLoading,
@@ -15,6 +16,7 @@ function RefundModal({
 }: {
   visible: boolean,
   setVisible: (visible: boolean) => void,
+  usedPayPal: boolean,
   onSubmit: (refundTo: string) => void,
   refundResponse: any,
   refundIsLoading: boolean,
@@ -31,21 +33,26 @@ function RefundModal({
       heavyBlur={true}
     >
       <div style={{ width: "90%" }}>
-        <label
-          htmlFor="refund-to"
-          style={{ marginTop: "10px", marginBottom: "10px" }}
-        >
-          <h1>Enter your wallet address</h1>
-        </label>
-        <input
-          type="text"
-          id="refund-to"
-          className="text-field"
-          placeholder="0x..."
-          style={{ marginBottom: "10px", width: "100%" }}
-          value={refundTo}
-          onChange={(event) => setRefundTo(event.target.value)}
-        />
+        {/* Only show "enter wallet address" form if user is getting on-chain refund */}
+        {!usedPayPal && (
+          <>
+            <label
+              htmlFor="refund-to"
+              style={{ marginTop: "10px", marginBottom: "10px" }}
+            >
+              <h1>Enter your wallet address</h1>
+            </label>
+            <input
+              type="text"
+              id="refund-to"
+              className="text-field"
+              placeholder="0x..."
+              style={{ marginBottom: "10px", width: "100%" }}
+              value={refundTo}
+              onChange={(event) => setRefundTo(event.target.value)}
+            />
+          </>
+        )}
         <button
           style={{ marginBottom: "10px", width: "100%" }}
           className="x-button secondary"
@@ -111,6 +118,9 @@ export default function RefundCard({
     mutate: requestPhoneRefund,
   } = useRequestPhoneRefund();
 
+  const usedPayPalForIdSession = !!failedIdSessions?.[0]?.payPal
+  const usedPayPalForPhoneSession = !!failedPhoneSessions?.[0]?.payPal?.S
+
   return (
     <>
       {/* Refund modal for IDV refund */}
@@ -122,9 +132,15 @@ export default function RefundCard({
           }
           setIdModalIsVisible(visible)
         }}
+        usedPayPal={usedPayPalForIdSession}
         onSubmit={(refundTo: string) => {
           if (failedIdSessions?.[0]?._id) {
-            requestIDVRefund({ refundTo, sid: failedIdSessions?.[0]?._id ?? null })
+            // Do not include refundTo in request if user paid with PayPal
+            if (usedPayPalForIdSession) {
+              requestIDVRefund({ sid: failedIdSessions?.[0]?._id ?? null })
+            } else {
+              requestIDVRefund({ refundTo, sid: failedIdSessions?.[0]?._id ?? null })
+            }
           } else {
             console.error('No failed IDV sessions found')
           }
@@ -143,9 +159,15 @@ export default function RefundCard({
           }
           setPhoneModalIsVisible(visible)
         }}
+        usedPayPal={usedPayPalForPhoneSession}
         onSubmit={(refundTo: string) => {
           if (failedPhoneSessions?.[0]?.id) {
-            requestPhoneRefund({ refundTo, id: failedPhoneSessions?.[0]?.id?.S ?? null })
+            // Do not include refundTo in request if user paid with PayPal
+            if (usedPayPalForIdSession) {
+              requestPhoneRefund({ id: failedPhoneSessions?.[0]?.id?.S ?? null })
+            } else {
+              requestPhoneRefund({ refundTo, id: failedPhoneSessions?.[0]?.id?.S ?? null })
+            }
           } else {
             console.error('No failed sessions found')
           }

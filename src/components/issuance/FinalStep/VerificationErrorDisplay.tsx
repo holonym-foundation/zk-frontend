@@ -1,23 +1,24 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MINT_USD } from "../../../constants";
 import useRequestIDVRefund from "../../../hooks/useRequestIDVRefund";
 
 const VerificationErrorDisplay = () => {
-  const [searchParams] = useSearchParams();
-  const [refundTo, setRefundTo] = useState<string>("");
-  const [toInputIsVisible, setToInputIsVisible] = useState(false);
+  const navigate = useNavigate()
+  // const [searchParams] = useSearchParams();
+  // const [refundTo, setRefundTo] = useState<string>("");
+  // const [toInputIsVisible, setToInputIsVisible] = useState(false);
 
-  const {
-    data: refundTxReceipt,
-    isLoading: refundIsLoading,
-    isError: refundIsError,
-    error: refundError,
-    mutate: requestRefund
-  } = useRequestIDVRefund()
+  // const {
+  //   data: refundTxReceipt,
+  //   isLoading: refundIsLoading,
+  //   isError: refundIsError,
+  //   error: refundError,
+  //   mutate: requestRefund
+  // } = useRequestIDVRefund()
 
-  const refundBtnsDisabled = refundIsLoading || refundTxReceipt
-  const errMsg = (refundError as Error)?.message ?? ''
+  // const refundBtnsDisabled = refundIsLoading || refundTxReceipt
+  // const errMsg = (refundError as Error)?.message ?? ''
 
   return (
     <>
@@ -36,7 +37,7 @@ const VerificationErrorDisplay = () => {
         </li>
         <p style={{ margin: "10px" }}>OR</p>
         <li>
-          <button
+          {/* <button
             onClick={() => setToInputIsVisible(true)}
             className="in-text-link"
             style={{
@@ -46,6 +47,16 @@ const VerificationErrorDisplay = () => {
             disabled={refundBtnsDisabled}
           >
             Get a refund for the mint price (${MINT_USD.toString()}).
+          </button> */}
+          <button
+            onClick={() => navigate('/profile')}
+            className="in-text-link"
+            style={{
+              background: "none",
+              paddingLeft: "0px",
+            }}
+          >
+            Navigate to your profile to get a refund.
           </button>
         </li>
       </ul>
@@ -53,7 +64,7 @@ const VerificationErrorDisplay = () => {
       {/* TODO: Maybe make a refund-and-try-different-provider page? */}
       {/* <TryDifferentIDVProvider /> */}
 
-      {toInputIsVisible && (
+      {/* {toInputIsVisible && (
         <>
           <label
             htmlFor="refund-to"
@@ -99,7 +110,7 @@ const VerificationErrorDisplay = () => {
           </p>
           {refundTxReceipt?.transactionHash && <p>Transaction hash: {refundTxReceipt?.transactionHash}</p>}
         </>
-      )}
+      )} */}
     </>
   );
 };

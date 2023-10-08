@@ -9,11 +9,12 @@ const PaymentOptions = ({
   priceInETH,
   priceInETHIsLoading,
   priceInETHIsError,
+  fiatPrice,
 }: {
   onSelectOption: (
     fiat: boolean, 
-    symbol: "ETH" | "FTM", 
-    chainId: SupportedChainIdsForPayment
+    symbol?: "ETH" | "FTM", 
+    chainId?: SupportedChainIdsForPayment
   ) => void;
   priceInFTM?: BigNumber;
   priceInFTMIsLoading?: boolean;
@@ -21,6 +22,7 @@ const PaymentOptions = ({
   priceInETH?: BigNumber;
   priceInETHIsLoading?: boolean;
   priceInETHIsError?: boolean;
+  fiatPrice: BigNumber;
 }) => {
   return (
     <>
@@ -77,10 +79,16 @@ const PaymentOptions = ({
           })
         </a>
         <a
-          className="x-button-blue greyed-out-button"
+          className="x-button-blue"
           style={{ width: "100%", fontSize: "20px" }}
+          onClick={(event) => {
+            event.preventDefault();
+            onSelectOption(true);
+          }}
         >
-          Pay In Fiat (coming soon)
+          Pay In Fiat ({
+            fiatPrice && `${fiatPrice && fiatPrice.decimalPlaces(4).toString()} USD`
+          })
         </a>
       </div>
     </>
