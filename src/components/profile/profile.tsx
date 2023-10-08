@@ -13,6 +13,7 @@ import {
 } from "../../constants";
 import { useCreds } from "../../context/Creds";
 import useIdServerSessions from "../../hooks/useIdServerSessions";
+import usePhoneServerSessions from "../../hooks/usePhoneServerSessions";
 import {
   SortedCreds,
   ActiveChain,
@@ -169,22 +170,38 @@ export default function Profile() {
     refetch: refetchIdServerSessions,
   } = useIdServerSessions();
 
-  const failedSessions = useMemo(() => {
+  const {
+    data: phoneServerSessions,
+    isLoading: phoneSessionsIsLoading,
+    isError: phoneSessionsIsError,
+    refetch: refetchPhoneServerSessions,
+  } = usePhoneServerSessions();
+
+  const failedIdSessions = useMemo(() => {
     if (!idServerSessions) return [];
     return idServerSessions.filter(
       (session) => session.status === "VERIFICATION_FAILED"
     )
   }, [idServerSessions]);
 
+  const failedPhoneSessions = useMemo(() => {
+    if (!phoneServerSessions) return [];
+    return phoneServerSessions.filter(
+      (session) => session.sessionStatus.S === "VERIFICATION_FAILED"
+    )
+  }, [phoneServerSessions]);
+
   return (
     <NetworkGate gate={networkGateFn} fallback={<NetworkGateFallback />}>
       <div className="x-section wf-section">
         <div className="x-container dashboard w-container">
-          {failedSessions.length > 0 && (
+          {(failedIdSessions.length > 0 || failedPhoneSessions.length > 0) && (
             <>
               <RefundCard 
-                failedSessions={failedSessions}
-                refetchSessions={refetchIdServerSessions}
+                failedIdSessions={failedIdSessions}
+                refetchIdSessions={refetchIdServerSessions}
+                failedPhoneSessions={failedPhoneSessions}
+                refetchPhoneSessions={refetchPhoneServerSessions}
               />
               <div className="spacer-large" />
             </>

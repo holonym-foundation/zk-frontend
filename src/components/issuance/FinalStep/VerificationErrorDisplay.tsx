@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MINT_USD } from "../../../constants";
-import useRequestRefund from "../../../hooks/useRequestRefund";
+import useRequestIDVRefund from "../../../hooks/useRequestIDVRefund";
 
 const VerificationErrorDisplay = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +14,7 @@ const VerificationErrorDisplay = () => {
     isError: refundIsError,
     error: refundError,
     mutate: requestRefund
-  } = useRequestRefund()
+  } = useRequestIDVRefund()
 
   const refundBtnsDisabled = refundIsLoading || refundTxReceipt
   const errMsg = (refundError as Error)?.message ?? ''

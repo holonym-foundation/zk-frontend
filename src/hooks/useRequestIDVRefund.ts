@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { idServerUrl } from "../constants";
 
-function useRequestRefund() {
+function useRequestIDVRefund() {
   return useMutation(
     async ({ refundTo, sid }: { refundTo: string, sid: string | null }) => {
       if (!refundTo || refundTo.length !== 42) {
@@ -25,4 +25,4 @@ function useRequestRefund() {
   )
 }
 
-export default useRequestRefund;
+export default useRequestIDVRefund;
