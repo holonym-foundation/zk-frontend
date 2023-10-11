@@ -20,6 +20,7 @@ import Register from './components/register';
 import OnChainProofs from "./components/prove/OnChainProofs";
 import GovIDPaymentPrereqs from "./components/issuance/GovernmentIDIssuance/GovIDPaymentPrereqs";
 import UnsupportedCountryPage from "./components/UnsupportedCountryPage";
+import PrivacyInfo from "./components/PrivacyInfo";
 
 // const OnChainProofs = React.lazy(() => import("./components/prove/OnChainProofs"));
 
@@ -60,6 +61,8 @@ export function AppRoutes() {
       <Route path={"/prove/off-chain/:proofType/:actionId"} element={<OffChainProofs />} />
       <Route path={"/prove/off-chain/:proofType"} element={<OffChainProofs />} />
       <Route path={"/profile"} element={<Profile />} />
+
+      <Route path={"privacy"} element={<PrivacyInfo />} />
       {/* <Route path={"/chainswitchertest"} element={<ChainSwitcher />} /> */}
       {/* <Route path={"/chainswitchermodaltest"} element={<ChainSwitcherModal />} /> */}
       <Route path={"/register"} element={<Register />} />
