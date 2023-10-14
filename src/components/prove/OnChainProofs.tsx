@@ -51,7 +51,7 @@ const Proofs = () => {
   const {
     params,
     proofs,
-    alreadyHasSBT,
+    // alreadyHasSBT,
     accountReadyAddress,
     hasNecessaryCreds,
     nonUSResidentTryingToProveUSResidency,
@@ -141,8 +141,8 @@ const Proofs = () => {
         <br />
         {error?.message ? (
           <p>Error: {error.message}</p>
-        ) : alreadyHasSBT ? (
-          <p>You already have a soul-bound token (SBT) for this attribute.</p>
+        // ) : alreadyHasSBT ? (
+        //   <p>You already have a soul-bound token (SBT) for this attribute.</p>
         ) : hasNecessaryCreds ? (
           <p>
             Get a ZKSNARK NFT, which proves a fact about your identity while
@@ -174,7 +174,8 @@ const Proofs = () => {
         )}
         <div className="spacer-med" />
         <br />
-        {!alreadyHasSBT && hasNecessaryCreds ? (
+        {/* {!alreadyHasSBT && hasNecessaryCreds ? ( */}
+        {hasNecessaryCreds ? (
           proof ? (
             <button
               className="x-button"
