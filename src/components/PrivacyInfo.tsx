@@ -19,7 +19,7 @@ const PrivacyInfo = () => {
                 <h6>
                     Holonym does not store any personal data except those strictly necessary for functionality, which it deletes after five days. 
                     When ID verification is successful, all personal data is deleted immediately from our servers and is stored in the user's device. 
-                    If it fails, we retain it for 5 days to provide customer support.
+                    If it fails, we retain it for 10 days to provide customer support.
                 </h6>
                 <h5 className="h5">Privacy Pointers</h5>
                 <h6>
