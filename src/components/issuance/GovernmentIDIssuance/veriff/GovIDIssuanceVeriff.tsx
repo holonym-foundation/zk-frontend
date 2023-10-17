@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import StepIDVVeriff from "./StepIDVVeriff";
 import FinalStep from "../../FinalStep/FinalStep";
@@ -26,6 +26,7 @@ const GovernmentIDIssuance = () => {
     idvSessionMetadata,
     idvSessionMetadataIsLoading,
     idvSessionMetadataIsError,
+    idvSessionMetadataErrorMsg,
     createIdvSession
   } = useGovernmentIDIssuanceState();
 
@@ -45,11 +46,16 @@ const GovernmentIDIssuance = () => {
     <VerificationContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccessWithAnalytics />
-      ) : currentStep === "Pay" && !idvSessionMetadataIsLoading ? (
+      ) : currentStep === "Pay" && !idvSessionMetadataIsLoading && !idvSessionMetadataErrorMsg ? (
         <GovIDPayment onPaymentSuccess={createIdvSession} />
-      ) : currentStep === "Pay" && idvSessionMetadataIsLoading ? (
+      ) : currentStep === "Pay" && idvSessionMetadataIsLoading && !idvSessionMetadataErrorMsg ? (
         <div>
           <p>Loading...</p>
+        </div>
+      ) : currentStep === "Pay" && idvSessionMetadataErrorMsg ? (
+        <div>
+          <p style={{ color: 'red' }}>Error: {idvSessionMetadataErrorMsg}</p>
+          <p style={{ color: 'red' }}>sid: {sid}</p>
         </div>
       ) : currentStep === "Verify" ? (
         <StepIDVVeriff 

@@ -33,6 +33,7 @@ function useGovernmentIDIssuanceState() {
     data: idvSessionMetadata,
     isLoading: idvSessionMetadataIsLoading,
     isError: idvSessionMetadataIsError,
+    error: idvSessionMetadataError,
     mutate: createIdvSession
   } = useMutation(
     async (data: { chainId?: number, txHash?: string, orderId?: string }) => {
@@ -53,6 +54,11 @@ function useGovernmentIDIssuanceState() {
           orderId: data.orderId,
         }),
       })
+
+      if (!resp.ok) {
+        throw new Error((await resp.json()).error)
+      }
+
       return resp.json()
     },
     {
@@ -61,6 +67,20 @@ function useGovernmentIDIssuanceState() {
       }
     }
   )
+
+  const idvSessionMetadataErrorMsg = useMemo(() => {
+    if (!idvSessionMetadataIsError) return null;
+    try {
+      const msg = (idvSessionMetadataError as any)?.message
+
+      if (msg) {
+        return msg
+      }
+      return null;  
+    } catch (err) {
+      return 'Unknown payment error'
+    }
+  }, [idvSessionMetadataIsError, idvSessionMetadataError])
 
   return {
     success,
@@ -72,6 +92,7 @@ function useGovernmentIDIssuanceState() {
     idvSessionMetadata,
     idvSessionMetadataIsLoading,
     idvSessionMetadataIsError,
+    idvSessionMetadataErrorMsg,
     createIdvSession
   };
 }
