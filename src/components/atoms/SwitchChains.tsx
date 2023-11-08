@@ -1,5 +1,71 @@
 import { useSwitchNetwork } from "wagmi";
-import { addOptimism, addFantom } from "../../utils/network";
+import { addOptimism, addFantom, addAvalanche } from "../../utils/network";
+
+const SwitchChainButton = ({
+  switchNetwork, 
+  name 
+}: {
+  switchNetwork: (() => void) | undefined;
+  name: string;
+}) => {
+  return (
+    <div
+      className="nav-wallet"
+      style={{ backgroundColor: "var(--dark-card-background)" }}
+    >
+      <div
+        className="nav-wallet-text nav-link w-nav-link"
+        onClick={() => {
+          if (switchNetwork) {
+            switchNetwork();
+          } else {
+            console.error("switchNetwork is undefined");
+          }
+        }}
+      >
+        Switch to{" "}{name}
+      </div>
+    </div>
+  )
+}
+
+const ErrorAddNetwork = ({
+  name,
+  addNetwork,
+}: {
+  name: string;
+  addNetwork: () => void;
+}) => {
+  return (
+    <>
+      <p style={{ color: "red" }}>
+        An error occurred trying to switch chains. Please make sure you have{" "}
+        {name} added to your wallet.
+      </p>
+      <div
+        style={{
+          width: "100",
+          fontSize: "18px",
+          marginTop: "20px",
+          marginBottom: "30px",
+          maxWidth: "400px",
+        }}
+      >
+        <div
+          className="nav-wallet"
+          style={{ backgroundColor: "var(--dark-card-background)" }}
+        >
+          <div
+            className="nav-wallet-text nav-link w-nav-link"
+            onClick={() => addNetwork()}
+          >
+            Add {name}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 const SwitchChains = () => {
   const { 
@@ -23,6 +89,13 @@ const SwitchChains = () => {
     chainId: 250,
   });
 
+  const { 
+    error: errorAvalanche,
+    switchNetwork: switchToAvalanche
+  } = useSwitchNetwork({
+    chainId: 43114,
+  });
+
   return (
     <>
       <div className="x-container w-container">
@@ -33,7 +106,7 @@ const SwitchChains = () => {
             alignItems: "center",
           }}
         >
-          <h1>Please Switch to Fantom, Ethereum, or Optimism</h1>
+          <h1>Switch to a supported chain</h1>
           <div
             style={{
               width: "100",
@@ -43,123 +116,43 @@ const SwitchChains = () => {
               maxWidth: "400px",
             }}
           >
-            <div
-              className="nav-wallet"
-              style={{ backgroundColor: "var(--dark-card-background)" }}
-            >
-              <div
-                className="nav-wallet-text nav-link w-nav-link"
-                onClick={() => {
-                  if (switchToFantom) {
-                    switchToFantom();
-                  } else {
-                    console.error("switchToFantom is undefined");
-                  }
-                }}
-              >
-                Switch to Fantom
-              </div>
-            </div>
+            <SwitchChainButton
+              switchNetwork={switchToAvalanche}
+              name="Avalanche"
+            />
 
             <div className="spacer-medium" />
 
-            <div
-              className="nav-wallet"
-              style={{ backgroundColor: "var(--dark-card-background)" }}
-            >
-              <div
-                className="nav-wallet-text nav-link w-nav-link"
-                onClick={() => {
-                  if (switchToEthereum) {
-                    switchToEthereum();
-                  } else {
-                    console.error("switchToEthereum is undefined");
-                  }
-                }}
-              >
-                Switch to Ethereum
-              </div>
-            </div>
+            <SwitchChainButton
+              switchNetwork={switchToFantom}
+              name="Fantom"
+            />
 
             <div className="spacer-medium" />
 
-            <div
-              className="nav-wallet"
-              style={{ backgroundColor: "var(--dark-card-background)" }}
-            >
-              <div
-                className="nav-wallet-text nav-link w-nav-link"
-                onClick={() => {
-                  if (switchToOptimism) {
-                    switchToOptimism();
-                  } else {
-                    console.error("switchToOptimism is undefined");
-                  }
-                }}
-              >
-                Switch to Optimism
-              </div>
-            </div>
+            <SwitchChainButton
+              switchNetwork={switchToEthereum}
+              name="Ethereum"
+            />
+
+            <div className="spacer-medium" />
+
+            <SwitchChainButton
+              switchNetwork={switchToOptimism}
+              name="Optimism"
+            />
           </div>
 
           {errorOptimism && (
-            <>
-              <p style={{ color: "red" }}>
-                An error occurred trying to switch chains. Please make sure you
-                have Optimism added to your wallet.
-              </p>
-              <div
-                style={{
-                  width: "100",
-                  fontSize: "18px",
-                  marginTop: "20px",
-                  marginBottom: "30px",
-                  maxWidth: "400px",
-                }}
-              >
-                <div
-                  className="nav-wallet"
-                  style={{ backgroundColor: "var(--dark-card-background)" }}
-                >
-                  <div
-                    className="nav-wallet-text nav-link w-nav-link"
-                    onClick={() => addOptimism()}
-                  >
-                    Add Optimism
-                  </div>
-                </div>
-              </div>
-            </>
+            <ErrorAddNetwork name="Optimism" addNetwork={addOptimism} />
           )}
 
           {errorFantom && (
-            <>
-              <p style={{ color: "red" }}>
-                An error occurred trying to switch chains. Please make sure you
-                have Fantom added to your wallet.
-              </p>
-              <div
-                style={{
-                  width: "100",
-                  fontSize: "18px",
-                  marginTop: "20px",
-                  marginBottom: "30px",
-                  maxWidth: "400px",
-                }}
-              >
-                <div
-                  className="nav-wallet"
-                  style={{ backgroundColor: "var(--dark-card-background)" }}
-                >
-                  <div
-                    className="nav-wallet-text nav-link w-nav-link"
-                    onClick={() => addFantom()}
-                  >
-                    Add Fantom
-                  </div>
-                </div>
-              </div>
-            </>
+            <ErrorAddNetwork name="Fantom" addNetwork={addFantom} />
+          )}
+
+          {errorAvalanche && (
+            <ErrorAddNetwork name="Avalanche" addNetwork={addAvalanche} />
           )}
 
          {errorEthereum && (

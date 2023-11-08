@@ -44,3 +44,25 @@ export async function addFantom() {
     console.error(err);
   }
 }
+
+export async function addAvalanche() {
+  try {
+    // @ts-ignore
+    await window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [
+        {
+          chainId: "0xa86a",
+          chainName: "Avalanche Mainnet C-Chain",
+          nativeCurrency: {
+            symbol: "AVAX",
+          },
+          rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],
+          blockExplorerUrls: ["https://snowtrace.io/"],
+        },
+      ],
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
