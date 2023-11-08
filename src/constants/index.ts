@@ -85,6 +85,10 @@ export const tokenSymbolToCurrency = {
     name: "Ethereum",
     symbol: "ETH",
   },
+  AVAX: {
+    name: "Avalanche",
+    symbol: "AVAX",
+  },
   FTM: {
     name: "Fantom",
     symbol: "FTM",

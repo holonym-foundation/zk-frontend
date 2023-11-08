@@ -639,10 +639,15 @@ p {
   animation-direction: alternate;
   animation-iteration-count: infinite;
 }
-.glowy-red-button {
+.glowy-green-button:hover {
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.glowy-optimism-red-button {
   padding: 20px 35px;
   border-radius: 7px;
-  background-color: rgb(205,25,25);
+  background-color: rgb(255, 4, 32);
   -webkit-transition: background-color 500ms cubic-bezier(.23, 1, .32, 1);
   transition: background-color 500ms cubic-bezier(.23, 1, .32, 1);
   font-family: 'Clover Medium', sans-serif;
@@ -652,11 +657,16 @@ p {
   letter-spacing: 1px;
   text-transform: uppercase;
   text-decoration: none;
-  animation-name: glowy-red-button;
+  animation-name: glowy-optimism-red-button;
   animation-duration: 2s;
   animation-direction: alternate;
   animation-iteration-count: infinite;
 }
+.glowy-optimism-red-button:hover {
+  background-color: #fff;
+  cursor: pointer;
+}
+
 .glowy-grey-button {
   padding: 20px 35px;
   border-radius: 7px;
@@ -675,20 +685,35 @@ p {
   animation-direction: alternate;
   animation-iteration-count: infinite;
 }
-.glowy-green-button:hover {
-  background-color: #fff;
-  cursor: pointer;
-}
-.glowy-red-button:hover {
-  background-color: #fff;
-  cursor: pointer;
-}
 .glowy-grey-button:hover {
   background-color: #fff;
   cursor: pointer;
 }
 
-@keyframes glowy-red-button {
+.glowy-avalanche-red-button {
+  padding: 20px 35px;
+  border-radius: 7px;
+  background-color: rgb(232, 65, 66);
+  -webkit-transition: background-color 500ms cubic-bezier(.23, 1, .32, 1);
+  transition: background-color 500ms cubic-bezier(.23, 1, .32, 1);
+  font-family: 'Clover Medium', sans-serif;
+  color: #02070cdb;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  animation-name: glowy-optimism-red-button;
+  animation-duration: 2s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+}
+.glowy-avalanche-red-button:hover {
+  background-color: #fff;
+  cursor: pointer;
+}
+
+@keyframes glowy-optimism-red-button {
   0% {box-shadow: 0px 0px 10px 1px rgb(205,92,92)}
   /* 0%   {width: 230px; height: 85px;} */
   /* 25%  {width: 100px;}

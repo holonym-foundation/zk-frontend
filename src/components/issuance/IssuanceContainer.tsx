@@ -22,7 +22,7 @@ const IssuanceContainer = ({
           position: "relative",
           paddingTop: "100px",
           width: "100%",
-          height: "90%",
+          minHeight: "90%",
           display: "flex",
           alignItems: "center",
           justifyContent: "start",

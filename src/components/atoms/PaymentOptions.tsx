@@ -6,6 +6,9 @@ const PaymentOptions = ({
   priceInFTM,
   priceInFTMIsLoading,
   priceInFTMIsError,
+  priceInAVAX,
+  priceInAVAXIsLoading,
+  priceInAVAXIsError,
   priceInETH,
   priceInETHIsLoading,
   priceInETHIsError,
@@ -13,12 +16,15 @@ const PaymentOptions = ({
 }: {
   onSelectOption: (
     fiat: boolean, 
-    symbol?: "ETH" | "FTM", 
+    symbol?: "ETH" | "FTM" | "AVAX",
     chainId?: SupportedChainIdsForPayment
   ) => void;
   priceInFTM?: BigNumber;
   priceInFTMIsLoading?: boolean;
   priceInFTMIsError?: boolean;
+  priceInAVAX?: BigNumber;
+  priceInAVAXIsLoading?: boolean;
+  priceInAVAXIsError?: boolean;
   priceInETH?: BigNumber;
   priceInETHIsLoading?: boolean;
   priceInETHIsError?: boolean;
@@ -54,6 +60,19 @@ const PaymentOptions = ({
         </a>
 
         <a
+          className="glowy-avalanche-red-button"
+          style={{ width: "100%", fontSize: "20px" }}
+          onClick={(event) => {
+            event.preventDefault();
+            onSelectOption(false, "AVAX", 43114);
+          }}
+        >
+          Pay In AVAX ({
+            priceInAVAXIsLoading ? "loading..." : priceInAVAXIsError ? "error" : `${priceInAVAX && priceInAVAX.decimalPlaces(4).toString()} AVAX`
+          })
+        </a>
+
+        <a
           className="glowy-grey-button"
           style={{ width: "100%", fontSize: "20px" }}
           onClick={(event) => {
@@ -67,7 +86,7 @@ const PaymentOptions = ({
         </a>
 
         <a
-          className="glowy-red-button"
+          className="glowy-optimism-red-button"
           style={{ width: "100%", fontSize: "20px" }}
           onClick={(event) => {
             event.preventDefault();
@@ -90,6 +109,8 @@ const PaymentOptions = ({
             fiatPrice && `${fiatPrice && fiatPrice.decimalPlaces(4).toString()} USD`
           })
         </a>
+
+        <div style={{ flexGrow: 1 }} />
       </div>
     </>
   );

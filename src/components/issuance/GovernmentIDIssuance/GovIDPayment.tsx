@@ -14,6 +14,10 @@ import PayWithPayPal from "../../atoms/PayWithPayPal";
 import { SupportedChainIdsForPayment } from "../../../types";
 
 const currencyOptions = {
+  avalanche: {
+    symbol: "AVAX",
+    name: "Avalanche",
+  },
   fantom: {
     symbol: "FTM",
     name: "Fantom",
@@ -33,8 +37,14 @@ const GovIDPayment = ({
   const sid = searchParams.get("sid");
 
   const [selectedPage, setSelectedPage] = useState<"options" | "fiat" | "crypto">("options");
-  const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM">();
+  const [selectedToken, setSelectedToken] = useState<"ETH" | "FTM" | "AVAX">();
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
+
+  const {
+    data: priceInAVAX,
+    isLoading: priceInAVAXIsLoading,
+    isError: priceInAVAXIsError,
+  } = useFetchIDVCryptoPrice(currencyOptions.avalanche);
 
   const {
     data: priceInFTM,
@@ -72,6 +82,9 @@ const GovIDPayment = ({
           priceInFTM={priceInFTM}
           priceInFTMIsLoading={priceInFTMIsLoading}
           priceInFTMIsError={priceInFTMIsError}
+          priceInAVAX={priceInAVAX}
+          priceInAVAXIsLoading={priceInAVAXIsLoading}
+          priceInAVAXIsError={priceInAVAXIsError}
           priceInETH={priceInETH}
           priceInETHIsLoading={priceInETHIsLoading}
           priceInETHIsError={priceInETHIsError}

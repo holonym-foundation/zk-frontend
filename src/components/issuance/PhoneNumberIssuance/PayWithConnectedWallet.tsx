@@ -11,6 +11,7 @@ import NetworkGate from "../../../gate/NetworkGate";
 import SwitchToEthereum from "../../atoms/SwitchToEthereum";
 import SwitchToFantom from "../../atoms/SwitchToFantom";
 import SwitchToOptimism from "../../atoms/SwitchToOptimism";
+import SwitchToAvalanche from "../../atoms/SwitchToAvalanche";
 import Loading from "../../atoms/Loading";
 import {
   paymentRecieverAddress
@@ -23,6 +24,7 @@ const chainIdToNetworkGateFallback = {
   250: <SwitchToFantom />,
   10: <SwitchToOptimism />,
   420: <SwitchToOptimism />,
+  43114: <SwitchToAvalanche />
 }
 
 const PayWithConnectedWallet = ({
