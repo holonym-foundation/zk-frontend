@@ -256,7 +256,7 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
           <p>
             Made a mistake? Please open a ticket in the{" "}
             <a
-              href="https://discord.gg/Sqb6egVwuH"
+              href="https://discord.gg/aJ8fgYzxmc"
               target="_blank"
               rel="noreferrer"
               className="in-text-link"
@@ -275,7 +275,7 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
             <p>
               Please open a ticket in the{" "}
               <a
-                href="https://discord.gg/Sqb6egVwuH"
+                href="https://discord.gg/aJ8fgYzxmc"
                 target="_blank"
                 rel="noreferrer"
                 className="in-text-link"
@@ -324,7 +324,7 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
         <p>
           Please open a ticket in the{" "}
           <a
-            href="https://discord.gg/Sqb6egVwuH"
+            href="https://discord.gg/aJ8fgYzxmc"
             target="_blank"
             rel="noreferrer"
             className="in-text-link"
