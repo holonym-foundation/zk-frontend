@@ -31,7 +31,7 @@ const opts = [
     url: "/issuance/phone-prereqs",
     image: phoneImg,
     description:
-      "Verifies a real phone number, blocking burners. Helps show you're not a bot. Under maintanence.",
+      "Verifies a real phone number, blocking burners. Helps show you're not a bot.",
     // price: "3.50",
     disabled: false,
   },
