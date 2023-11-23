@@ -1,24 +1,19 @@
 import { zkPhoneEndpoint } from "../constants";
 import axios from "axios";
 
-let hasRequestedCode = false;
-
-export const sendCode = (phoneNumber: string, sessionId: string) => {
-  if (!hasRequestedCode) {
-    axios.post(
-      `${zkPhoneEndpoint}/send/v4/`,
-      {
-        number: phoneNumber,
-        sessionId: sessionId,
+export const sendCode = async (phoneNumber: string, sessionId: string) => {
+  await axios.post(
+    `${zkPhoneEndpoint}/send/v4/`,
+    {
+      number: phoneNumber,
+      sessionId: sessionId,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
-  hasRequestedCode = true;
+    }
+  );
 };
 
 export const getCredentialsPhone = (

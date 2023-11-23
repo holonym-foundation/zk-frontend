@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { parsePhoneNumber } from "react-phone-number-input";
+import { useMutation } from "@tanstack/react-query";
 // import "react-phone-number-input/style.css";
 import "../../../react-phone-number-input.css";
 import PhoneNumberForm from "../../atoms/PhoneNumberForm";
@@ -72,11 +73,47 @@ const VerifyPhoneNumber = () => {
     }
   }, [success, navigate]);
 
-  useEffect(() => {
-    if (!phoneNumber || !sid) return;
+  const { mutate: mutateSendCode } = useMutation(
+    async ({ phoneNumber, sid }: { phoneNumber: string, sid: string}) => {
+      await sendCode(phoneNumber, sid)
+    }, 
+    {
+      onError: (err) => {
+        console.log('sendCode err', err)
+
+        if (((err as any)?.response?.data ?? '').includes('Session has reached max attempts')) {
+          alert('Error: You have reached the maximum allowed attempts')
+          navigate('/issuance/phone')
+        }
+      }
+    }
+  )
+
+  const [sentCodeAt, setSentCodeAt] = React.useState<number>(0);
+
+  const setNumberAndSendCode = useCallback((phoneNumber: string | undefined) => {
+    if (!phoneNumber) {
+      alert("Error: No phone number");
+      return;
+    }
+    if (!sid) {
+      alert("Error: No session ID");
+      return;
+    }
+
+    // The user can send at most one code every 30 seconds
+    const remainingSeconds = (30 - (Date.now() - (sentCodeAt))) / 1000;
+    if (sentCodeAt && remainingSeconds > 0) {
+      alert(`Please wait ${remainingSeconds} seconds before sending another code`);
+      return;
+    }
+
     datadogLogs.logger.info("SendPhoneCode", {});
-    sendCode(phoneNumber, sid);
-  }, [phoneNumber]);
+
+    setPhoneNumber(phoneNumber);
+    mutateSendCode({ phoneNumber, sid })
+    setSentCodeAt(Date.now());
+  }, [sid, sentCodeAt]);
 
   const onChange = (event: any) => {
     const newCode = event.target.value;
@@ -105,11 +142,26 @@ const VerifyPhoneNumber = () => {
           <p>Loading...</p>
         </div>
       ) : currentStep === "Phone#" ? (
-        <PhoneNumberForm onSubmit={setPhoneNumber} />
+        <PhoneNumberForm onSubmit={setNumberAndSendCode} />
       ) : currentStep === "Verify" ? (
         <>
           <h2 style={{ marginBottom: "25px" }}>Enter the code sent to you via SMS, WhatsApp, or Viber</h2>
           <input value={code} onChange={onChange} className="text-field" />
+
+          <div className="spacer-medium" />
+          <p>Didn't receive a code?</p>
+          <p>You can attempt up to 3 times.</p>
+          <button
+            className="x-button secondary outline"
+            style={{
+              fontSize: '16px'
+            }}
+            onClick={() => {
+              setPhoneNumber(undefined);
+            }}
+          >
+            Re-enter phone number
+          </button>
         </>
       ) : (
         // currentStep === "Finalize" ? (
