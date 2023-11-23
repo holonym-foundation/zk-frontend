@@ -11,7 +11,7 @@ function useRequestPhoneRefund() {
         throw new Error(`Invalid session ID (${id})`);
       }
   
-      const resp = await fetch(`${zkPhoneEndpoint}/sessions/${id}/refund`, {
+      const resp = await fetch(`${zkPhoneEndpoint}/sessions/${id}/refund/v2`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
