@@ -1,5 +1,7 @@
-import { useState } from "react";
-import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
+import { useState, useMemo } from "react";
+import { BigNumber } from "bignumber.js";
+import { calculateIDVPrice } from '../../../utils/misc'
+import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import { Modal } from "../../atoms/Modal";
 import { Currency, SupportedChainIdsForPayment } from "../../../types";
 import PayWithConnectedWallet from "./PayWithConnectedWallet";
@@ -15,11 +17,17 @@ const CryptoPaymentScreen = (props: {
   const [showPayWConnected, setShowPayWConnected] = useState(false);
 
   const {
-    data: costDenominatedInToken,
+    data: prices,
     isLoading: costIsLoading,
     isError: costIsError,
     isSuccess: costIsSuccess,
-  } = useFetchIDVCryptoPrice(props.currency);
+  } = useFetchCryptoPrices([props.currency]);
+
+  const costDenominatedInToken = useMemo(() => {
+    const price = prices?.[props.currency.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculateIDVPrice(price);
+  }, [prices])
 
   return (
     <>

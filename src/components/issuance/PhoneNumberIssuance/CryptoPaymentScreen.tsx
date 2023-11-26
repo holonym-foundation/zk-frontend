@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Modal } from "../../atoms/Modal";
 import { Currency, SupportedChainIdsForPayment } from "../../../types";
-import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
+import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import PayWithConnectedWallet from "./PayWithConnectedWallet";
 import PayWithDiffWallet from "../../atoms/PayWithDiffWallet";
+import { calculatePhonePrice } from '../../../utils/misc'
 
 const CryptoPaymentScreen = (props: {
   currency: Currency;
@@ -15,11 +16,17 @@ const CryptoPaymentScreen = (props: {
   const [showPayWConnected, setShowPayWConnected] = useState(false);
 
   const {
-    data: costDenominatedInToken,
+    data: prices,
     isLoading: costIsLoading,
     isError: costIsError,
     isSuccess: costIsSuccess,
-  } = useFetchPhoneVerificationCryptoPrice(props.currency);
+  } = useFetchCryptoPrices([props.currency]);
+
+  const costDenominatedInToken = useMemo(() => {
+    const price = prices?.[props.currency.name.toLowerCase()];
+    if (price === undefined) return undefined;
+    return calculatePhonePrice(price);
+  }, [prices])
 
   return (
     <>

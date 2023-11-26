@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import BigNumber from "bignumber.js";
 import {
   usePrepareSendTransaction,
   useSendTransaction,
@@ -16,7 +17,8 @@ import Loading from "../../atoms/Loading";
 import {
   paymentRecieverAddress
 } from "../../../constants";
-import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
+import { calculatePhonePrice } from '../../../utils/misc'
+import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import { Currency, SupportedChainIdsForPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
@@ -37,10 +39,17 @@ const PayWithConnectedWallet = ({
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
 }) => {
   const {
-    data: costDenominatedInToken,
+    data: prices,
     isLoading: costIsLoading,
     isError: costIsError,
-  } = useFetchPhoneVerificationCryptoPrice(currency);
+    isSuccess: costIsSuccess,
+  } = useFetchCryptoPrices([currency]);
+
+  const costDenominatedInToken = useMemo(() => {
+    const price = prices?.[currency.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculatePhonePrice(price);
+  }, [prices])
 
   const {
     config,

@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { BigNumber } from "bignumber.js";
 import {
   OnApproveData,
   OnApproveActions,
@@ -7,7 +8,8 @@ import {
   CreateOrderActions
 } from "@paypal/paypal-js"
 import { tokenSymbolToCurrency, PRICE_USD, idServerUrl } from "../../../constants";
-import useFetchIDVCryptoPrice from "../../../hooks/useFetchIDVCryptoPrice";
+import { calculateIDVPrice } from '../../../utils/misc'
+import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import PaymentOptions from "../../atoms/PaymentOptions";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
 import PayWithPayPal from "../../atoms/PayWithPayPal";
@@ -41,22 +43,29 @@ const GovIDPayment = ({
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
 
   const {
-    data: priceInAVAX,
-    isLoading: priceInAVAXIsLoading,
-    isError: priceInAVAXIsError,
-  } = useFetchIDVCryptoPrice(currencyOptions.avalanche);
+    data: prices,
+    isLoading: priceIsLoading,
+    isError: priceIsError,
+    isSuccess: priceIsSuccess,
+  } = useFetchCryptoPrices(Object.values(currencyOptions));
 
-  const {
-    data: priceInFTM,
-    isLoading: priceInFTMIsLoading,
-    isError: priceInFTMIsError,
-  } = useFetchIDVCryptoPrice(currencyOptions.fantom);
+  const priceInAVAX = useMemo(() => {
+    const price = prices?.[currencyOptions.avalanche.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculateIDVPrice(price);
+  }, [prices])
 
-  const {
-    data: priceInETH,
-    isLoading: priceInETHIsLoading,
-    isError: priceInETHIsError,
-  } = useFetchIDVCryptoPrice(currencyOptions.optimism);
+  const priceInFTM = useMemo(() => {
+    const price = prices?.[currencyOptions.fantom.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculateIDVPrice(price);
+  }, [prices])
+
+  const priceInETH = useMemo(() => {
+    const price = prices?.[currencyOptions.optimism.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculateIDVPrice(price);
+  }, [prices])
 
   const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
     const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
@@ -80,14 +89,14 @@ const GovIDPayment = ({
             setSelectedChainId(chainId);
           }}
           priceInFTM={priceInFTM}
-          priceInFTMIsLoading={priceInFTMIsLoading}
-          priceInFTMIsError={priceInFTMIsError}
+          priceInFTMIsLoading={priceIsLoading}
+          priceInFTMIsError={priceIsError}
           priceInAVAX={priceInAVAX}
-          priceInAVAXIsLoading={priceInAVAXIsLoading}
-          priceInAVAXIsError={priceInAVAXIsError}
+          priceInAVAXIsLoading={priceIsLoading}
+          priceInAVAXIsError={priceIsError}
           priceInETH={priceInETH}
-          priceInETHIsLoading={priceInETHIsLoading}
-          priceInETHIsError={priceInETHIsError}
+          priceInETHIsLoading={priceIsLoading}
+          priceInETHIsError={priceIsError}
           fiatPrice={PRICE_USD}
         />
       )}

@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { BigNumber } from "bignumber.js";
 import {
   OnApproveData,
   OnApproveActions,
@@ -7,7 +8,8 @@ import {
   CreateOrderActions
 } from "@paypal/paypal-js"
 import { tokenSymbolToCurrency, PHONE_PRICE_USD, zkPhoneEndpoint } from "../../../constants";
-import useFetchPhoneVerificationCryptoPrice from "../../../hooks/useFetchPhoneVerificationCryptoPrice";
+import { calculatePhonePrice } from '../../../utils/misc'
+import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import CryptoPaymentScreen from "./CryptoPaymentScreen";
 import PaymentOptions from "../../atoms/PaymentOptions";
 import PayWithPayPal from "../../atoms/PayWithPayPal";
@@ -41,22 +43,32 @@ const PhonePayment = ({
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
 
   const {
-    data: priceInAVAX,
-    isLoading: priceInAVAXIsLoading,
-    isError: priceInAVAXIsError,
-  } = useFetchPhoneVerificationCryptoPrice(currencyOptions.avalanche);
+    data: prices,
+    isLoading: priceIsLoading,
+    isError: priceIsError,
+    isSuccess: priceIsSuccess,
+  } = useFetchCryptoPrices(Object.values(currencyOptions));
 
-  const {
-    data: priceInFTM,
-    isLoading: priceInFTMIsLoading,
-    isError: priceInFTMIsError,
-  } = useFetchPhoneVerificationCryptoPrice(currencyOptions.fantom);
+  const priceInAVAX = useMemo(() => {
+    console.log(prices)
+    const price = prices?.[currencyOptions.avalanche.name.toLowerCase()];
+    console.log(price)
+    if (price === undefined) return BigNumber(0);
+    console.log(calculatePhonePrice(price))
+    return calculatePhonePrice(price);
+  }, [prices])
 
-  const {
-    data: priceInETH,
-    isLoading: priceInETHIsLoading,
-    isError: priceInETHIsError,
-  } = useFetchPhoneVerificationCryptoPrice(currencyOptions.optimism);
+  const priceInFTM = useMemo(() => {
+    const price = prices?.[currencyOptions.fantom.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculatePhonePrice(price);
+  }, [prices])
+
+  const priceInETH = useMemo(() => {
+    const price = prices?.[currencyOptions.optimism.name.toLowerCase()];
+    if (price === undefined) return BigNumber(0);
+    return calculatePhonePrice(price);
+  }, [prices])
 
   const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
     const resp = await fetch(`${zkPhoneEndpoint}/sessions/${sid}/paypal-order`, {
@@ -80,14 +92,14 @@ const PhonePayment = ({
             setSelectedChainId(chainId);
           }}
           priceInFTM={priceInFTM}
-          priceInFTMIsLoading={priceInFTMIsLoading}
-          priceInFTMIsError={priceInFTMIsError}
+          priceInFTMIsLoading={priceIsLoading}
+          priceInFTMIsError={priceIsError}
           priceInAVAX={priceInAVAX}
-          priceInAVAXIsLoading={priceInAVAXIsLoading}
-          priceInAVAXIsError={priceInAVAXIsError}
+          priceInAVAXIsLoading={priceIsLoading}
+          priceInAVAXIsError={priceIsError}
           priceInETH={priceInETH}
-          priceInETHIsLoading={priceInETHIsLoading}
-          priceInETHIsError={priceInETHIsError}
+          priceInETHIsLoading={priceIsLoading}
+          priceInETHIsError={priceIsError}
           fiatPrice={PHONE_PRICE_USD}
         />
       )}

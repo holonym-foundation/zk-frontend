@@ -1,6 +1,11 @@
 import { SiweMessage } from "siwe";
 import { ethers } from "ethers";
-import { idServerUrl } from "../constants";
+import BigNumber from "bignumber.js";
+import { 
+  PRICE_USD,
+  PHONE_PRICE_USD,
+  PAYMENT_MARGIN_OF_ERROR_AS_PERCENT,
+} from "../constants";
 import { IdServerSessionsResponse, PhoneServerSessionsResponse, Currency } from '../types'
 
 export function createSiweMessage(
@@ -129,11 +134,14 @@ export function getPhoneSessionPath(phoneServerSessions?: PhoneServerSessionsRes
   }
 }
 
-export const fetchCryptoPrice = async (c: Currency): Promise<number> => {
-  const priceData = await fetch(`${idServerUrl}/prices?slug=${c.name.toLowerCase()}`)
-  if (priceData.status !== 200) {
-    throw new Error("Failed to fetch price");
-  } else {
-    return (await priceData.json()).price;
-  }
-};
+export function calculateIDVPrice(tokenPrice: number) {
+  return PRICE_USD.div(BigNumber(tokenPrice)).multipliedBy(
+    PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
+  )
+}
+
+export function calculatePhonePrice(tokenPrice: number) {
+  return PHONE_PRICE_USD.div(BigNumber(tokenPrice)).multipliedBy(
+    PAYMENT_MARGIN_OF_ERROR_AS_PERCENT.plus(1)
+  )
+}
