@@ -43,29 +43,37 @@ const GovIDPayment = ({
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
 
   const {
-    data: prices,
+    data: cryptoPrices,
     isLoading: priceIsLoading,
     isError: priceIsError,
     isSuccess: priceIsSuccess,
   } = useFetchCryptoPrices(Object.values(currencyOptions));
 
   const priceInAVAX = useMemo(() => {
-    const price = prices?.[currencyOptions.avalanche.name.toLowerCase()];
+    const price = cryptoPrices?.[currencyOptions.avalanche.name.toLowerCase()];
     if (price === undefined) return BigNumber(0);
     return calculateIDVPrice(price);
-  }, [prices])
+  }, [cryptoPrices])
 
   const priceInFTM = useMemo(() => {
-    const price = prices?.[currencyOptions.fantom.name.toLowerCase()];
+    const price = cryptoPrices?.[currencyOptions.fantom.name.toLowerCase()];
     if (price === undefined) return BigNumber(0);
     return calculateIDVPrice(price);
-  }, [prices])
+  }, [cryptoPrices])
 
   const priceInETH = useMemo(() => {
-    const price = prices?.[currencyOptions.optimism.name.toLowerCase()];
+    const price = cryptoPrices?.[currencyOptions.optimism.name.toLowerCase()];
     if (price === undefined) return BigNumber(0);
     return calculateIDVPrice(price);
-  }, [prices])
+  }, [cryptoPrices])
+
+  const prices = useMemo(() => {
+    return {
+      AVAX: priceInAVAX,
+      FTM: priceInFTM,
+      ETH: priceInETH,
+    }
+  }, [priceInAVAX, priceInFTM, priceInETH])
 
   const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
     const resp = await fetch(`${idServerUrl}/sessions/${sid}/paypal-order`, {
@@ -103,6 +111,10 @@ const GovIDPayment = ({
 
       {selectedPage === "crypto" && selectedToken && (
         <CryptoPaymentScreen
+          costDenominatedInToken={prices[selectedToken]}
+          costIsLoading={priceIsLoading}
+          costIsError={priceIsError}
+          costIsSuccess={priceIsSuccess}
           currency={tokenSymbolToCurrency[selectedToken]}
           chainId={selectedChainId}
           onPaymentSuccess={onPaymentSuccess}

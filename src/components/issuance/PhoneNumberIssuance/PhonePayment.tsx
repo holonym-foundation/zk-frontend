@@ -43,32 +43,37 @@ const PhonePayment = ({
   const [selectedChainId, setSelectedChainId] = useState<SupportedChainIdsForPayment>();
 
   const {
-    data: prices,
+    data: cryptoPrices,
     isLoading: priceIsLoading,
     isError: priceIsError,
     isSuccess: priceIsSuccess,
   } = useFetchCryptoPrices(Object.values(currencyOptions));
 
   const priceInAVAX = useMemo(() => {
-    console.log(prices)
-    const price = prices?.[currencyOptions.avalanche.name.toLowerCase()];
-    console.log(price)
+    const price = cryptoPrices?.[currencyOptions.avalanche.name.toLowerCase()];
     if (price === undefined) return BigNumber(0);
-    console.log(calculatePhonePrice(price))
     return calculatePhonePrice(price);
-  }, [prices])
+  }, [cryptoPrices])
 
   const priceInFTM = useMemo(() => {
-    const price = prices?.[currencyOptions.fantom.name.toLowerCase()];
+    const price = cryptoPrices?.[currencyOptions.fantom.name.toLowerCase()];
     if (price === undefined) return BigNumber(0);
     return calculatePhonePrice(price);
-  }, [prices])
+  }, [cryptoPrices])
 
   const priceInETH = useMemo(() => {
-    const price = prices?.[currencyOptions.optimism.name.toLowerCase()];
+    const price = cryptoPrices?.[currencyOptions.optimism.name.toLowerCase()];
     if (price === undefined) return BigNumber(0);
     return calculatePhonePrice(price);
-  }, [prices])
+  }, [cryptoPrices])
+
+  const prices = useMemo(() => {
+    return {
+      AVAX: priceInAVAX,
+      FTM: priceInFTM,
+      ETH: priceInETH,
+    }
+  }, [priceInAVAX, priceInFTM, priceInETH])
 
   const createOrder = useCallback(async (data: CreateOrderData, actions: CreateOrderActions) => {
     const resp = await fetch(`${zkPhoneEndpoint}/sessions/${sid}/paypal-order`, {
@@ -106,6 +111,10 @@ const PhonePayment = ({
 
       {selectedPage === "crypto" && selectedToken && (
         <CryptoPaymentScreen
+          costDenominatedInToken={prices[selectedToken]}
+          costIsLoading={priceIsLoading}
+          costIsError={priceIsError}
+          costIsSuccess={priceIsSuccess}
           currency={tokenSymbolToCurrency[selectedToken]}
           chainId={selectedChainId}
           onPaymentSuccess={onPaymentSuccess}

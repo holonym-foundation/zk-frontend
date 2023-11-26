@@ -17,8 +17,6 @@ import Loading from "../../atoms/Loading";
 import {
   paymentRecieverAddress
 } from "../../../constants";
-import { calculateIDVPrice } from '../../../utils/misc'
-import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import { Currency, SupportedChainIdsForPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
@@ -30,27 +28,20 @@ const chainIdToNetworkGateFallback = {
 }
 
 const PayWithConnectedWallet = ({
+  costDenominatedInToken,
+  costIsLoading,
+  costIsError,
   currency,
   chainId,
   onPaymentSuccess,
 }: {
+  costDenominatedInToken: BigNumber | undefined;
+  costIsLoading: boolean;
+  costIsError: boolean;
   currency: Currency;
   chainId?: SupportedChainIdsForPayment;
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
 }) => {
-  const {
-    data: prices,
-    isLoading: costIsLoading,
-    isError: costIsError,
-    isSuccess: costIsSuccess,
-  } = useFetchCryptoPrices([currency]);
-
-  const costDenominatedInToken = useMemo(() => {
-    const price = prices?.[currency.name.toLowerCase()];
-    if (price === undefined) return BigNumber(0);
-    return calculateIDVPrice(price);
-  }, [prices])
-
   const {
     config,
     error: prepareTxError,
@@ -102,7 +93,7 @@ const PayWithConnectedWallet = ({
           <p>
             The mint price for this SBT is{" "}
             <code>
-              {costDenominatedInToken.toString()} {currency.symbol}
+              {(costDenominatedInToken ?? '').toString()} {currency.symbol}
             </code>
             .
           </p>

@@ -1,7 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { BigNumber } from "bignumber.js";
-import { calculateIDVPrice } from '../../../utils/misc'
-import useFetchCryptoPrices from "../../../hooks/useFetchCryptoPrices";
 import { Modal } from "../../atoms/Modal";
 import { Currency, SupportedChainIdsForPayment } from "../../../types";
 import PayWithConnectedWallet from "./PayWithConnectedWallet";
@@ -12,22 +10,13 @@ const CryptoPaymentScreen = (props: {
   onPaymentSuccess: (data: { chainId?: number; txHash?: string }) => void;
   onBack: () => void;
   chainId?: SupportedChainIdsForPayment;
+  costDenominatedInToken: BigNumber;
+  costIsLoading: boolean;
+  costIsError: boolean;
+  costIsSuccess: boolean;
 }) => {
   const [diffWallet, setDiffWallet] = useState(false);
   const [showPayWConnected, setShowPayWConnected] = useState(false);
-
-  const {
-    data: prices,
-    isLoading: costIsLoading,
-    isError: costIsError,
-    isSuccess: costIsSuccess,
-  } = useFetchCryptoPrices([props.currency]);
-
-  const costDenominatedInToken = useMemo(() => {
-    const price = prices?.[props.currency.name.toLowerCase()];
-    if (price === undefined) return BigNumber(0);
-    return calculateIDVPrice(price);
-  }, [prices])
 
   return (
     <>
@@ -41,10 +30,10 @@ const CryptoPaymentScreen = (props: {
           currency={props.currency}
           chainId={props.chainId}
           onPaymentSuccess={props.onPaymentSuccess}
-          costDenominatedInToken={costDenominatedInToken}
-          costIsLoading={costIsLoading}
-          costIsError={costIsError}
-          costIsSuccess={costIsSuccess}
+          costDenominatedInToken={props.costDenominatedInToken}
+          costIsLoading={props.costIsLoading}
+          costIsError={props.costIsError}
+          costIsSuccess={props.costIsSuccess}
         />
       </Modal>
 
@@ -55,6 +44,9 @@ const CryptoPaymentScreen = (props: {
         heavyBlur={true}
       >
         <PayWithConnectedWallet 
+          costDenominatedInToken={props.costDenominatedInToken}
+          costIsLoading={props.costIsLoading}
+          costIsError={props.costIsError}
           currency={props.currency}
           chainId={props.chainId}
           onPaymentSuccess={props.onPaymentSuccess}
