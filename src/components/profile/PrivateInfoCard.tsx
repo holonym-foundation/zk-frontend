@@ -226,8 +226,8 @@ export default function PrivateInfoCard({
               </div>
               <div style={{ marginLeft: "auto" }}>
                 <button
-                  // className="export-private-info-button"
-                  className='backup-credentials-button'
+                  className='export-private-info-button'
+                  // className='backup-credentials-button'
                   // className='profile-navigate-to-verification-button'
                   style={{ padding: "20px" }}
                   onClick={() => setBackupCredsModalIsVisible(true)}
