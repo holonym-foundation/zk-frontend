@@ -281,23 +281,24 @@ export async function storeCredentials(
   setLocalUserCredentials(encryptedCredsAES);
   // 3. Store encrypted creds in remote backup
   try {
-    let kolpProof = proof ?? getLatestKolpProof();
-    if (!kolpProof) {
-      for (const issuer of Object.keys(creds)) {
-        if (creds[issuer]?.creds?.serializedAsNewPreimage) {
-          kolpProof = await proveKnowledgeOfLeafPreimage(
-            // @ts-ignore
-            creds[issuer].creds.serializedAsNewPreimage.map((item) =>
-              ethers.BigNumber.from(item || "0").toString()
-            ),
-            // @ts-ignore
-            creds[issuer].creds.newSecret
-          );
-          break;
-        }
-      }
-    }
-    setLatestKolpProof(kolpProof);
+    // let kolpProof = proof ?? getLatestKolpProof();
+    // if (!kolpProof) {
+    //   for (const issuer of Object.keys(creds)) {
+    //     if (creds[issuer]?.creds?.serializedAsNewPreimage) {
+    //       kolpProof = await proveKnowledgeOfLeafPreimage(
+    //         // @ts-ignore
+    //         creds[issuer].creds.serializedAsNewPreimage.map((item) =>
+    //           ethers.BigNumber.from(item || "0").toString()
+    //         ),
+    //         // @ts-ignore
+    //         creds[issuer].creds.newSecret
+    //       );
+    //       break;
+    //     }
+    //   }
+    // }
+    // setLatestKolpProof(kolpProof);
+
     // This request will fail if the user does not have a valid proof. Hence the try-catch.
     const resp = await fetch(`${idServerUrl}/credentials`, {
       method: "POST",
@@ -306,7 +307,7 @@ export async function storeCredentials(
       },
       body: JSON.stringify({
         sigDigest: holoAuthSigDigest,
-        proof: kolpProof,
+        // proof: kolpProof,
         encryptedCredentialsAES: encryptedCredsAES,
       }),
     });
