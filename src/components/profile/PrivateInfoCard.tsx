@@ -8,6 +8,7 @@ import { serverAddress, idServerUrl } from "../../constants";
 import useIdvSessionStatus from "../../hooks/useIdvSessionStatus";
 import useIdServerSessions from "../../hooks/useIdServerSessions";
 import VerificationStatusModal from "./VerificationStatusModal";
+import BackupCredsModal from "./BackupCredsModal";
 import { SessionStatusResponse } from '../../types';
 
 const issuerAddrToName = Object.fromEntries(
@@ -56,6 +57,7 @@ export default function PrivateInfoCard({
 }) {
   const navigate = useNavigate();
   const [statusModalIsVisible, setStatusModalIsVisible] = useState(false);
+  const [backupCredsModalIsVisible, setBackupCredsModalIsVisible] = useState(false);
 
   const { data: idServerSessions } = useIdServerSessions();
   // const { data: idvSessionStatus } = useIdvSessionStatus();
@@ -172,6 +174,10 @@ export default function PrivateInfoCard({
         consolidatedIdvSessionStatus={consolidatedIdvSessionStatus}
         govIdRetrievalEndpoints={govIdRetrievalEndpoints}
       />
+      <BackupCredsModal
+        isVisible={backupCredsModalIsVisible}
+        setIsVisible={setBackupCredsModalIsVisible}
+      />
 
       <div className="profile-info-card">
         {loading ? (
@@ -217,6 +223,17 @@ export default function PrivateInfoCard({
                     />
                   </div>
                 </div>
+              </div>
+              <div style={{ marginLeft: "auto" }}>
+                <button
+                  // className="export-private-info-button"
+                  className='backup-credentials-button'
+                  // className='profile-navigate-to-verification-button'
+                  style={{ padding: "20px" }}
+                  onClick={() => setBackupCredsModalIsVisible(true)}
+                >
+                  Backup Credentials
+                </button>
               </div>
             </div>
             <ColoredHorizontalRule />
