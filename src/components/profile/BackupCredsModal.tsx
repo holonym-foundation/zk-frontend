@@ -39,12 +39,13 @@ export default function VerificationStatusModal({
   const {
     mutate,
     isLoading,
-    isError
+    isError,
+    isSuccess
   } = useMutation(
     async () => {
-      if (!kolpProof) throw new Error('Missing necessary data: kolpProof')
-      if (!sortedCreds) throw new Error('Missing necessary data: sortedCreds')
       try {
+        if (!kolpProof) throw new Error('Missing necessary data: kolpProof')
+        if (!sortedCreds) throw new Error('Missing necessary data: sortedCreds')
         // const kolpProof = await loadKOLPProof()
         await storeCreds(sortedCreds, kolpProof);
       } catch (err) {
@@ -75,15 +76,21 @@ export default function VerificationStatusModal({
                 lineHeight: "1",
                 fontSize: "16px",
               }}
-              disabled={isLoading}
+              disabled={loadingCreds || !kolpProof || isLoading}
               onClick={() => mutate()}
             >
-              {isLoading ? 'Backing up credentials...' : 'Backup'}
+              {isLoading ? 'Backing up credentials...' : (loadingCreds || !kolpProof) ? 'Loading necessary data...' : 'Backup'}
             </button>
 
             {isError && (
               <p style={{ color: 'red', marginTop: '20px' }}>
                 Encountered an error trying to backup credentials
+              </p>
+            )}
+
+            {isSuccess && (
+              <p style={{ marginTop: '20px' }}>
+                Backup successful
               </p>
             )}
           </div>
