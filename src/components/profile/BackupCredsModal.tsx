@@ -44,7 +44,6 @@ export default function VerificationStatusModal({
   } = useMutation(
     async () => {
       try {
-        if (!kolpProof) throw new Error('Missing necessary data: kolpProof')
         if (!sortedCreds) throw new Error('Missing necessary data: sortedCreds')
         // const kolpProof = await loadKOLPProof()
         await storeCreds(sortedCreds, kolpProof);
