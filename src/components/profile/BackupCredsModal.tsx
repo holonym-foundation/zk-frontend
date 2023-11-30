@@ -75,10 +75,10 @@ export default function VerificationStatusModal({
                 lineHeight: "1",
                 fontSize: "16px",
               }}
-              disabled={loadingCreds || !kolpProof || isLoading}
+              disabled={loadingCreds || isLoading}
               onClick={() => mutate()}
             >
-              {isLoading ? 'Backing up credentials...' : (loadingCreds || !kolpProof) ? 'Loading necessary data...' : 'Backup'}
+              {isLoading ? 'Backing up credentials...' : (loadingCreds) ? 'Loading necessary data...' : 'Backup'}
             </button>
 
             {isError && (
