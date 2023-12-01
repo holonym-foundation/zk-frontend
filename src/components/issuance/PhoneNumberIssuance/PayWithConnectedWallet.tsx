@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import BigNumber from "bignumber.js";
 import {
-  usePrepareSendTransaction,
   useSendTransaction,
   useWaitForTransaction,
 } from "wagmi";
@@ -17,6 +16,7 @@ import Loading from "../../atoms/Loading";
 import {
   paymentRecieverAddress
 } from "../../../constants";
+import usePrepareTxWithSid from '../../../hooks/usePrepareTxWithSid';
 import { Currency, SupportedChainIdsForPayment, ActiveChain } from "../../../types";
 
 const chainIdToNetworkGateFallback = {
@@ -48,7 +48,7 @@ const PayWithConnectedWallet = ({
     isLoading: preparingTx,
     isError: prepareTxIsError,
     isSuccess: txIsPrepared,
-  } = usePrepareSendTransaction({
+  } = usePrepareTxWithSid({
     chainId: chainId,
     to: paymentRecieverAddress,
     value: costDenominatedInToken ? parseEther(costDenominatedInToken.toString()) : 0n,
