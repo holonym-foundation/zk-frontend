@@ -5,6 +5,7 @@ import {
   usePrepareSendTransaction,
 } from "wagmi";
 import { SupportedChainIdsForPayment } from "../types";
+import useHashSid from './useHashSid';
 
 /**
  * Wrapper around wagmi's usePrepareSendTransaction, but sets tx.data to hash of sid.
@@ -18,15 +19,7 @@ const usePrepareTxWithSid = ({
   to: `0x${string}`;
   chainId?: SupportedChainIdsForPayment;
 }) => {
-  const [searchParams] = useSearchParams();
-  const sid = searchParams.get("sid");
-
-  const sidDigest = useMemo(() => {
-    if (!sid) return null
-    // sids are always hex strings without the 0x prefix, so we only need
-    // to prepend the 0x here. We don't need to encode the string first.
-    return ethers.utils.keccak256('0x' + sid) as `0x${string}`;
-  }, [sid])
+  const sidDigest = useHashSid();
 
   const data = usePrepareSendTransaction({
     chainId,

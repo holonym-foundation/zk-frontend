@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { BigNumber } from "bignumber.js";
 import { paymentRecieverAddress } from "../../constants";
+import useHashSid from '../../hooks/useHashSid';
 import { Currency, SupportedChainIdsForPayment } from "../../types";
 
 const opChainIds = [10, 420];
@@ -24,17 +25,29 @@ const PayWithDiffWallet = ({
   costIsSuccess: boolean;
 }) => {
   const [txHash, setTxHash] = useState<string>("");
-  const [showCopied, setShowCopied] = useState(false);
+  const [showCopiedAddress, setShowCopiedAddress] = useState(false);
+  const [showCopiedData, setShowCopiedData] = useState(false);
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (showCopied) {
+    if (showCopiedAddress) {
       const timer = setTimeout(() => {
-        setShowCopied(false);
+        setShowCopiedAddress(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [showCopied]);
+  }, [showCopiedAddress]);
+
+  useEffect(() => {
+    if (showCopiedData) {
+      const timer = setTimeout(() => {
+        setShowCopiedData(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showCopiedData]);
+
+  const sidDigest = useHashSid();
 
   return (
     <>
@@ -51,9 +64,7 @@ const PayWithDiffWallet = ({
           <div>
             {costIsSuccess && costDenominatedInToken && (
               <p>
-                Send {costDenominatedInToken ? costDenominatedInToken.decimalPlaces(10).toString() : ""} in{" "}
-                {currency.symbol} {chainId && opChainIds.includes(chainId) && "(on Optimism)"}
-                {chainId && ethChainIds.includes(chainId) && "(on Ethereum mainnet)"} to
+                Create a transaction with the following properties.
               </p>
             )}
             {costIsLoading && <p>Loading price...</p>}
@@ -63,24 +74,88 @@ const PayWithDiffWallet = ({
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: "center",              
               }}
             >
               <p style={{ marginBottom: "0px", marginRight: "10px" }}>
-                <code>{paymentRecieverAddress}</code>
+                <code>
+                  <span style={{ color: '#aaa' }}>to:</span> {paymentRecieverAddress}
+                </code>
               </p>
               <button
                 className="x-button secondary outline"
                 onClick={() => {
                   navigator.clipboard.writeText(paymentRecieverAddress);
-                  setShowCopied(true);
+                  setShowCopiedAddress(true);
+                }}
+                style={{
+                  fontSize: "12px",
+                  padding: "5px",
+                  // maxWidth: '80px'
+                }}
+              >
+                {showCopiedAddress ? "\u2713 Copied" : "Copy Address"}
+              </button>
+            </div>
+
+            <br />
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                maxWidth: '460px'              
+              }}
+            >
+              <p style={{ marginBottom: "0px", marginRight: "10px" }}>
+                <code>
+                  <span style={{ color: '#aaa' }}>amount:</span> {costDenominatedInToken ? costDenominatedInToken.decimalPlaces(10).toString() : ""} in{" "}
+                  {currency.symbol} {chainId && opChainIds.includes(chainId) && "(on Optimism)"}
+                  {chainId && ethChainIds.includes(chainId) && "(on Ethereum mainnet)"}
+                </code>
+              </p>
+            </div>
+
+            <br />
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                maxWidth: '460px'
+              }}
+            >
+              <p style={{ 
+                marginBottom: "0px", 
+                marginRight: "10px", 
+                wordWrap: 'break-word', 
+                whiteSpace: 'normal',
+                maxWidth: '80%'
+              }}>
+                {sidDigest && (
+                  <code style={{ whiteSpace: 'pre-wrap', maxWidth: '100%' }}>
+                    <span style={{ color: '#aaa' }}>data:</span> {sidDigest}
+                  </code>
+                )}
+                {!sidDigest && (
+                  <code style={{ color: 'red', whiteSpace: 'pre-wrap', maxWidth: '100%' }}>
+                    ERROR: Could not load data. Please submit a ticket.
+                  </code>
+                )}
+              </p>
+              <button
+                className="x-button secondary outline"
+                onClick={() => {
+                  navigator.clipboard.writeText((sidDigest ?? '') as string);
+                  setShowCopiedData(true);
                 }}
                 style={{
                   fontSize: "12px",
                   padding: "5px",
                 }}
               >
-                {showCopied ? "\u2713 Copied" : "Copy Address"}
+                {showCopiedData ? "\u2713 Copied" : "Copy data"}
               </button>
             </div>
           </div>
