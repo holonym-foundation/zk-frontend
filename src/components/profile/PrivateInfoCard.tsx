@@ -56,6 +56,7 @@ export default function PrivateInfoCard({
   loading: boolean;
 }) {
   const navigate = useNavigate();
+  const [isBlurred, setIsBlurred] = useState(true);
   const [statusModalIsVisible, setStatusModalIsVisible] = useState(false);
   const [backupCredsModalIsVisible, setBackupCredsModalIsVisible] = useState(false);
 
@@ -225,6 +226,14 @@ export default function PrivateInfoCard({
                 </div>
               </div>
               <div style={{ marginLeft: "auto" }}>
+                <button 
+                  className='export-private-info-button'
+                  style={{ marginRight: "20px" }}
+                  onClick={() => setIsBlurred(!isBlurred)}
+                >
+                  {isBlurred ? 'Unblur' : 'Blur'}
+                </button>
+
                 <button
                   className='export-private-info-button'
                   // className='backup-credentials-button'
@@ -237,7 +246,7 @@ export default function PrivateInfoCard({
               </div>
             </div>
             <ColoredHorizontalRule />
-            <div className="card-content">
+            <div className="card-content" style={{ filter: isBlurred ? 'blur(4px)' : 'none' }}>
               <div className="private-info-grid">
                 <div
                   style={{ fontWeight: "bold" }}
