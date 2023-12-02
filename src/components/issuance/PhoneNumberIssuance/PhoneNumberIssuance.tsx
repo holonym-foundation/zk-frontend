@@ -58,6 +58,7 @@ const VerifyPhoneNumber = () => {
     paymentResponse,
     paymentSubmissionIsLoading,
     paymentSubmissionIsError,
+    phonePaymentErrorMsg,
     submitPhonePayment,
   } = usePhoneNumberIssuanceState();
 
@@ -135,11 +136,16 @@ const VerifyPhoneNumber = () => {
     <IssuanceContainer steps={steps} currentIdx={currentIdx}>
       {success ? (
         <StepSuccessWithAnalytics />
-      ) : currentStep === "Pay" && !paymentSubmissionIsLoading ? (
+      ) : currentStep === "Pay" && !paymentSubmissionIsLoading && !phonePaymentErrorMsg ? (
         <PhonePayment onPaymentSuccess={submitPhonePayment} />
-      ) : currentStep === "Pay" && paymentSubmissionIsLoading ? (
+      ) : currentStep === "Pay" && paymentSubmissionIsLoading && !phonePaymentErrorMsg ? (
         <div>
           <p>Loading...</p>
+        </div>
+      ) : currentStep === "Pay" && phonePaymentErrorMsg ? (
+        <div>
+          <p style={{ color: 'red' }}>Error: {phonePaymentErrorMsg}</p>
+          <p style={{ color: 'red' }}>sid: {sid}</p>
         </div>
       ) : currentStep === "Phone#" ? (
         <PhoneNumberForm onSubmit={setNumberAndSendCode} />

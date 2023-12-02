@@ -36,6 +36,7 @@ function usePhoneNumberIssuanceState() {
     data: paymentResponse,
     isLoading: paymentSubmissionIsLoading,
     isError: paymentSubmissionIsError,
+    error: phonePaymentError,
     mutate: submitPhonePayment
   } = useMutation(
     async (data: { chainId?: number, txHash?: string, orderId?: string }) => {
@@ -56,6 +57,11 @@ function usePhoneNumberIssuanceState() {
           orderId: data.orderId,
         }),
       })
+
+      if (!resp.ok) {
+        throw new Error((await resp.json()).error)
+      }
+
       return resp.json()
     },
     {
@@ -64,6 +70,20 @@ function usePhoneNumberIssuanceState() {
       }
     }
   )
+
+  const phonePaymentErrorMsg = useMemo(() => {
+    if (!paymentSubmissionIsError) return null;
+    try {
+      const msg = (phonePaymentError as any)?.message
+
+      if (msg) {
+        return msg
+      }
+      return null;  
+    } catch (err) {
+      return 'Unknown payment error'
+    }
+  }, [paymentSubmissionIsError, phonePaymentError])
 
   return {
     success,
@@ -79,6 +99,7 @@ function usePhoneNumberIssuanceState() {
     paymentResponse,
     paymentSubmissionIsLoading,
     paymentSubmissionIsError,
+    phonePaymentErrorMsg,
     submitPhonePayment,
   };
 }
