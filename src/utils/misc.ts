@@ -40,17 +40,18 @@ export async function getIDVProvider(ip?: string, country?: string) {
 
   const defaultOptions = ["veriff", "onfido"];
   const allOptions = ["veriff", "idenfy", "onfido"];
-  const onfidoIdenfy = ["onfido", "idenfy"];
+  // const onfidoIdenfy = ["onfido", "idenfy"];
+  const onfido = ["onfido"]
 
   const exceptions = {
     Japan: {
-      options: onfidoIdenfy,
+      options: onfido,
     },
     China: {
-      options: onfidoIdenfy,
+      options: onfido,
     },
     "Hong Kong": {
-      options: onfidoIdenfy,
+      options: onfido,
     },
     Iran: {
       options: allOptions,
