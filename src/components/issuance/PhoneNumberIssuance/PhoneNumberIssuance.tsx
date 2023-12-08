@@ -127,7 +127,7 @@ const VerifyPhoneNumber = () => {
       );
       datadogLogs.logger.info("EnterPhoneCode", {});
       navigate(
-        `/issuance/phone-verify/store?retrievalEndpoint=${encodedRetrievalEndpoint}`
+        `/issuance/phone-verify/store?sid=${sid}&retrievalEndpoint=${encodedRetrievalEndpoint}`
       );
     }
   };
