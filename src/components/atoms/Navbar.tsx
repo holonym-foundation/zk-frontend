@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 import HolonymLogo from "../../img/Holonym-Logo-W.png";
 import UserImage from "../../img/User.svg";
 import { truncateAddress } from "../../utils/ui-helpers";
@@ -15,6 +15,7 @@ const thisUrl =
 export default function Navbar() {
   const navigate = useNavigate();
   const { address, connector } = useAccount();
+  const { disconnect } = useDisconnect()
   const [walletModalShowing, setWalletModalShowing] = useState(false);
 
   function handleNavigate(e: any) {
@@ -154,6 +155,20 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {address && connector && (
+              <div
+                className="nav-wallet"
+                style={{ backgroundColor: "var(--dark-card-background)" }}
+              >
+                <div
+                  className="nav-wallet-text nav-link w-nav-link"
+                  onClick={() => disconnect()}
+                >
+                  Disconnect
+                </div>
+              </div>
+            )}
           </nav>
         </div>
         <AnnouncementBanner />
