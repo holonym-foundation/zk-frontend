@@ -4,6 +4,7 @@ import { alchemyProvider } from '@wagmi/core/providers/alchemy'
 import { InjectedConnector } from '@wagmi/core/connectors/injected'
 import { MetaMaskConnector } from '@wagmi/core/connectors/metaMask'
 import { CoinbaseWalletConnector } from '@wagmi/core/connectors/coinbaseWallet'
+import { WalletConnectConnector } from '@wagmi/core/connectors/walletConnect'
 import { allowedChains } from "./constants";
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
@@ -26,7 +27,13 @@ const config = createConfig({
         appName: 'holonym',
         // jsonRpcUrl: 'https://eth-mainnet.alchemyapi.io/v2/yourAlchemyId',
         },
-    })
+    }),
+    new WalletConnectConnector({
+      chains,
+      options: {
+        projectId: '099565f404cdf2f5885852958c38298a'
+      },
+    }),
   ]
 })
 
