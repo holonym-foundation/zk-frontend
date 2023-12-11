@@ -31,7 +31,12 @@ const config = createConfig({
     new WalletConnectConnector({
       chains,
       options: {
-        projectId: '099565f404cdf2f5885852958c38298a'
+        projectId: '099565f404cdf2f5885852958c38298a',
+        qrModalOptions: {
+          themeVariables: {
+            '--wcm-z-index': '9999999'
+          }
+        }
       },
     }),
   ]
