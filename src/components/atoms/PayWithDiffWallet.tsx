@@ -52,6 +52,12 @@ const PayWithDiffWallet = ({
   return (
     <>
       <h1>Mint your Holo with Privacy using a Burner Wallet</h1>
+      <h2>PROCEED WITH CAUTION</h2>
+      <p>
+        IMPORTANT: Every field is required. If you submit a transaction with incorrect data,{' '}
+        you will not be able to verify. If your wallet does not allow you to modify the <code>data
+        </code> field, do not use this option.
+      </p>
       <br />
       <ol style={{ fontSize: "14px", paddingLeft: "20px" }}>
         <li>
