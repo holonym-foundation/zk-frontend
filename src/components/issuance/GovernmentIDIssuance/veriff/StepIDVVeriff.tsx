@@ -50,7 +50,7 @@ const StepIDVVeriff = ({ url, sessionId }: { url?: string, sessionId: string }) 
       let hasSuccessfulSession = false;
       if (data?.veriff?.status) {
         if (veriffRetrievalEndpoint) {
-          if (data?.veriff?.status === "approved") {
+          if (data?.veriff?.status === "approved" || data?.veriff?.status === "declined") {
             navigate(
               `/issuance/idgov-veriff/store?sid=${sid}&retrievalEndpoint=${veriffRetrievalEndpoint}`
             );
@@ -58,11 +58,11 @@ const StepIDVVeriff = ({ url, sessionId }: { url?: string, sessionId: string }) 
             unsuccessfulVeriffStatuses.includes(data?.veriff?.status)
           ) {
             setVerificationError(
-              `Status of Veriff session ${data?.veriff?.sessionId} is '${data?.veriff?.status}'. Expected 'approved'.`
+              `Status of Veriff session ${data?.veriff?.sessionId} is '${data?.veriff?.status}'. Expected 'approved' or 'declined'.`
             );
           } else {
             console.log(
-              `Veriff status is '${data?.veriff?.status}'. Expected 'approved'.`
+              `Veriff status is '${data?.veriff?.status}'. Expected 'approved' or 'declined'.`
             );
           }
         } else {
