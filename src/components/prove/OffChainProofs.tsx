@@ -43,71 +43,20 @@ const Proofs = () => {
   const { params, proofs, hasNecessaryCreds, proof, error, setError } =
     useGenericProofsState();
 
-  const sessionQuery = useQuery(
-    ["getOffChainSession"],
-    async () => {
-      try {
-        if (!searchParams.get("sessionId")) return { error: "No session id" };
-        const sessionId = searchParams.get("sessionId");
-        const resp = await fetch(
-          `${clientPortalUrl}/api/sessions/${sessionId}`
-        );
-        return await resp.json();
-      } catch (err) {
-        console.error(err);
-        return { error: err };
-      }
-    },
-    {
-      refetchOnWindowFocus: false,
-      onError: (err) => {
-        console.error(err);
-      },
-      // enabled:
-      // onSuccess:
-      // onError:
-    }
-  );
-
   // Steps:
-  // 1. Ensure sessionId and callback params are present
-  // 2. Ensure sessionId is valid
-  // 3. Redirect user to callback URL & include proof in query params
+  // 1. Ensure callback param is present
+  // 2. Redirect user to callback URL & include proof in query params
 
   useEffect(() => {
     (async () => {
-      // Get sessionId and callback from URL
-      const sessionId = searchParams.get("sessionId");
+      // Get callback from URL
       const callbackUrl = searchParams.get("callback");
-      if (!(sessionId || callbackUrl))
-        setError({ message: "Missing sessionId and callback" });
-      if (!sessionId) setError({ message: "Missing sessionId" });
       if (!callbackUrl) setError({ message: "Missing callback" });
-      else if (sessionId && callbackUrl) {
-        try {
-          if (!sessionQuery.data) await sessionQuery.refetch(); // manually call queryFn
-          const returnedSessionId = sessionQuery?.data?.sessionId;
-          if (!returnedSessionId) setError({ message: "Invalid sessionId" });
-          else if (sessionQuery?.data.error)
-            setError(sessionQuery?.data?.error?.message);
-        } catch (err) {
-          console.error(err);
-          setError({ message: "Invalid sessionId" });
-        }
-      }
     })();
-  }, [
-    searchParams,
-    sessionQuery,
-    sessionQuery.data,
-    sessionQuery.isError,
-    sessionQuery.isLoading,
-    sessionQuery.isSuccess,
-    setError,
-  ]);
+  }, [searchParams]);
 
   function handleSubmit() {
-    if (error || !sessionQuery?.data || sessionQuery?.isError || !proof) return;
+    if (error || !proof) return;
     // Redirect user to callback URL & include proof in query params
     const callback = searchParams.get("callback");
     const proofString = encodeURIComponent(JSON.stringify(proof));
@@ -135,8 +84,7 @@ const Proofs = () => {
         ) : hasNecessaryCreds ? (
           <p>
             This will generate a proof showing only this one attribute of you:{" "}
-            <code>{proofs[params.proofType! as keyof typeof proofs].name}</code>
-            . It may take 5-15 seconds to load.
+            <code>{proofs[params.proofType! as keyof typeof proofs].name}</code>.
           </p>
         ) : (
           <p>
