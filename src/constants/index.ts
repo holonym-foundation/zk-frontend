@@ -52,7 +52,7 @@ export const PRICE_USD = BOND_USD.plus(MINT_USD);
 
 export const PHONE_PRICE_USD = BigNumber("5.0")
 
-export const PAYMENT_MARGIN_OF_ERROR_AS_PERCENT = BigNumber("0.02");
+export const PAYMENT_MARGIN_OF_ERROR_AS_PERCENT = BigNumber("0.03");
 
 // Necessary now that any site can redirect a user to Holonym and store user credentials. A user's
 // credential set could get cluttered with untrusted sites if we don't check against the whitelist.
