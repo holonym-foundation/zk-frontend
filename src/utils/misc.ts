@@ -36,46 +36,48 @@ export async function sha1String(data: string) {
 }
 
 export async function getIDVProvider(ip?: string, country?: string) {
-  if (!ip) return "veriff";
+  return "veriff";
 
-  const defaultOptions = ["veriff", "onfido"];
-  const allOptions = ["veriff", "idenfy", "onfido"];
-  // const onfidoIdenfy = ["onfido", "idenfy"];
-  const onfido = ["onfido"]
+  // if (!ip) return "veriff";
 
-  const exceptions = {
-    Japan: {
-      options: onfido,
-    },
-    China: {
-      options: onfido,
-    },
-    "Hong Kong": {
-      options: onfido,
-    },
-    Iran: {
-      options: allOptions,
-    },
-    Russia: {
-      options: allOptions,
-    },
-    Bangladesh: {
-      options: allOptions,
-    },
-    Nigeria: {
-      options: allOptions,
-    },
-    "South Korea": {
-      options: allOptions,
-    },
-  };
+  // const defaultOptions = ["veriff", "onfido"];
+  // // const allOptions = ["veriff", "idenfy", "onfido"];
+  // // const onfidoIdenfy = ["onfido", "idenfy"];
+  // const onfido = ["onfido"]
 
-  const options =
-    exceptions[country as keyof typeof exceptions]?.options ?? defaultOptions;
-  const ipcoin = ethers.BigNumber.from("0x" + (await sha1String(ip)))
-    .mod(options.length)
-    .toNumber();
-  return options[ipcoin];
+  // const exceptions = {
+  //   Japan: {
+  //     options: onfido,
+  //   },
+  //   China: {
+  //     options: onfido,
+  //   },
+  //   "Hong Kong": {
+  //     options: onfido,
+  //   },
+  //   Iran: {
+  //     options: defaultOptions,
+  //   },
+  //   Russia: {
+  //     options: defaultOptions,
+  //   },
+  //   Bangladesh: {
+  //     options: defaultOptions,
+  //   },
+  //   Nigeria: {
+  //     options: defaultOptions,
+  //   },
+  //   "South Korea": {
+  //     options: defaultOptions,
+  //   },
+  // };
+
+  // const options =
+  //   exceptions[country as keyof typeof exceptions]?.options ?? defaultOptions;
+  // const ipcoin = ethers.BigNumber.from("0x" + (await sha1String(ip)))
+  //   .mod(options.length)
+  //   .toNumber();
+  // return options[ipcoin];
 }
 
 /**
