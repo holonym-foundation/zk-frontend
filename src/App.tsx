@@ -67,7 +67,6 @@ const SignMessagesFallback = () => {
 
 function App() {
   useScriptWithURL("https://cdn.usefathom.com/script.js", {"data-site": "SLPDXJMA", defer: true});
-  // const [read, setReady] = useState(false);
   useEffect(() => {
     Promise.all([
       WebFont.load({

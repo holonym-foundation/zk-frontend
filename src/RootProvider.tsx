@@ -9,6 +9,7 @@ import { CredsProvider } from "./context/Creds";
 import { ProofsProvider } from "./context/Proofs";
 import AccountConnectGate from "./gate/AccountConnectGate";
 import SignatureGate from "./gate/SignatureGate";
+import LocalStorageGate from "./gate/LocalStorageGate";
 import NetworkGate from "./gate/NetworkGate";
 import { allowedChains } from "./constants";
 import { WagmiAccount, ActiveChain, SignatureGateData } from "./types";
@@ -49,23 +50,25 @@ export function RootProvider({
       <WagmiConfig config={wagmiConfig}>
         <HoloAuthSigProvider>
           <HoloKeyGenSigProvider>
-            <AccountConnectGate
-              gate={connectWalletGateFn}
-              fallback={connectWalletFallback}
-            >
-              <NetworkGate gate={networkGateFn} fallback={networkGateFallback}>
-                <SignatureGate
-                  gate={signMessagesGateFn}
-                  fallback={signMessagesFallback}
-                >
-                  <CredsProvider>
-                    <ProofMetadataProvider>
-                      <ProofsProvider>{children}</ProofsProvider>
-                    </ProofMetadataProvider>
-                  </CredsProvider>
-                </SignatureGate>
-              </NetworkGate>
-            </AccountConnectGate>
+            <LocalStorageGate>
+              <AccountConnectGate
+                gate={connectWalletGateFn}
+                fallback={connectWalletFallback}
+              >
+                <NetworkGate gate={networkGateFn} fallback={networkGateFallback}>
+                  <SignatureGate
+                    gate={signMessagesGateFn}
+                    fallback={signMessagesFallback}
+                  >
+                    <CredsProvider>
+                      <ProofMetadataProvider>
+                        <ProofsProvider>{children}</ProofsProvider>
+                      </ProofMetadataProvider>
+                    </CredsProvider>
+                  </SignatureGate>
+                </NetworkGate>
+              </AccountConnectGate>
+            </LocalStorageGate>
           </HoloKeyGenSigProvider>
         </HoloAuthSigProvider>
       </WagmiConfig>
