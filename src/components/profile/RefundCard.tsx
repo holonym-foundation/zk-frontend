@@ -33,6 +33,13 @@ function RefundModal({
       heavyBlur={true}
     >
       <div style={{ width: "90%" }}>
+
+        <h3>Request refund</h3>
+
+        <p>
+          If you claim a refund, you will receive the amount you paid minus the issuer risk fee.
+        </p>
+
         {/* Only show "enter wallet address" form if user is getting on-chain refund */}
         {!usedPayPal && (
           <>
