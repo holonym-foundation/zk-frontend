@@ -125,8 +125,8 @@ export default function RefundCard({
     mutate: requestPhoneRefund,
   } = useRequestPhoneRefund();
 
-  const usedPayPalForIdSession = !!failedIdSessions?.[0]?.payPal
-  const usedPayPalForPhoneSession = !!failedPhoneSessions?.[0]?.payPal?.S
+  const usedPayPalForIdSession = !!failedIdSessions?.[0]?.payPal && !failedIdSessions?.[0]?.txHash
+  const usedPayPalForPhoneSession = !!failedPhoneSessions?.[0]?.payPal?.S && !failedPhoneSessions?.[0]?.txHash?.S
 
   return (
     <>
