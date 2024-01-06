@@ -120,7 +120,7 @@ export function getPhoneSessionPath(phoneServerSessions?: PhoneServerSessionsRes
     // If user has already paid for a session but hasn't completed verification,
     // direct them to the page where they can start verification.
     const inProgressSessions = phoneServerSessions.filter(
-      (session) => session.sessionStatus.S === "IN_PROGRESS" && session?.numAttempts?.N < 3
+      (session) => session.sessionStatus.S === "IN_PROGRESS" && session?.numAttempts?.N <= 3
     );
     if (inProgressSessions.length > 0) {
       return `/issuance/phone-verify?sid=${inProgressSessions[0].id.S}`
