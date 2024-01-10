@@ -156,7 +156,10 @@ const VerifyPhoneNumber = () => {
 
           <div className="spacer-medium" />
           <p>Didn't receive a code?</p>
+          <p>First, be sure to check SMS, WhatsApp, and Viber.</p>
+          <p>If you are certain you didn't get the OTP, consider re-entering your phone number.</p>
           <p>You can attempt up to 3 times.</p>
+          <p>NOTE: After 3 attempts, you will have to pay again to try again.</p>
           <button
             className="x-button secondary outline"
             style={{
