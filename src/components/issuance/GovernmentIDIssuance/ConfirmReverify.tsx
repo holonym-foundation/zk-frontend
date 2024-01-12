@@ -46,7 +46,7 @@ const ConfirmReverify = () => {
               lineHeight: "1",
               fontSize: "16px",
             }}
-            disabled={preferredProviderIsLoading}
+            disabled={preferredProviderIsLoading || idServerSessionsIsLoading}
             onClick={() => {
               const path = getIDVSessionPath(idServerSessions);
               if (path) {
@@ -64,7 +64,7 @@ const ConfirmReverify = () => {
                 })
             }}
           >
-            {preferredProviderIsLoading ? 'Loading...' : 'Reverify'}
+            {preferredProviderIsLoading || idServerSessionsIsLoading ? 'Loading...' : 'Reverify'}
           </button>
         </div>
       </div>
