@@ -36,7 +36,7 @@ export async function sha1String(data: string) {
 }
 
 export async function getIDVProvider(ip?: string, country?: string) {
-  return "veriff";
+  return "onfido";
 
   // if (!ip) return "veriff";
 
