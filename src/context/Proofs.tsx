@@ -214,8 +214,10 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
    */
   // eslint-disable-next-line react-hooks/exhaustive-deps
   async function addLeaf(creds: IssuedCredentialBase) {
+    console.log('addLeaf called')
     const circomProof = await onAddLeafProof(creds);
-    await Relayer.addLeaf(circomProof, async () => {
+    console.log('addLeaf: Generated circomProof')
+    const onSuccess = async () => {
       loadKOLPProof(
         false,
         false,
@@ -226,7 +228,11 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
       else {
         setNumQueuedStoreCredsInvocations(numQueuedStoreCredsInvocations + 1);
       }
-    });
+    }
+    const onError = async (err: any) => {
+      console.error('addLeaf: Error calling Relayer.addLeaf:', err)
+    }
+    await Relayer.addLeaf(circomProof, onSuccess, onError);
   }
 
   useEffect(() => {
@@ -465,53 +471,57 @@ function ProofsProvider({ children }: { children: React.ReactNode }) {
     () => {
       if (proofsWorker) {
         proofsWorker.onmessage = async (event: any) => {
-          if (event?.data?.error) {
-            console.error(event.data.error);
-            // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
-            // user retrieved their credentials but something failed during the add leaf process.
-            // Reload proofs after adding leaf. The proof that erred should then succeed.
-            if (event.data.error?.message === "Leaf is not in Merkle tree") {
-              if (
-                event.data.proofType === "us-residency" ||
-                event.data.proofType === "uniqueness"
-              ) {
-                if (sortedCreds?.[serverAddress["idgov-v2"]]) {
-                  await addLeaf(sortedCreds[serverAddress["idgov-v2"]]);
-                  loadUSResidencyProof(false, true);
-                  loadUniquenessProof(false, true);
-                  loadGovIdFirstNameLastNameProof(false, true);
-                  loadKOLPProof(false, true);
-                }
-              } else if (event.data.proofType === "uniqueness-phone") {
-                if (sortedCreds?.[serverAddress["phone-v2"]]) {
-                  await addLeaf(sortedCreds[serverAddress["phone-v2"]]);
-                  loadUniquenessPhoneProof(false, true);
-                }
-              } else if (event.data.proofType === "medical-specialty") {
-                if (sortedCreds?.[serverAddress["med"]]) {
-                  await addLeaf(sortedCreds[serverAddress["med"]]);
-                  loadMedicalSpecialtyProof(false, true);
+          try {
+            if (event?.data?.error) {
+              console.error(event.data.error);
+              // If proof failed because leaf isn't in tree, call addLeaf. This handles the case where the
+              // user retrieved their credentials but something failed during the add leaf process.
+              // Reload proofs after adding leaf. The proof that erred should then succeed.
+              if (event.data.error?.message === "Leaf is not in Merkle tree") {
+                if (
+                  event.data.proofType === "us-residency" ||
+                  event.data.proofType === "uniqueness"
+                ) {
+                  if (sortedCreds?.[serverAddress["idgov-v2"]]) {
+                    await addLeaf(sortedCreds[serverAddress["idgov-v2"]]);
+                    loadUSResidencyProof(false, true);
+                    loadUniquenessProof(false, true);
+                    loadGovIdFirstNameLastNameProof(false, true);
+                    loadKOLPProof(false, true);
+                  }
+                } else if (event.data.proofType === "uniqueness-phone") {
+                  if (sortedCreds?.[serverAddress["phone-v2"]]) {
+                    await addLeaf(sortedCreds[serverAddress["phone-v2"]]);
+                    loadUniquenessPhoneProof(false, true);
+                  }
+                } else if (event.data.proofType === "medical-specialty") {
+                  if (sortedCreds?.[serverAddress["med"]]) {
+                    await addLeaf(sortedCreds[serverAddress["med"]]);
+                    loadMedicalSpecialtyProof(false, true);
+                  }
                 }
               }
+            } else if (event?.data?.proofType === "us-residency") {
+              setUSResidencyProof(event.data.proof);
+              setLoadingUSResidencyProof(false);
+            } else if (event?.data?.proofType === "uniqueness") {
+              setUniquenessProof(event.data.proof);
+              setLoadingUniquenessProof(false);
+            } else if (event?.data?.proofType === "uniqueness-phone") {
+              setUniquenessPhoneProof(event.data.proof);
+              setLoadingUniquenessPhoneProof(false);
+            } else if (event?.data?.proofType === "medical-specialty") {
+              setMedicalSpecialtyProof(event.data.proof);
+              setLoadingMedicalSpecialtyProof(false);
+            } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
+              setGovIdFirstNameLastNameProof(event.data.proof);
+              setLoadingGovIdFirstNameLastNameProof(false);
+            } else if (event?.data?.proofType === "kolp") {
+              setKOLPProof(event.data.proof);
+              setLoadingKOLPProof(false);
             }
-          } else if (event?.data?.proofType === "us-residency") {
-            setUSResidencyProof(event.data.proof);
-            setLoadingUSResidencyProof(false);
-          } else if (event?.data?.proofType === "uniqueness") {
-            setUniquenessProof(event.data.proof);
-            setLoadingUniquenessProof(false);
-          } else if (event?.data?.proofType === "uniqueness-phone") {
-            setUniquenessPhoneProof(event.data.proof);
-            setLoadingUniquenessPhoneProof(false);
-          } else if (event?.data?.proofType === "medical-specialty") {
-            setMedicalSpecialtyProof(event.data.proof);
-            setLoadingMedicalSpecialtyProof(false);
-          } else if (event?.data?.proofType === "gov-id-firstname-lastname") {
-            setGovIdFirstNameLastNameProof(event.data.proof);
-            setLoadingGovIdFirstNameLastNameProof(false);
-          } else if (event?.data?.proofType === "kolp") {
-            setKOLPProof(event.data.proof);
-            setLoadingKOLPProof(false);
+          } catch (err) {
+            console.error('error in proofsWorker.onmessage with event.data of:', JSON.stringify(event.data), err);
           }
         };
       }
