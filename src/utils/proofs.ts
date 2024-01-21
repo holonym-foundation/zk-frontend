@@ -223,7 +223,6 @@ export async function createLeaf(serializedCreds: Array<string>) {
   return output.replaceAll('"', "");
 }
 
-// TODO: document what data parameter is
 export async function onAddLeafProof(data: IssuedCredentialBase) {
   const params = {
     pubKeyX: data.pubkey.x,
@@ -239,6 +238,20 @@ export async function onAddLeafProof(data: IssuedCredentialBase) {
     customFields: data.creds.customFields,
     scope: data.creds.scope,
   };
+  console.log('onAddLeafProof params truthiness', JSON.stringify({
+    pubKeyX: !!data.pubkey.x,
+    pubKeyY: !!data.pubkey.y,
+    R8x: !!data.signature.R8.x,
+    R8y: !!data.signature.R8.y,
+    S: !!data.signature.S,
+    signedLeaf: !!data.leaf,
+    newLeaf: !!data.newLeaf,
+    signedLeafSecret: !!data.creds.secret,
+    newLeafSecret: !!data.creds.newSecret,
+    iat: !!data.creds.iat,
+    customFields: !!data.creds.customFields,
+    scope: !!data.creds.scope,
+  }, null, 2))
   return await groth16.fullProve(
     params,
     "https://preproc-zkp.s3.us-east-2.amazonaws.com/circom/onAddLeaf_js/onAddLeaf.wasm",
