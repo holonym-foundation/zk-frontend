@@ -85,6 +85,8 @@ const VerifyPhoneNumber = () => {
         if (((err as any)?.response?.data ?? '').includes('Session has reached max attempts')) {
           alert('Error: You have reached the maximum allowed attempts')
           navigate('/issuance/phone')
+        } else if (((err as any)?.response?.data ?? '').includes('Number has been registered already')) {
+          alert('Error: This number has already been registered')
         }
       }
     }
