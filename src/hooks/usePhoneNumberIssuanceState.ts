@@ -67,6 +67,12 @@ function usePhoneNumberIssuanceState() {
     {
       onSuccess: () => {
         refetchPhoneServerSessions();
+      },
+      onError: (err) => {
+        console.error(err)
+        if ((err as any)?.message) {
+          alert(`Error submitting payment: ${(err as any).message}`)
+        }
       }
     }
   )
