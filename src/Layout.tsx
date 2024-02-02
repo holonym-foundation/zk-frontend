@@ -23,14 +23,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       // If hash(ip) mod 10 === 0, show the announcement
       const digest = "0x" + (await sha1String(ipAndCountry.ip));
       const result = ethers.BigNumber.from(digest).mod(10).toNumber();
-      if (result === 0 || result === 1) {
+      if ([0, 1, 2].includes(result)) {
         setShowNewHolonymAnnouncement(true);
       } else {
         // (For devs) If localStorage has the key "showNewHolonymAnnouncement", show the announcement
         try {
           if (window.localStorage.getItem("showNewHolonymAnnouncement") === "true") {
             setShowNewHolonymAnnouncement(true);
-          }  
+          }
         } catch (err) {
           // do nothing
         }
