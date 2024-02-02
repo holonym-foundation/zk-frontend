@@ -1,7 +1,17 @@
+import { useEffect } from "react";
+import { datadogLogs } from "@datadog/browser-logs";
 import { useNavigate } from "react-router-dom";
 import RoundedWindow from "../../RoundedWindow";
 
 const PaymentPrereqs = () => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info('ViewGovIDPrereqs', {})
+    } catch (err) {
+      // do nothing
+    }
+  }, [])
+
   const navigate = useNavigate();
 
   return (

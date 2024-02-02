@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { BigNumber } from "bignumber.js";
+import { datadogLogs } from "@datadog/browser-logs";
 import {
   OnApproveData,
   OnApproveActions,
@@ -35,6 +36,14 @@ const GovIDPayment = ({
 }: { 
   onPaymentSuccess: (data: { chainId?: number, txHash?: string, orderId?: string }) => void 
 }) => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info('ViewGovIDPayment', {})
+    } catch (err) {
+      // do nothing
+    }
+  }, [])
+
   const [searchParams] = useSearchParams();
   const sid = searchParams.get("sid");
 
