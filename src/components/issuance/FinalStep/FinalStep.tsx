@@ -7,6 +7,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { datadogLogs } from "@datadog/browser-logs";
 import {
   encryptWithAES,
   setLocalUserCredentials,
@@ -260,6 +261,13 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
               target="_blank"
               rel="noreferrer"
               className="in-text-link"
+              onClick={() => {
+                try {
+                  datadogLogs.logger.info('OpenSupportTicket', {})
+                } catch (err) {
+                  // do nothing
+                }
+              }}
             >
               #support-tickets
             </a>{" "}
@@ -279,6 +287,13 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="in-text-link"
+                onClick={() => {
+                  try {
+                    datadogLogs.logger.info('OpenSupportTicket', {})
+                  } catch (err) {
+                    // do nothing
+                  }
+                }}
               >
                 #support-tickets
               </a>{" "}
@@ -328,6 +343,13 @@ const FinalStep = ({ onSuccess }: { onSuccess: () => void }) => {
             target="_blank"
             rel="noreferrer"
             className="in-text-link"
+            onClick={() => {
+              try {
+                datadogLogs.logger.info('OpenSupportTicket', {})
+              } catch (err) {
+                // do nothing
+              }
+            }}
           >
             #support-tickets
           </a>{" "}

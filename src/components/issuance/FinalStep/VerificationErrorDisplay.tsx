@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { datadogLogs } from "@datadog/browser-logs";
 import { MINT_USD } from "../../../constants";
 import useRequestIDVRefund from "../../../hooks/useRequestIDVRefund";
 
@@ -31,6 +32,13 @@ const VerificationErrorDisplay = () => {
             target="_blank"
             rel="noreferrer"
             className="in-text-link"
+            onClick={() => {
+              try {
+                datadogLogs.logger.info('OpenSupportTicket', {})
+              } catch (err) {
+                // do nothing
+              }
+            }}
           >
             Open a ticket in the #support-tickets channel in the Holonym Discord with a description of the error.
           </a>

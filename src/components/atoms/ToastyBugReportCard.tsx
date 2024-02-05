@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import { datadogLogs } from '@datadog/browser-logs';
 import useSessionStorage from '../../hooks/useSessionStorage';
 
 export default function ToastyBugReportCard() {
@@ -16,7 +17,19 @@ export default function ToastyBugReportCard() {
         <div className={cardClasses}>
           <p style={{ fontSize: "1.5rem", fontFamily: "Clover Regular" }}>Experiencing bugs?</p>
           <p>Open a ticket in the{" "}
-            <a href="https://discord.gg/aJ8fgYzxmc" target="_blank" rel="noreferrer" className="in-text-link">
+            <a 
+              href="https://discord.gg/aJ8fgYzxmc" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="in-text-link"
+              onClick={() => {
+                try {
+                  datadogLogs.logger.info('OpenSupportTicket', {})
+                } catch (err) {
+                  // do nothing
+                }
+              }}
+            >
               #support-tickets
             </a>{" "}
             channel in the Holonym Discord with a description of the bug.
