@@ -16,6 +16,7 @@ function useCreateIdServerSession({ preferredProvider }: { preferredProvider?: s
         body: JSON.stringify({
           sigDigest: holoAuthSigDigest,
           idvProvider: preferredProvider,
+          domain: "app.holonym.id"
         }),
       })
   
