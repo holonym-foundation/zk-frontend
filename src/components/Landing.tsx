@@ -1,10 +1,20 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { datadogLogs } from "@datadog/browser-logs";
 // import RoundedWindow from './RoundedWindow';
 import ChooseCredentialStep from "../img/choose-credential-type-step.png";
 import VerifyStep from "../img/verify-yourself-step.png";
 import GenerateProofStep from "../img/generate-proof-step.png";
 
 const Landing = () => {
+  useEffect(() => {
+    try {
+      datadogLogs.logger.info("EntryHome", {});
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
   const navigate = useNavigate();
 
   const cardStyle = {
