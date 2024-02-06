@@ -39,7 +39,7 @@ function Banner() {
             <br/>
             <a 
               className="in-text-link" 
-              href="https://docs.holonym.id/introduction/private-credentials" 
+              href="https://silksecure.net/holonym" 
               target="_blank" 
               rel="noreferrer"
             >
