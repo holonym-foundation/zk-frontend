@@ -29,14 +29,22 @@ function Banner() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '23px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <p style={{ margin: 0, fontSize: "1.5rem", fontFamily: "Clover Semibold" }}>
-            Thanks for Trying Holonym!
+          Heads up! The Holonym Legacy App is now Deprecated
           </p>
           <p>
             {/* <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
               Your privacy is preserved by zero knowledge proofs and threshold encryption.
             <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span> */}
-            Holonym is a privacy-preserving on-chain identity verification service. It allows you to verify attributes about yourself without anyone, including Holonym Foundation, knowing who you are on-chain. For tips on how to achieve optimal privacy on Holonym, see <a href="https://docs.holonym.id/introduction/private-credentials" target="_blank" rel="noreferrer">our docs</a>.
+            Verification time may take 30minutes to days depending on user device capabilities. We strongly recommend using the new version of Holonym to verify quickly with a bug-free experience.
             <br/>
+            <a 
+              className="in-text-link" 
+              href="https://docs.holonym.id/introduction/private-credentials" 
+              target="_blank" 
+              rel="noreferrer"
+            >
+              Verify now with the new Holonym
+            </a>
             {/* View{" "}
             <a className="in-text-link" href="https://docs.holonym.id/introduction/private-credentials" target="_blank" rel="noreferrer">
               our docs
