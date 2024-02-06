@@ -35,7 +35,7 @@ function Banner() {
             {/* <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
               Your privacy is preserved by zero knowledge proofs and threshold encryption.
             <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span> */}
-            Verification time may take 30minutes to days depending on user device capabilities. We strongly recommend using the new version of Holonym to verify quickly with a bug-free experience.
+            Because of high demand, verification time may take up to 30+ minutes depending user device capabilities. We strongly recommend using the new version of Holonym to verify quickly with a smoother experience.
             <br/>
             <a 
               className="in-text-link" 
