@@ -35,7 +35,9 @@ function Banner() {
             {/* <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span>
               Your privacy is preserved by zero knowledge proofs and threshold encryption.
             <span style={{ color:'#2fd87a', padding: '10px', fontSize: '1.3rem' }}>{'\u2713'}</span> */}
-            Because of high demand, verification time may take up to 30+ minutes depending user device capabilities. We strongly recommend using the new version of Holonym to verify quickly with a smoother experience.
+            Because of high demand, verification time may take up to 30+ minutes depending on user device capabilities.{' '}
+            We strongly recommend using the new version of Holonym to verify quickly with a smoother experience.{' '}
+            The first 10,000 users will be able to mint Silk early adopter NFTs.
             <br/>
             <a 
               className="in-text-link" 
