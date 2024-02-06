@@ -92,14 +92,14 @@ export default function AnnouncementModal({ isVisible, setIsVisible }: {
         <div style={{ textAlign: "center", margin: "20px" }}>
           <h2>
             <span style={{ marginRight: '20px' }}>🎉</span>
-            Holonym has moved!
+            Holonym just got an upgrade!
             <span style={{ marginLeft: '20px' }}>🎉</span>
           </h2>
 
           <p style={{ fontSize: '16px' }}>
-            We launched a new version of Holonym that is faster and smoother. We reccomend using it{' '}
-            instead. However, you may still use the current version if you wish, as it will still be{' '}
-            functional for a year. 
+            The legacy Holonym app is experimental technology that pushed the boundaries of ZK identity.{' '}
+            It was not designed to handle massive numbers of daily new users. We’ve upgraded Holonym to{' '}
+            be 10x+ faster. We strongly recommend using Holonym v3 for a fast, easy, and bug-free experience. 
             {/* For more information see{' '}
             <a
               href="https://x.com/0xHolonym/status/something"
@@ -118,7 +118,7 @@ export default function AnnouncementModal({ isVisible, setIsVisible }: {
               rel="noreferrer"
               className="x-button primary"
             >
-              Open new Holonym
+              Verify Now Quickly and Easily
             </a>
           </div>
 
@@ -132,9 +132,9 @@ export default function AnnouncementModal({ isVisible, setIsVisible }: {
                 // do nothing
               }
             }}
-            style={{ marginTop: "20px", fontSize: '16px', padding: '10px' }}
+            style={{ marginTop: "20px", fontSize: '12px', padding: '10px' }}
           >
-            Ok
+            Continue to Legacy App (beware long load times)
           </button>
         </div>
       </Modal>
