@@ -41,7 +41,7 @@ function Banner() {
             <br/>
             <a 
               className="in-text-link" 
-              href="https://silksecure.net/holonym" 
+              href="https://silksecure.net/holonym/diff-wallet" 
               target="_blank" 
               rel="noreferrer"
             >

@@ -113,7 +113,7 @@ export default function AnnouncementModal({ isVisible, setIsVisible }: {
 
           <div style={{ marginTop: '60px', marginBottom: '60px' }}>
             <a
-              href="https://silksecure.net/holonym"
+              href="https://silksecure.net/holonym/diff-wallet"
               target="_blank"
               rel="noreferrer"
               className="x-button primary"
