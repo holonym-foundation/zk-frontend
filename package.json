@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && export NODE_OPTIONS=--max-old-space-size=16384 && vite build --outDir build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview --outDir build"
   },
   "dependencies": {
     "@datadog/browser-logs": "^4.45.0",
