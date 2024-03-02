@@ -102,7 +102,7 @@ function App() {
     ])
   }, []);
 
-  if (true) return <NotDesktop />
+  if (isMobile) return <NotDesktop />
   return (
     <Router>
       <RootProvider
