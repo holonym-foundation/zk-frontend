@@ -20,7 +20,30 @@ import { init } from "./utils/datadog";
 // and understanding why errors might be happening.
 init();
 
-const NotDesktop = () => <><h1>Please make sure you're on a desktop or laptop computer.</h1><h5>Mobile and other browsers aren't supported in the beta version</h5></>
+const NotDesktop = () => (
+  <div style={{ margin: '10px' }}>
+    {/* <h1>Please make sure you're on a desktop or laptop computer.</h1>
+    <h5>Mobile and other browsers aren't supported in the beta version</h5> */}
+
+    <p style={{ color: '#fff', fontSize: '16px' }}>
+      If you are on mobile, please use Holonym v3. The legacy Holonym app is experimental technology that pushed the boundaries of ZK identity.{' '}
+      It was not designed to handle massive numbers of daily new users. We&#39;ve upgraded Holonym to{' '}
+      be 10x+ faster. We strongly recommend using Holonym v3 for a fast, easy, and bug-free experience. 
+    </p>
+
+    <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+      <a
+        href="https://silksecure.net/holonym/diff-wallet"
+        target="_blank"
+        rel="noreferrer"
+        className="x-button primary"
+      >
+        Verify Now Quickly and Easily
+      </a>
+    </div>
+
+  </div>
+)
 
 const ConnectWalletFallback = () => {
   return (
@@ -79,7 +102,7 @@ function App() {
     ])
   }, []);
 
-  if (isMobile) return <NotDesktop />
+  if (true) return <NotDesktop />
   return (
     <Router>
       <RootProvider
