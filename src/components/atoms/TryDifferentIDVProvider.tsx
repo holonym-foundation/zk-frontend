@@ -13,10 +13,10 @@ const TryDifferentIDVProvider = () => {
       return decodedRetrievalEndpoint.split(`${idServerUrl}/`)[1].split("/")[0];
     } catch (err) {
       console.log(err);
-      return "idenfy";
+      return "onfido";
     }
   }, [searchParams]);
-  const otherProvider = idvProvider === "veriff" ? "idenfy" : "veriff";
+  const otherProvider = idvProvider === "veriff" ? "onfido" : "veriff";
 
   return (
     <div style={{ textAlign: "center" }}>
