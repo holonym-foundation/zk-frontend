@@ -12,6 +12,7 @@ import PhoneNumberIssuance from './components/issuance/PhoneNumberIssuance/Phone
 import ExternalIssuance from "./components/issuance/ExternalIssuance";
 import Register from './components/register';
 import OnChainProofs from "./components/prove/OnChainProofs";
+import SunsetNotice from "./components/SunsetNotice";
 
 const IssuanceOptions = lazy(() => import("./components/issuance/IssuanceOptions")); // good
 const ProofMenu = lazy(() => import("./components/prove/proof-menu")); // good
@@ -46,7 +47,11 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path={"/"} element={<Landing />} />
-      <Route path={"/issuance"} element={ComponentWithSuspense(IssuanceOptions)} />
+
+      {/* We have sunset issuance on this app. */}
+      <Route path="/issuance/*" element={<SunsetNotice />} />
+
+      {/* <Route path={"/issuance"} element={ComponentWithSuspense(IssuanceOptions)} />
 
       <Route path={"/issuance/idgov-prereqs"} element={ComponentWithSuspense(GovIDPaymentPrereqs)} />
       <Route path={"/issuance/idgov"} element={ComponentWithSuspense(GovIDRedirect)} />
@@ -58,18 +63,15 @@ export function AppRoutes() {
       <Route path={"/issuance/idgov-onfido"} element={<GovIDIssuanceOnfido />} />
       <Route path={"/issuance/idgov-onfido/:store"} element={<GovIDIssuanceOnfido />} />
       
-      <Route path={"/unsupported-country"} element={ComponentWithSuspense(UnsupportedCountryPage)} />
-
       <Route path={"/issuance/phone-prereqs"} element={ComponentWithSuspense(PhonePaymentPrereqs)} />
       <Route path={"/issuance/phone"} element={ComponentWithSuspense(PhoneNumberRedirect)} />
       <Route path={"/issuance/phone-confirm-reverify"} element={ComponentWithSuspense(PhoneConfirmReverify)} />
       <Route path={"/issuance/phone-verify"} element={<PhoneNumberIssuance />} />
-      <Route path={"/issuance/phone-verify/:store"} element={<PhoneNumberIssuance />} />
+      <Route path={"/issuance/phone-verify/:store"} element={<PhoneNumberIssuance />} /> */}
       
-      {/* <Route path={"/issuance/med"} element={ComponentWithSuspense(MedicalCredentialsIssuance)} />
-      <Route path={"/issuance/med/:store"} element={ComponentWithSuspense(MedicalCredentialsIssuance)} /> */}
-      
-      <Route path={"/issuance/external/:store"} element={<ExternalIssuance />} />
+      <Route path={"/unsupported-country"} element={ComponentWithSuspense(UnsupportedCountryPage)} />
+
+      {/* <Route path={"/issuance/external/:store"} element={<ExternalIssuance />} /> */}
       <Route path={"/prove"} element={ComponentWithSuspense(ProofMenu)} />
       {/* For when there are actionIds and callbacks (right now, this feature is used by the uniqueness proof) */}
       <Route path={"/prove/:proofType/:actionId/:callback"} element={<OnChainProofs />} />
